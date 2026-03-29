@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: recruitment
+    // Fields:
+    //   - name: string (required, 1-50 chars)
+    //   - studentId: string (required, 1-20 chars)
+    //   - majorClass: string (required, 1-50 chars)
+    //   - phone: string (required, 1-20 chars)
+    //   - intro: string (required, 1-1000 chars)
+    //   - createdAt: string (required, ISO 8601 format)
+    //
+    // Collection: messages
+    // Fields:
+    //   - name: string (required, 1-50 chars)
+    //   - email: string (required, valid email format)
+    //   - subject: string (required, 1-100 chars)
+    //   - content: string (required, 1-1000 chars)
+    //   - createdAt: string (required, ISO 8601 format)
+    //
+    // Collection: users
+    // Fields:
+    //   - name: string (required, 1-50 chars)
+    //   - email: string (required, valid email format)
+    //   - role: string (required, 'admin' or 'user')
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "azholsen5@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidRecruitment(data) {
+      return hasOnlyAllowedFields(['name', 'studentId', 'majorClass', 'phone', 'intro', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             data.studentId is string && data.studentId.size() >= 1 && data.studentId.size() <= 20 &&
+             data.majorClass is string && data.majorClass.size() >= 1 && data.majorClass.size() <= 50 &&
+             data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 20 &&
+             data.intro is string && data.intro.size() >= 1 && data.intro.size() <= 1000 &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidMessage(data) {
+      return hasOnlyAllowedFields(['name', 'email', 'subject', 'content', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             isValidEmail(data.email) &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 1000 &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['name', 'email', 'role']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             isValidEmail(data.email) &&
+             data.role in ['admin', 'user'];
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /recruitment/{id} {
+      allow create: if isValidRecruitment(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /messages/{id} {
+      allow create: if isValidMessage(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Deny all other access
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "recruitment": {
+      "title": "招新报名",
+      "description": "星河科技创新协会招新报名信息",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "姓名" },
+        "studentId": { "type": "string", "description": "学号" },
+        "majorClass": { "type": "string", "description": "专业班级" },
+        "phone": { "type": "string", "description": "联系电话" },
+        "intro": { "type": "string", "description": "个人简介/特长" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "提交时间" }
+      },
+      "required": ["name", "studentId", "majorClass", "phone", "intro", "createdAt"]
+    },
+    "messages": {
+      "title": "联系留言",
+      "description": "星河科技创新协会联系留言信息",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "姓名" },
+        "email": { "type": "string", "description": "电子邮箱" },
+        "subject": { "type": "string", "description": "主题" },
+        "content": { "type": "string", "description": "留言内容" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "提交时间" }
+      },
+      "required": ["name", "email", "subject", "content", "createdAt"]
+    },
+    "users": {
+      "title": "用户",
+      "description": "系统用户信息",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "姓名" },
+        "email": { "type": "string", "description": "电子邮箱" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "角色" }
+      },
+      "required": ["name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/recruitment/{id}": {
+      "schema": "recruitment",
+      "description": "招新报名集合"
+    },
+    "/messages/{id}": {
+      "schema": "messages",
+      "description": "联系留言集合"
+    },
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "用户集合"
+    }
+  }
+}
