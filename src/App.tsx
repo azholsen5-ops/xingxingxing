@@ -264,7 +264,6 @@ function App() {
     const loadingOverlayRef = useRef<HTMLDivElement>(null);
     const hallOfFameRef = useRef<HTMLDivElement>(null);
     const horizontalScrollRef = useRef<HTMLDivElement>(null);
-    const spacerRef = useRef<HTMLDivElement>(null);
     const experienceRef = useRef<HTMLElement>(null);
     const scribbleRef = useRef<SVGSVGElement>(null);
     const styleTransitionRef = useRef<HTMLDivElement>(null);
@@ -454,32 +453,14 @@ function App() {
                     }
 
                     const scrollDistance = Math.max(0, scrollWidth - windowWidth);
-                    const totalDuration = scrollDistance + windowHeight;
                     
-                    if (spacerRef.current) {
-                        spacerRef.current.style.height = `${scrollDistance}px`;
-                        spacerRef.current.style.display = 'block';
-                    }
-
-                    // Pin Experience section so Achievements can slide over it
-                    ScrollTrigger.create({
-                        trigger: experienceRef.current,
-                        start: "top top",
-                        endTrigger: hallOfFameRef.current,
-                        end: "top top",
-                        pin: true,
-                        pinSpacing: false,
-                        id: "experience-pin",
-                        invalidateOnRefresh: true
-                    });
-
                     // Pin the Achievements section
                     ScrollTrigger.create({
                         trigger: hallOfFameRef.current,
                         start: "top top",
-                        end: () => `+=${totalDuration}`,
+                        end: () => `+=${scrollDistance}`,
                         pin: true,
-                        pinSpacing: false,
+                        pinSpacing: true,
                         invalidateOnRefresh: true,
                         id: "achievements-pin"
                     });
@@ -1521,41 +1502,57 @@ function App() {
             </section>
 
             {/* 5. Style */}
-            <section id="style" className="page-section bg-white relative overflow-hidden">
+            <section id="style" className="relative overflow-hidden">
+                <div className="topo-bg opacity-20"></div>
                 <div className="style-bg-text">TEAM STYLE</div>
-                <div className="container reveal">
+                <div className="container relative z-10 reveal">
                     <div className="section-header">
                         <h2>{t[lang].nav_style}</h2>
                         <div className="line"></div>
                         <p className="text-gray-500 mt-4 max-w-2xl mx-auto">记录团队成长的每一个瞬间，从技术研讨到荣誉时刻，我们并肩作战，共同成长。</p>
                     </div>
-                    <div className="bento-grid">
-                        <div className="bento-item bento-1">
-                            <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEwRzV.jpg" alt="技术研讨会" />
-                            <div className="bento-overlay">
-                                <div className="bento-title">技术研讨会</div>
-                                <div className="bento-desc">深入探讨碱性电池技术细节，碰撞思维火花。</div>
+                    <div className="flex flex-wrap justify-center gap-20 py-20">
+                        <div className="bento-item w-[400px] aspect-video relative group reveal" style={{ transform: 'rotate(-2deg)' }}>
+                            <span className="lando-label">TECHNICAL SEMINAR, 2024</span>
+                            <div className="lando-img-container h-full">
+                                <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEwRzV.jpg" alt="技术研讨会" />
+                            </div>
+                            <div className="mt-4">
+                                <div className="text-lg font-black tracking-tight">技术研讨会</div>
+                                <div className="text-xs opacity-50">深入探讨碱性电池技术细节，碰撞思维火花。</div>
                             </div>
                         </div>
-                        <div className="bento-item bento-2">
-                            <img loading="lazy" src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800" alt="项目答辩现场" />
-                            <div className="bento-overlay">
-                                <div className="bento-title">项目答辩现场</div>
-                                <div className="bento-desc">自信展示研究成果，接受专家评审。</div>
+                        
+                        <div className="bento-item w-[500px] aspect-video relative group reveal mt-20" style={{ transform: 'rotate(3deg)' }}>
+                            <span className="lando-label">PROJECT DEFENSE, 2024</span>
+                            <div className="lando-img-container h-full">
+                                <img loading="lazy" src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800" alt="项目答辩现场" />
+                            </div>
+                            <div className="mt-4">
+                                <div className="text-lg font-black tracking-tight">项目答辩现场</div>
+                                <div className="text-xs opacity-50">自信展示研究成果，接受专家评审。</div>
                             </div>
                         </div>
-                        <div className="bento-item bento-3">
-                            <img loading="lazy" src="https://images.unsplash.com/photo-1523240715632-09c63b1368e9?auto=format&fit=crop&q=80&w=400" alt="团建活动" />
-                            <div className="bento-overlay">
-                                <div className="bento-title">团建活动</div>
-                                <div className="bento-desc">释放压力，增强团队凝聚力。</div>
+
+                        <div className="bento-item w-[350px] aspect-square relative group reveal -mt-10" style={{ transform: 'rotate(-1deg)' }}>
+                            <span className="lando-label">TEAM BUILDING, 2024</span>
+                            <div className="lando-img-container h-full">
+                                <img loading="lazy" src="https://images.unsplash.com/photo-1523240715632-09c63b1368e9?auto=format&fit=crop&q=80&w=400" alt="团建活动" />
+                            </div>
+                            <div className="mt-4">
+                                <div className="text-lg font-black tracking-tight">团建活动</div>
+                                <div className="text-xs opacity-50">释放压力，增强团队凝聚力。</div>
                             </div>
                         </div>
-                        <div className="bento-item bento-4">
-                            <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEw8VH.jpg" alt="荣誉合影" />
-                            <div className="bento-overlay">
-                                <div className="bento-title">荣誉合影</div>
-                                <div className="bento-desc">汗水换来硕果，记录光荣时刻。</div>
+
+                        <div className="bento-item w-[600px] aspect-video relative group reveal mt-10" style={{ transform: 'rotate(1.5deg)' }}>
+                            <span className="lando-label">HONORARY PHOTO, 2024</span>
+                            <div className="lando-img-container h-full">
+                                <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEw8VH.jpg" alt="荣誉合影" />
+                            </div>
+                            <div className="mt-4">
+                                <div className="text-lg font-black tracking-tight">荣誉合影</div>
+                                <div className="text-xs opacity-50">汗水换来硕果，记录光荣时刻。</div>
                             </div>
                         </div>
                     </div>
@@ -1563,11 +1560,12 @@ function App() {
             </section>
 
             {/* 6. Experience */}
-            <section id="experience" ref={experienceRef} className="page-section bg-gray overflow-hidden pb-20 relative">
-                <div className="container relative reveal">
+            <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
+                <div className="topo-bg opacity-20"></div>
+                <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
-                        <h2 className="text-5xl font-black tracking-tighter">{t[lang].experience_title}</h2>
-                        <div className="line w-20 h-1.5 bg-blue-600 mt-4"></div>
+                        <h2 className="text-5xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
+                        <div className="line w-20 h-1.5 bg-[#e1ff00] mt-4"></div>
                     </div>
 
                     <div className="experience-timeline relative">
@@ -1582,18 +1580,18 @@ function App() {
                                     <div className="text-blue-600 font-bold text-xl mt-2">NO.01 / SPRING</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-white p-10 rounded-3xl shadow-xl border border-gray-50 hover:border-blue-200 transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
                                             <Trophy size={32} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">学业规划</span>
-                                                <span className="text-gray-400 text-sm">分享人：路鹏</span>
+                                                <span className="px-3 py-1 bg-[#e1ff00]/20 text-[#e1ff00] text-xs font-bold rounded-full">学业规划</span>
+                                                <span className="text-white/40 text-sm">分享人：路鹏</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-gray-800">《大学规划经验分享会》</h4>
-                                            <p className="text-gray-500 leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
+                                            <h4 className="text-2xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
+                                            <p className="text-white/60 leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1606,18 +1604,18 @@ function App() {
                                     <div className="text-blue-600 font-bold text-xl mt-2">NO.02 / SUMMER</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-white p-10 rounded-3xl shadow-xl border border-gray-50 hover:border-blue-200 transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
                                             <Laptop size={32} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">技能提升</span>
-                                                <span className="text-gray-400 text-sm">分享人：徐榕浩</span>
+                                                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full">技能提升</span>
+                                                <span className="text-white/40 text-sm">分享人：徐榕浩</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-gray-800">《数学建模与Matlab应用》</h4>
-                                            <p className="text-gray-500 leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
+                                            <h4 className="text-2xl font-bold mb-3 text-white">《数学建模与Matlab应用》</h4>
+                                            <p className="text-white/60 leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1630,18 +1628,18 @@ function App() {
                                     <div className="text-blue-600 font-bold text-xl mt-2">NO.03 / WINTER</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-white p-10 rounded-3xl shadow-xl border border-gray-50 hover:border-blue-200 transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
                                             <MessageCircle size={32} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">团队建设</span>
-                                                <span className="text-gray-400 text-sm">分享人：贺诗雨</span>
+                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full">团队建设</span>
+                                                <span className="text-white/40 text-sm">分享人：贺诗雨</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-gray-800">《高效团队协作与沟通》</h4>
-                                            <p className="text-gray-500 leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
+                                            <h4 className="text-2xl font-bold mb-3 text-white">《高效团队协作与沟通》</h4>
+                                            <p className="text-white/60 leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1655,10 +1653,10 @@ function App() {
             <section 
                 id="achievements" 
                 ref={hallOfFameRef} 
-                className="hall-of-fame-lando relative shadow-[0_-40px_100px_rgba(0,0,0,0.2)] border-t border-white/10 min-h-screen w-full"
+                className="hall-of-fame-lando relative min-h-screen w-full"
                 style={{ backgroundColor: '#8c907e' }}
             >
-                <div className="topo-bg"></div>
+                <div className="topo-bg opacity-30"></div>
                 
                 {/* Scribble Animation Overlay - 精致比例版 */}
                 <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-20">
@@ -1729,8 +1727,8 @@ function App() {
 
                     {/* Block 2: Image 1 (Qatar) */}
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.3">
-                        <span className="lando-label">QATAR, 2024</span>
-                        <div className="lando-img-container w-[450px] aspect-[3/4]">
+                        <span className="lando-label">NATIONAL AWARD, 2024</span>
+                        <div className="lando-img-container w-[600px] aspect-video">
                             <img src="https://s41.ax1x.com/2026/03/12/peAptG4.jpg" alt="Award 1" referrerPolicy="no-referrer" />
                         </div>
                     </div>
@@ -1738,7 +1736,7 @@ function App() {
                     {/* Block 3: Quote 1 */}
                     <div className="lando-quote-block lando-item-down parallax-layer" data-speed="0.05">
                         <p className="lando-quote-text">
-                            It doesn't matter where you start, it's how you progress from there.
+                            创新是引领发展的第一动力，星河人永远在路上。
                         </p>
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-[1px] bg-[#e1ff00]"></div>
@@ -1748,7 +1746,7 @@ function App() {
 
                     {/* Block 4: Image 2 (Miami) */}
                     <div className="lando-item lando-item-center parallax-layer" data-speed="-0.15">
-                        <span className="lando-label">MIAMI GP, 2024</span>
+                        <span className="lando-label">PROVINCIAL FIRST PRIZE, 2024</span>
                         <div className="lando-img-container w-[720px] aspect-video">
                             <img src="https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200" alt="Award 2" referrerPolicy="no-referrer" />
                         </div>
@@ -1756,16 +1754,16 @@ function App() {
 
                     {/* Block 5: Image 3 (Monaco) */}
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.5">
-                        <span className="lando-label">MONACO, 2024</span>
-                        <div className="lando-img-container w-[360px] aspect-square">
+                        <span className="lando-label">INNOVATION EXCELLENCE, 2024</span>
+                        <div className="lando-img-container w-[500px] aspect-[16/9]">
                             <img src="https://s41.ax1x.com/2026/03/12/peApuxs.jpg" alt="Award 3" referrerPolicy="no-referrer" />
                         </div>
                     </div>
 
                     {/* Block 6: Image 4 (Britain) */}
                     <div className="lando-item lando-item-down parallax-layer" data-speed="0.2">
-                        <span className="lando-label">BRITAIN, 2025</span>
-                        <div className="lando-img-container w-[550px] aspect-[4/3]">
+                        <span className="lando-label">OUTSTANDING TEAM, 2025</span>
+                        <div className="lando-img-container w-[650px] aspect-video">
                             <img src="https://s41.ax1x.com/2026/03/12/peApMMn.jpg" alt="Award 4" referrerPolicy="no-referrer" />
                         </div>
                     </div>
@@ -1787,32 +1785,32 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Block 8: Helmets Hall of Fame Grid (2 Rows) */}
+                    {/* Block 8: Honors & Certificates Hall of Fame Grid (2 Rows) */}
                     <div className="flex-shrink-0 ml-40 mr-40 flex flex-col justify-center">
                         <div className="mb-12">
-                            <h3 className="text-sm font-black tracking-[0.3em] uppercase opacity-60 mb-2">HELMETS</h3>
-                            <h2 className="text-6xl font-black tracking-tighter">HALL OF FAME</h2>
+                            <h3 className="text-sm font-black tracking-[0.3em] uppercase opacity-60 mb-2">CERTIFICATES</h3>
+                            <h2 className="text-6xl font-black tracking-tighter">HONORS & AWARDS</h2>
                         </div>
                         
                         <div className="grid grid-rows-2 grid-flow-col gap-6 h-[600px]">
                             {[
-                                { id: 1, name: "Qatar 2024", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
-                                { id: 2, name: "Miami 2024", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600" },
-                                { id: 3, name: "Monaco 2024", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
-                                { id: 4, name: "Britain 2025", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" },
-                                { id: 5, name: "Australia 2025", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600" },
-                                { id: 6, name: "Japan 2024", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
-                                { id: 7, name: "Singapore 2024", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
-                                { id: 8, name: "Brazil 2024", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" }
-                            ].map((helmet) => (
-                                <div key={helmet.id} className="w-[300px] bg-black/20 rounded-2xl p-6 border border-white/5 hover:bg-black/30 transition-all group cursor-pointer">
-                                    <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-black/40">
-                                        <img src={helmet.img} alt={helmet.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+                                { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
+                                { id: 2, name: "省级一等奖", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600" },
+                                { id: 3, name: "创新杯金奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
+                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" },
+                                { id: 5, name: "技术突破奖", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600" },
+                                { id: 6, name: "专利授权证书", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
+                                { id: 7, name: "社会实践奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
+                                { id: 8, name: "学术论文奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" }
+                            ].map((award) => (
+                                <div key={award.id} className="w-[400px] bg-black/20 rounded-2xl p-6 border border-white/5 hover:bg-black/30 transition-all group cursor-pointer">
+                                    <div className="aspect-video mb-4 overflow-hidden rounded-xl bg-black/40">
+                                        <img src={award.img} alt={award.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                                     </div>
                                     <div className="flex justify-between items-end">
                                         <div>
-                                            <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">Helmet</p>
-                                            <h4 className="text-lg font-black tracking-tight">{helmet.name}</h4>
+                                            <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">Certificate</p>
+                                            <h4 className="text-lg font-black tracking-tight">{award.name}</h4>
                                         </div>
                                         <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#e1ff00] group-hover:border-[#e1ff00] group-hover:text-black transition-all">
                                             <ArrowRight size={14} />
@@ -1824,10 +1822,10 @@ function App() {
                         
                         <div className="mt-12 flex items-center gap-8">
                             <p className="text-sm opacity-60 max-w-md">
-                                From his iconic blobs to innovative one-off designs, Lando has always been passionate about designing innovative and memorable helmets.
+                                每一份荣誉都是团队汗水的结晶，记录着我们在科技创新道路上的每一个坚实足迹。
                             </p>
                             <button className="px-8 py-4 bg-white text-black font-black text-xs tracking-widest uppercase rounded-full hover:bg-[#e1ff00] transition-colors">
-                                View on Track
+                                查看更多成果
                             </button>
                         </div>
                     </div>
@@ -1926,50 +1924,58 @@ function App() {
                 )}
             
             {/* Spacer to account for pinned Achievements section when pinSpacing is false */}
-            <div ref={spacerRef} className="scroll-spacer" style={{ pointerEvents: 'none', position: 'relative', zIndex: 0, backgroundColor: 'transparent' }}></div>
 
-            <div className="subsequent-content-wrapper relative bg-white">
+            <div className="subsequent-content-wrapper relative">
                 {/* 7.5 News & Events */}
-                <section id="news" className="page-section bg-white min-h-screen">
-                <div className="container">
+                <section id="news" className="relative overflow-hidden min-h-screen">
+                    <div className="topo-bg opacity-20"></div>
+                    <div className="container relative z-10">
                     <div className="section-header">
                         <h2>动态资讯</h2>
                         <div className="line"></div>
                         <p className="text-gray-500 mt-4">实时掌握协会最新动态，不错过任何精彩瞬间。</p>
                     </div>
                     
-                    <div className="news-grid">
-                        <div className="news-card">
-                            <div className="news-image">
-                                <img loading="lazy" src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800" alt="招新活动现场" />
+                    <div className="flex flex-col gap-32 py-20">
+                        <div className="news-card flex flex-col md:flex-row items-center gap-12 reveal" style={{ transform: 'rotate(1deg)' }}>
+                            <div className="md:w-1/2">
+                                <span className="lando-label">LATEST NEWS / 2026.03.15</span>
+                                <div className="lando-img-container aspect-video">
+                                    <img loading="lazy" src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800" alt="招新活动现场" />
+                                </div>
                             </div>
-                            <div className="news-content">
-                                <div className="news-date">2026.03.15</div>
-                                <h4 className="news-title">星河科技创新协会2026春季招新正式启动</h4>
-                                <p className="news-excerpt">新学期，新起点！星河科创协会面向全校招募热爱科技、勇于创新的你。加入我们，共同探索安全科技的星辰大海。</p>
-                                <a href="https://mp.weixin.qq.com/s/hyQJXvFv8imqWwcZDaGPHw" target="_blank" rel="noopener noreferrer" className="news-more">阅读更多 <ChevronRight size={16} /></a>
-                            </div>
-                        </div>
-                        <div className="news-card">
-                            <div className="news-image">
-                                <img loading="lazy" src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800" alt="挑战杯获奖合影" />
-                            </div>
-                            <div className="news-content">
-                                <div className="news-date">2026.03.10</div>
-                                <h4 className="news-title">我院学生在“挑战杯”省级选拔赛中斩获佳绩</h4>
-                                <p className="news-excerpt">由星河协会成员组成的参赛团队凭借“智能矿山预警系统”在省级选拔赛中脱颖而出，成功晋级国赛。</p>
-                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_2" target="_blank" rel="noopener noreferrer" className="news-more">阅读更多 <ChevronRight size={16} /></a>
+                            <div className="md:w-1/2">
+                                <h4 className="text-4xl font-black tracking-tighter mb-4">星河科技创新协会2026春季招新正式启动</h4>
+                                <p className="text-white/60 leading-relaxed mb-6">新学期，新起点！星河科创协会面向全校招募热爱科技、勇于创新的你。加入我们，共同探索安全科技的星辰大海。</p>
+                                <a href="https://mp.weixin.qq.com/s/hyQJXvFv8imqWwcZDaGPHw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
-                        <div className="news-card">
-                            <div className="news-image">
-                                <img loading="lazy" src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800" alt="AI+安全技术沙龙" />
+
+                        <div className="news-card flex flex-col md:flex-row-reverse items-center gap-12 reveal" style={{ transform: 'rotate(-1.5deg)' }}>
+                            <div className="md:w-1/2">
+                                <span className="lando-label">ACHIEVEMENT / 2026.03.10</span>
+                                <div className="lando-img-container aspect-video">
+                                    <img loading="lazy" src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800" alt="挑战杯获奖合影" />
+                                </div>
                             </div>
-                            <div className="news-content">
-                                <div className="news-date">2026.03.05</div>
-                                <h4 className="news-title">协会成功举办“AI+安全”专题技术沙龙</h4>
-                                <p className="news-excerpt">本次沙龙邀请了多位行业专家，共同探讨人工智能技术在现代安全生产中的深度应用与未来趋势。</p>
-                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_3" target="_blank" rel="noopener noreferrer" className="news-more">阅读更多 <ChevronRight size={16} /></a>
+                            <div className="md:w-1/2 text-right">
+                                <h4 className="text-4xl font-black tracking-tighter mb-4">我院学生在“挑战杯”省级选拔赛中斩获佳绩</h4>
+                                <p className="text-white/60 leading-relaxed mb-6">由星河协会成员组成的参赛团队凭借“智能矿山预警系统”在省级选拔赛中脱颖而出，成功晋级国赛。</p>
+                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 justify-end text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
+                            </div>
+                        </div>
+
+                        <div className="news-card flex flex-col md:flex-row items-center gap-12 reveal" style={{ transform: 'rotate(0.5deg)' }}>
+                            <div className="md:w-1/2">
+                                <span className="lando-label">TECH SALON / 2026.03.05</span>
+                                <div className="lando-img-container aspect-video">
+                                    <img loading="lazy" src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800" alt="AI+安全技术沙龙" />
+                                </div>
+                            </div>
+                            <div className="md:w-1/2">
+                                <h4 className="text-4xl font-black tracking-tighter mb-4">协会成功举办“AI+安全”专题技术沙龙</h4>
+                                <p className="text-white/60 leading-relaxed mb-6">本次沙龙邀请了多位行业专家，共同探讨人工智能技术在现代安全生产中的深度应用与未来趋势。</p>
+                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_3" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
                     </div>

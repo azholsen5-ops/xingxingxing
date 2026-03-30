@@ -12,11 +12,14 @@
     --f-serif: 'Playfair Display', serif;
 }
 
-/* Stacking Sections - Layered transitions */
-#experience { z-index: 10; position: relative; }
-#achievements { z-index: 20; position: relative; }
-.subsequent-content-wrapper { z-index: 30; position: relative; }
-#news, #members, #join, #contact, footer { position: relative; background: #fff; }
+#experience { 
+    position: relative; 
+    background-color: #8c907e; 
+    color: #fff;
+}
+#achievements { position: relative; }
+.subsequent-content-wrapper { position: relative; }
+#members, #join, #contact, footer { position: relative; background: #fff; }
 #join { background: #000; }
 
 #news {
@@ -1338,10 +1341,117 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     transform: translateY(0);
 }
 
-.bento-1 { grid-column: span 2; grid-row: span 2; }
-.bento-2 { grid-column: span 2; grid-row: span 1; }
-.bento-3 { grid-column: span 1; grid-row: span 1; }
-.bento-4 { grid-column: span 1; grid-row: span 1; }
+/* --- Style Section Unified --- */
+#style {
+    background-color: #8c907e;
+    color: #fff;
+    padding-top: 10vh;
+    padding-bottom: 10vh;
+}
+
+#style .section-header h2 {
+    color: #fff;
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+}
+
+#style .section-header .line {
+    background-color: #e1ff00;
+}
+
+#style .section-header p {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#style .bento-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#style .bento-title {
+    color: #e1ff00;
+}
+
+/* --- News Section Unified --- */
+#news {
+    background-color: #8c907e;
+    color: #fff;
+    padding-top: 10vh;
+    padding-bottom: 20vh;
+}
+
+#news .section-header h2 {
+    color: #fff;
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+}
+
+#news .section-header .line {
+    background-color: #e1ff00;
+}
+
+#news .section-header p {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#news .news-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+#news .news-title {
+    color: #fff;
+}
+
+#news .news-date {
+    color: #e1ff00;
+}
+
+#news .news-excerpt {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#news .news-more {
+    color: #e1ff00;
+}
+
+/* --- Achievements / Hall of Fame Refinements --- */
+.hall-of-fame-lando {
+    box-shadow: none;
+    border-top: none;
+}
+
+.lando-img-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.lando-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Ensure certificates are fully visible */
+    background: #000; /* Black background for contain letterboxing */
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lando-img-container:hover img {
+    transform: scale(1.05);
+}
+
+.lando-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+}
 
 /* --- Style Transition Section --- */
 .style-transition-section {
