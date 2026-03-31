@@ -311,6 +311,9 @@ function App() {
             footer_recruit: "招新纳贤", footer_requirements: "招新要求", footer_apply: "报名方式", footer_questions: "常见问题",
             footer_privacy: "隐私政策", footer_terms: "使用条款", footer_sitemap: "网站地图",
             modal_awards: "获奖情况",
+            style_big_text: "重定义极限，为胜利而战，<br/>全方位投入。在创新赛道上，<br/>定义属于我们的传奇。",
+            style_quote: "创新是引领发展的第一动力，星河人永远在路上。",
+            style_final_text: "自协会成立以来，我们怀揣着对科技的热爱，<br/>不懈努力，只为将每一个创新的梦想变为现实。",
             three_top: "星河科技创新协会<br/>Xinghe Sci-Tech<br/>Innovation Association<br/><span class='neon-blue'>探索未知，链接未来。</span>",
             three_bottom: "<div class='text-right'><span class='block text-3xl mb-2'>用科技</span><span class='block text-6xl font-black'>创造<span class='text-blue-400'>星辰大海</span></span></div>"
         },
@@ -346,6 +349,9 @@ function App() {
             footer_recruit: "Recruitment", footer_requirements: "Requirements", footer_apply: "How to Apply", footer_questions: "FAQ",
             footer_privacy: "Privacy Policy", footer_terms: "Terms of Use", footer_sitemap: "Sitemap",
             modal_awards: "Awards",
+            style_big_text: "REDEFINING LIMITS, FIGHTING FOR <span class='text-blue-400'>WINS</span>, <br/>BRINGING IT ALL IN ALL WAYS. DEFINING A <br/><span class='text-blue-400'> LEGACY</span> IN FORMULA 1 ON AND OFF THE TRACK.",
+            style_quote: "Innovation is the primary driver of development; Xinghe people are always on the road.",
+            style_final_text: "SINCE THE ASSOCIATION WAS FOUNDED, WE HAVE CARRIED A LOVE FOR TECHNOLOGY, <br/>WORKING TIRELESSLY TO MAKE EVERY INNOVATIVE DREAM COME TRUE.",
             three_top: "Xinghe Sci-Tech<br/>Innovation Association<br/><span class='neon-blue'>Explore the unknown, link the future.</span>",
             three_bottom: "<div class='text-right'><span class='block text-3xl mb-2'>Create the <span class='text-blue-400'>Sea of Stars</span></span><span class='block text-6xl font-black'>with Technology</span></div>"
         }
@@ -1466,12 +1472,12 @@ function App() {
                         <div className="container hall-content relative">
                             <div className="absolute top-0 right-0 pointer-events-none z-10 opacity-20">
                                 <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path className="scribble-animate" d="M50 150C100 50 200 250 250 150C300 50 350 250 380 150" stroke="#e1ff00" strokeWidth="10" strokeLinecap="round" />
+                                    <path className="scribble-animate" d="M50 150C100 50 200 250 250 150C300 50 350 250 380 150" stroke="#39FF14" strokeWidth="100" strokeLinecap="round" />
                                 </svg>
                             </div>
                             <div className="hall-title-huge reveal font-black tracking-tighter leading-[0.8] mb-12 whitespace-nowrap">
                                 {t[lang].nav_advisor}<br/>
-                                <span className="text-[#e1ff00]">ADVISORS</span>
+                                <span className="text-[#39FF14]">ADVISORS</span>
                             </div>
                             
                             <p className="text-blue-400 font-mono tracking-[0.3em] uppercase text-sm mb-12 reveal">
@@ -1570,7 +1576,7 @@ function App() {
                                 <path
                                     id="style-signature"
                                     className="style-transition-scribble-path"
-                                    stroke="#e1ff00" 
+                                    stroke="#39FF14" 
                                     strokeWidth="100"
                                     strokeLinecap="round" 
                                     strokeLinejoin="round"
@@ -1610,8 +1616,8 @@ function App() {
                                 <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEwRzV.jpg" alt="技术研讨会" />
                             </div>
                             <div className="mt-4">
-                                <div className="text-lg font-black tracking-tight">技术研讨会</div>
-                                <div className="text-xs opacity-50">深入探讨碱性电池技术细节，碰撞思维火花。</div>
+                                <div className="text-base font-black tracking-tight">技术研讨会</div>
+                                <div className="text-[10px] opacity-50">深入探讨碱性电池技术细节，碰撞思维火花。</div>
                             </div>
                         </div>
                         
@@ -1621,8 +1627,8 @@ function App() {
                                 <img loading="lazy" src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800" alt="项目答辩现场" />
                             </div>
                             <div className="mt-4">
-                                <div className="text-lg font-black tracking-tight">项目答辩现场</div>
-                                <div className="text-xs opacity-50">自信展示研究成果，接受专家评审。</div>
+                                <div className="text-base font-black tracking-tight">项目答辩现场</div>
+                                <div className="text-[10px] opacity-50">自信展示研究成果，接受专家评审。</div>
                             </div>
                         </div>
 
@@ -1632,8 +1638,8 @@ function App() {
                                 <img loading="lazy" src="https://images.unsplash.com/photo-1523240715632-09c63b1368e9?auto=format&fit=crop&q=80&w=400" alt="团建活动" />
                             </div>
                             <div className="mt-4">
-                                <div className="text-lg font-black tracking-tight">团建活动</div>
-                                <div className="text-xs opacity-50">释放压力，增强团队凝聚力。</div>
+                                <div className="text-base font-black tracking-tight">团建活动</div>
+                                <div className="text-[10px] opacity-50">释放压力，增强团队凝聚力。</div>
                             </div>
                         </div>
 
@@ -1643,8 +1649,8 @@ function App() {
                                 <img loading="lazy" src="https://s41.ax1x.com/2026/03/14/peEw8VH.jpg" alt="荣誉合影" />
                             </div>
                             <div className="mt-4">
-                                <div className="text-lg font-black tracking-tight">荣誉合影</div>
-                                <div className="text-xs opacity-50">汗水换来硕果，记录光荣时刻。</div>
+                                <div className="text-base font-black tracking-tight">荣誉合影</div>
+                                <div className="text-[10px] opacity-50">汗水换来硕果，记录光荣时刻。</div>
                             </div>
                         </div>
                     </div>
@@ -1656,8 +1662,8 @@ function App() {
                 <div className="topo-bg opacity-20"></div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
-                        <h2 className="text-5xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
-                        <div className="line w-20 h-1.5 bg-[#e1ff00] mt-4"></div>
+                        <h2 className="text-3xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
+                        <div className="line w-20 h-1.5 bg-[#39FF14] mt-4"></div>
                     </div>
 
                     <div className="experience-timeline relative">
@@ -1668,22 +1674,22 @@ function App() {
                             {/* Item 1 */}
                             <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
                                 <div className="experience-date md:w-1/2 md:text-right">
-                                    <span className="text-8xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
-                                    <div className="text-blue-600 font-bold text-xl mt-2">NO.01 / SPRING</div>
+                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
+                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.01 / SPRING</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
                                             <Trophy size={32} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-[#e1ff00]/20 text-[#e1ff00] text-xs font-bold rounded-full">学业规划</span>
+                                                <span className="px-3 py-1 bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold rounded-full">学业规划</span>
                                                 <span className="text-white/40 text-sm">分享人：路鹏</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
-                                            <p className="text-white/60 leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
+                                            <h4 className="text-xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
+                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1692,13 +1698,13 @@ function App() {
                             {/* Item 2 */}
                             <div className="experience-item relative flex flex-col md:flex-row-reverse items-center gap-12">
                                 <div className="experience-date md:w-1/2 text-left">
-                                    <span className="text-8xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
-                                    <div className="text-blue-600 font-bold text-xl mt-2">NO.02 / SUMMER</div>
+                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
+                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.02 / SUMMER</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
                                             <Laptop size={32} />
                                         </div>
                                         <div className="flex-1">
@@ -1706,8 +1712,8 @@ function App() {
                                                 <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full">技能提升</span>
                                                 <span className="text-white/40 text-sm">分享人：徐榕浩</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-white">《数学建模与Matlab应用》</h4>
-                                            <p className="text-white/60 leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
+                                            <h4 className="text-xl font-bold mb-3 text-white">《数学建模与Matlab应用》</h4>
+                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1716,13 +1722,13 @@ function App() {
                             {/* Item 3 */}
                             <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
                                 <div className="experience-date md:w-1/2 md:text-right">
-                                    <span className="text-8xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2024</span>
-                                    <div className="text-blue-600 font-bold text-xl mt-2">NO.03 / WINTER</div>
+                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2024</span>
+                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.03 / WINTER</div>
                                 </div>
                                 <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#e1ff00] transition-all group">
+                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
                                     <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#e1ff00] group-hover:bg-[#e1ff00] group-hover:text-black transition-colors duration-500">
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
                                             <MessageCircle size={32} />
                                         </div>
                                         <div className="flex-1">
@@ -1730,8 +1736,8 @@ function App() {
                                                 <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full">团队建设</span>
                                                 <span className="text-white/40 text-sm">分享人：贺诗雨</span>
                                             </div>
-                                            <h4 className="text-2xl font-bold mb-3 text-white">《高效团队协作与沟通》</h4>
-                                            <p className="text-white/60 leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
+                                            <h4 className="text-xl font-bold mb-3 text-white">《高效团队协作与沟通》</h4>
+                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1762,7 +1768,7 @@ function App() {
                             <path
                                 id="xinghe-signature"
                                 className="scribble-animate"
-                                stroke="#e1ff00" 
+                                stroke="#39FF14" 
                                 strokeWidth="100"
                                 strokeLinecap="round" 
                                 strokeLinejoin="round"
@@ -1809,11 +1815,7 @@ function App() {
                     
                     {/* Block 1: Big Text */}
                     <div className="flex-shrink-0 mr-[-10vw] parallax-layer" data-speed="0.1">
-                        <h2 className="lando-big-text">
-                            REDEFINING LIMITS, FIGHTING FOR <span>WINS</span>, 
-                            BRINGING IT ALL IN ALL WAYS. DEFINING A 
-                            <span> LEGACY</span> IN FORMULA 1 ON AND OFF THE TRACK.
-                        </h2>
+                        <h2 className="lando-big-text" dangerouslySetInnerHTML={{ __html: t[lang].style_big_text }}></h2>
                     </div>
 
                     {/* Block 2: Image 1 (Qatar) */}
@@ -1827,10 +1829,10 @@ function App() {
                     {/* Block 3: Quote 1 */}
                     <div className="lando-quote-block lando-item-down parallax-layer" data-speed="0.05">
                         <p className="lando-quote-text">
-                            创新是引领发展的第一动力，星河人永远在路上。
+                            {t[lang].style_quote}
                         </p>
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-[1px] bg-[#e1ff00]"></div>
+                            <div className="w-12 h-[1px] bg-[#39FF14]"></div>
                             <span className="lando-sig">Xinghe Team</span>
                         </div>
                     </div>
@@ -1862,16 +1864,16 @@ function App() {
                     {/* Block 7: On Track / Off Track Typography */}
                     <div className="flex-shrink-0 ml-40 mr-20 flex flex-col justify-center parallax-layer" data-speed="0.15">
                         <div className="relative">
-                            <h2 className="text-[15vw] font-black leading-[0.8] tracking-tighter opacity-10 absolute -top-20 -left-10 select-none">
+                            <h2 className="text-[13vw] font-black leading-[0.8] tracking-tighter opacity-10 absolute -top-20 -left-10 select-none">
                                 RACING
                             </h2>
                             <div className="flex items-baseline gap-4">
-                                <span className="text-[8vw] font-black leading-none italic text-[#e1ff00]">ON</span>
-                                <span className="text-[8vw] font-black leading-none">TRACK</span>
+                                <span className="text-[7vw] font-black leading-none italic text-[#39FF14]">ON</span>
+                                <span className="text-[7vw] font-black leading-none">TRACK</span>
                             </div>
                             <div className="flex items-baseline gap-4 ml-20 -mt-4">
-                                <span className="text-[8vw] font-black leading-none italic text-[#e1ff00]">OFF</span>
-                                <span className="text-[8vw] font-black leading-none">TRACK</span>
+                                <span className="text-[7vw] font-black leading-none italic text-[#39FF14]">OFF</span>
+                                <span className="text-[7vw] font-black leading-none">TRACK</span>
                             </div>
                         </div>
                     </div>
@@ -1879,8 +1881,8 @@ function App() {
                     {/* Block 8: Honors & Certificates Hall of Fame Grid (2 Rows) */}
                     <div className="flex-shrink-0 ml-40 mr-40 flex flex-col justify-center">
                         <div className="mb-12">
-                            <h3 className="text-sm font-black tracking-[0.3em] uppercase opacity-60 mb-2">CERTIFICATES</h3>
-                            <h2 className="text-6xl font-black tracking-tighter">HONORS & AWARDS</h2>
+                            <h3 className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 mb-2">CERTIFICATES</h3>
+                            <h2 className="text-4xl font-black tracking-tighter">HONORS & AWARDS</h2>
                         </div>
                         
                         <div className="grid grid-rows-2 grid-flow-col gap-6 h-[600px]">
@@ -1900,10 +1902,10 @@ function App() {
                                     </div>
                                     <div className="flex justify-between items-end">
                                         <div>
-                                            <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">Certificate</p>
-                                            <h4 className="text-lg font-black tracking-tight">{award.name}</h4>
+                                            <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest mb-1">Certificate</p>
+                                            <h4 className="text-base font-black tracking-tight">{award.name}</h4>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#e1ff00] group-hover:border-[#e1ff00] group-hover:text-black transition-all">
+                                        <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#39FF14] group-hover:border-[#39FF14] group-hover:text-black transition-all">
                                             <ArrowRight size={14} />
                                         </div>
                                     </div>
@@ -1915,7 +1917,7 @@ function App() {
                             <p className="text-sm opacity-60 max-w-md">
                                 每一份荣誉都是团队汗水的结晶，记录着我们在科技创新道路上的每一个坚实足迹。
                             </p>
-                            <button className="px-8 py-4 bg-white text-black font-black text-xs tracking-widest uppercase rounded-full hover:bg-[#e1ff00] transition-colors">
+                            <button className="px-8 py-4 bg-white text-black font-black text-[10px] tracking-widest uppercase rounded-full hover:bg-[#39FF14] transition-colors">
                                 查看更多成果
                             </button>
                         </div>
@@ -1923,13 +1925,9 @@ function App() {
 
                     {/* Block 9: Final Big Text */}
                     <div className="flex-shrink-0 ml-40 mr-[-10vw] lando-item-center parallax-layer" data-speed="0.1">
-                        <h2 className="lando-big-text">
-                            SINCE I WAS 7 YEARS OLD AND HAD MY FIRST 
-                            EXPERIENCE WITH KART RACING. I'VE WORKED 
-                            TIRELESSLY TO MAKE THAT DREAM COME TRUE.
-                        </h2>
+                        <h2 className="lando-big-text" dangerouslySetInnerHTML={{ __html: t[lang].style_final_text }}></h2>
                         <div className="mt-12 flex items-center gap-4">
-                            <div className="w-12 h-[1px] bg-[#e1ff00]"></div>
+                            <div className="w-12 h-[1px] bg-[#39FF14]"></div>
                             <span className="lando-sig">Xinghe Team</span>
                         </div>
                     </div>
@@ -1940,7 +1938,7 @@ function App() {
                 <div className="lando-counter">
                     <span>1</span>
                     <div className="line"></div>
-                    <Trophy size={24} className="text-[#e1ff00]" />
+                    <Trophy size={24} className="text-[#39FF14]" />
                 </div>
             </section>
 
@@ -2038,7 +2036,7 @@ function App() {
                             <div className="md:w-1/2">
                                 <h4 className="text-4xl font-black tracking-tighter mb-4">星河科技创新协会2026春季招新正式启动</h4>
                                 <p className="text-white/60 leading-relaxed mb-6">新学期，新起点！星河科创协会面向全校招募热爱科技、勇于创新的你。加入我们，共同探索安全科技的星辰大海。</p>
-                                <a href="https://mp.weixin.qq.com/s/hyQJXvFv8imqWwcZDaGPHw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
+                                <a href="https://mp.weixin.qq.com/s/hyQJXvFv8imqWwcZDaGPHw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#39FF14] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
 
@@ -2052,7 +2050,7 @@ function App() {
                             <div className="md:w-1/2 text-right">
                                 <h4 className="text-4xl font-black tracking-tighter mb-4">我院学生在“挑战杯”省级选拔赛中斩获佳绩</h4>
                                 <p className="text-white/60 leading-relaxed mb-6">由星河协会成员组成的参赛团队凭借“智能矿山预警系统”在省级选拔赛中脱颖而出，成功晋级国赛。</p>
-                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 justify-end text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
+                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 justify-end text-[#39FF14] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
 
@@ -2066,7 +2064,7 @@ function App() {
                             <div className="md:w-1/2">
                                 <h4 className="text-4xl font-black tracking-tighter mb-4">协会成功举办“AI+安全”专题技术沙龙</h4>
                                 <p className="text-white/60 leading-relaxed mb-6">本次沙龙邀请了多位行业专家，共同探讨人工智能技术在现代安全生产中的深度应用与未来趋势。</p>
-                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_3" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#e1ff00] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
+                                <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_3" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#39FF14] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
                     </div>
