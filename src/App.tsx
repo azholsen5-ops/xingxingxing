@@ -12,6 +12,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight } from 'lucide-react';
 import { addDocument } from './firebase';
+import Galaxy3D from './components/Galaxy3D';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -265,6 +266,8 @@ function App() {
     const hallOfFameRef = useRef<HTMLDivElement>(null);
     const horizontalScrollRef = useRef<HTMLDivElement>(null);
     const experienceRef = useRef<HTMLElement>(null);
+    const newsRef = useRef<HTMLElement>(null);
+    const unifiedBgRef = useRef<HTMLDivElement>(null);
     const scribbleRef = useRef<SVGSVGElement>(null);
     const styleTransitionRef = useRef<HTMLDivElement>(null);
     const styleTransitionScribbleRef = useRef<SVGSVGElement>(null);
@@ -351,6 +354,7 @@ function App() {
     };
 
     const slides = [
+        { type: 'galaxy', text: lang === 'zh' ? '探索星河<br>科技守护安全' : 'Explore the Galaxy<br>Tech Guarding Safety' },
         { type: 'video', src: 'https://res.cloudinary.com/dtwkzeixa/video/upload/f_auto,q_auto/微信视频2026-03-14_155822_614_jzhor0.mp4', text: t[lang].slider_1 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbs3V.jpg', text: t[lang].slider_2 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
@@ -411,6 +415,12 @@ function App() {
     // Slider Timer
     useEffect(() => {
         let timer: NodeJS.Timeout;
+        
+        // Disable auto-paging for galaxy slide to let users explore
+        if (slides[currentSlide].type === 'galaxy') {
+            return;
+        }
+
         if (slides[currentSlide].type === 'video' && videoRef.current) {
             videoRef.current.currentTime = 0;
             videoRef.current.play().catch(() => {});
@@ -424,6 +434,63 @@ function App() {
         }
         return () => clearTimeout(timer);
     }, [currentSlide, slides.length]);
+
+    // Unified Background Color Transition
+    useEffect(() => {
+        if (!unifiedBgRef.current || !experienceRef.current || !hallOfFameRef.current || !newsRef.current) return;
+
+        const ctx = gsap.context(() => {
+            // Experience Section Color
+            ScrollTrigger.create({
+                trigger: experienceRef.current,
+                start: "top 50%",
+                end: "bottom 50%",
+                onToggle: (self) => {
+                    if (self.isActive) {
+                        gsap.to(unifiedBgRef.current, {
+                            backgroundColor: "#1a1a1a",
+                            duration: 0.8,
+                            ease: "power2.inOut"
+                        });
+                    }
+                }
+            });
+
+            // Achievements Section Color
+            ScrollTrigger.create({
+                trigger: hallOfFameRef.current,
+                start: "top 50%",
+                end: "bottom 50%",
+                onToggle: (self) => {
+                    if (self.isActive) {
+                        gsap.to(unifiedBgRef.current, {
+                            backgroundColor: "#8c907e",
+                            duration: 0.8,
+                            ease: "power2.inOut"
+                        });
+                    }
+                }
+            });
+
+            // News Section Color
+            ScrollTrigger.create({
+                trigger: newsRef.current,
+                start: "top 50%",
+                end: "bottom 50%",
+                onToggle: (self) => {
+                    if (self.isActive) {
+                        gsap.to(unifiedBgRef.current, {
+                            backgroundColor: "#2a2a2a",
+                            duration: 0.8,
+                            ease: "power2.inOut"
+                        });
+                    }
+                }
+            });
+        });
+
+        return () => ctx.revert();
+    }, []);
 
     // Hall of Fame 1:1 Lando Parallax & Horizontal Scroll
     useEffect(() => {
@@ -1229,16 +1296,14 @@ function App() {
 
             {/* 1. Hero Slider */}
             <section id="intro" className="hero-slider relative">
-                <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-center opacity-20">
-                    <svg width="1000" height="800" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[80vw] h-auto">
-                        <path className="scribble-animate" d="M100 400C200 200 400 600 500 400C600 200 800 600 900 400" stroke="#e1ff00" strokeWidth="10" strokeLinecap="round" />
-                        <path className="scribble-animate" d="M300 100L700 700" stroke="#e1ff00" strokeWidth="5" strokeLinecap="round" opacity="0.5" />
-                    </svg>
-                </div>
-                <GalaxyParticles />
+                {currentSlide !== 0 && <GalaxyParticles />}
                 {slides.map((slide, index) => (
                     <div key={index} className={`slide ${currentSlide === index ? 'active' : ''}`}>
-                        {slide.type === 'video' ? (
+                        {slide.type === 'galaxy' ? (
+                            <div className="absolute inset-0 z-0">
+                                <Galaxy3D />
+                            </div>
+                        ) : slide.type === 'video' ? (
                             <video ref={videoRef} className="slide-media" autoPlay muted playsInline preload="auto">
                                 <source src={slide.src} type="video/mp4" />
                             </video>
@@ -1246,26 +1311,37 @@ function App() {
                             <img className="slide-media" src={slide.src} alt="" />
                         )}
                         <div className="slide-overlay"></div>
-                        <div className="slide-content">
-                            <h2 dangerouslySetInnerHTML={{ __html: slide.text }}></h2>
-                            <div className="hero-info-grid">
-                                <div className="hero-info-item">
-                                    <div className="hero-info-label">{t[lang].hero_mission}</div>
-                                    <div className="hero-info-value">{t[lang].hero_mission_desc}</div>
+                        <div className="slide-content pointer-events-none">
+                            <h2 className="pointer-events-auto" dangerouslySetInnerHTML={{ __html: slide.text }}></h2>
+                            {slide.type === 'galaxy' && (
+                                <button 
+                                    onClick={() => changeSlide(1)}
+                                    className="mt-8 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition-all flex items-center gap-3 group pointer-events-auto"
+                                >
+                                    {lang === 'zh' ? '查看团队简介' : 'View Team Intro'}
+                                    <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                                </button>
+                            )}
+                            {slide.type !== 'galaxy' && (
+                                <div className="hero-info-grid pointer-events-auto">
+                                    <div className="hero-info-item">
+                                        <div className="hero-info-label">{t[lang].hero_mission}</div>
+                                        <div className="hero-info-value">{t[lang].hero_mission_desc}</div>
+                                    </div>
+                                    <div className="hero-info-item">
+                                        <div className="hero-info-label">{t[lang].hero_vision}</div>
+                                        <div className="hero-info-value">{t[lang].hero_vision_desc}</div>
+                                    </div>
+                                    <div className="hero-info-item">
+                                        <div className="hero-info-label">{t[lang].hero_values}</div>
+                                        <div className="hero-info-value">{t[lang].hero_values_desc}</div>
+                                    </div>
+                                    <div className="hero-info-item">
+                                        <div className="hero-info-label">{t[lang].hero_research}</div>
+                                        <div className="hero-info-value">{t[lang].hero_research_desc}</div>
+                                    </div>
                                 </div>
-                                <div className="hero-info-item">
-                                    <div className="hero-info-label">{t[lang].hero_vision}</div>
-                                    <div className="hero-info-value">{t[lang].hero_vision_desc}</div>
-                                </div>
-                                <div className="hero-info-item">
-                                    <div className="hero-info-label">{t[lang].hero_values}</div>
-                                    <div className="hero-info-value">{t[lang].hero_values_desc}</div>
-                                </div>
-                                <div className="hero-info-item">
-                                    <div className="hero-info-label">{t[lang].hero_research}</div>
-                                    <div className="hero-info-value">{t[lang].hero_research_desc}</div>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -1282,6 +1358,14 @@ function App() {
                         ></div>
                     ))}
                 </div>
+                {/* Mode Toggle Button */}
+                <button 
+                    onClick={() => setCurrentSlide(currentSlide === 0 ? 1 : 0)}
+                    className="absolute bottom-10 right-10 z-30 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-full border border-white/20 flex items-center gap-2 transition-all"
+                >
+                    {currentSlide === 0 ? <Laptop size={18} /> : <Trophy size={18} />}
+                    {currentSlide === 0 ? (lang === 'zh' ? '查看简介' : 'View Intro') : (lang === 'zh' ? '探索星河' : 'Explore Galaxy')}
+                </button>
             </section>
 
             {/* 2. Milestones */}
@@ -1559,8 +1643,10 @@ function App() {
                 </div>
             </section>
 
-            {/* 6. Experience */}
-            <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
+            {/* Unified Background Container for Experience, Achievements, and News */}
+            <div ref={unifiedBgRef} className="unified-bg-section">
+                {/* 6. Experience */}
+                <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
                 <div className="topo-bg opacity-20"></div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
@@ -1654,7 +1740,6 @@ function App() {
                 id="achievements" 
                 ref={hallOfFameRef} 
                 className="hall-of-fame-lando relative min-h-screen w-full"
-                style={{ backgroundColor: '#8c907e' }}
             >
                 <div className="topo-bg opacity-30"></div>
                 
@@ -1927,7 +2012,7 @@ function App() {
 
             <div className="subsequent-content-wrapper relative">
                 {/* 7.5 News & Events */}
-                <section id="news" className="relative overflow-hidden min-h-screen">
+                <section id="news" ref={newsRef} className="relative overflow-hidden min-h-screen">
                     <div className="topo-bg opacity-20"></div>
                     <div className="container relative z-10">
                     <div className="section-header">
@@ -1981,6 +2066,8 @@ function App() {
                     </div>
                 </div>
             </section>
+            </div>
+            </div>
 
             {/* 8. Members */}
             <section id="members" className="page-section">

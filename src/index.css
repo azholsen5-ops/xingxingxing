@@ -12,15 +12,12 @@
     --f-serif: 'Playfair Display', serif;
 }
 
-#experience { 
-    position: relative; 
-    background-color: #8c907e; 
-    color: #fff;
-}
-#achievements { position: relative; }
+#news, #achievements, #experience, #style { position: relative; background-color: transparent; }
 .subsequent-content-wrapper { position: relative; }
-#members, #join, #contact, footer { position: relative; background: #fff; }
-#join { background: #000; }
+.unified-bg-section { transition: background-color 0.8s ease-in-out; background-color: #1a1a1a; }
+.unified-water-surface { position: relative; background-color: #8c907e; overflow: hidden; }
+#members, #join, #contact, footer { position: relative; background: #8c907e; color: #fff; }
+#join { background: transparent; }
 
 #news {
     min-height: 100vh;
@@ -28,7 +25,7 @@
 }
 
 .hall-of-fame-lando {
-  background-color: #8c907e;
+  background-color: transparent;
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -562,7 +559,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 .slide.active .slide-media {
     transform: scale(1);
 }
-.slide-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%); z-index: 2; }
+.slide-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%); z-index: 2; pointer-events: none; }
 .slide-content { position: absolute; top: 50%; left: 10%; transform: translateY(-50%); z-index: 5; color: #fff; max-width: 800px; }
 .slide-content h2 { 
     font-size: 4.5rem; 
@@ -1343,7 +1340,6 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 
 /* --- Style Section Unified --- */
 #style {
-    background-color: #8c907e;
     color: #fff;
     padding-top: 10vh;
     padding-bottom: 10vh;
@@ -1375,7 +1371,6 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 
 /* --- News Section Unified --- */
 #news {
-    background-color: #8c907e;
     color: #fff;
     padding-top: 10vh;
     padding-bottom: 20vh;
