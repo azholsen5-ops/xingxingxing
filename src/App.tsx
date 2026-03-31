@@ -266,8 +266,6 @@ function App() {
     const hallOfFameRef = useRef<HTMLDivElement>(null);
     const horizontalScrollRef = useRef<HTMLDivElement>(null);
     const experienceRef = useRef<HTMLElement>(null);
-    const newsRef = useRef<HTMLElement>(null);
-    const unifiedBgRef = useRef<HTMLDivElement>(null);
     const scribbleRef = useRef<SVGSVGElement>(null);
     const styleTransitionRef = useRef<HTMLDivElement>(null);
     const styleTransitionScribbleRef = useRef<SVGSVGElement>(null);
@@ -412,6 +410,36 @@ function App() {
         };
     }, []);
 
+    // Background Color Transitions
+    useEffect(() => {
+        const sections = ['#style', '#experience', '#achievements', '#news', '#members'];
+        const bgColors = {
+            '#style': '#121212',
+            '#experience': '#1a1c2c',
+            '#achievements': '#8c907e',
+            '#news': '#141414',
+            '#members': '#1a1a1a'
+        };
+
+        const triggers = sections.map((selector) => {
+            return ScrollTrigger.create({
+                trigger: selector,
+                start: "top 50%",
+                end: "bottom 50%",
+                onEnter: () => {
+                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1, ease: "power2.inOut" });
+                },
+                onEnterBack: () => {
+                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1, ease: "power2.inOut" });
+                }
+            });
+        });
+
+        return () => {
+            triggers.forEach(t => t.kill());
+        };
+    }, []);
+
     // Slider Timer
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -434,63 +462,6 @@ function App() {
         }
         return () => clearTimeout(timer);
     }, [currentSlide, slides.length]);
-
-    // Unified Background Color Transition
-    useEffect(() => {
-        if (!unifiedBgRef.current || !experienceRef.current || !hallOfFameRef.current || !newsRef.current) return;
-
-        const ctx = gsap.context(() => {
-            // Experience Section Color
-            ScrollTrigger.create({
-                trigger: experienceRef.current,
-                start: "top 50%",
-                end: "bottom 50%",
-                onToggle: (self) => {
-                    if (self.isActive) {
-                        gsap.to(unifiedBgRef.current, {
-                            backgroundColor: "#1a1a1a",
-                            duration: 0.8,
-                            ease: "power2.inOut"
-                        });
-                    }
-                }
-            });
-
-            // Achievements Section Color
-            ScrollTrigger.create({
-                trigger: hallOfFameRef.current,
-                start: "top 50%",
-                end: "bottom 50%",
-                onToggle: (self) => {
-                    if (self.isActive) {
-                        gsap.to(unifiedBgRef.current, {
-                            backgroundColor: "#8c907e",
-                            duration: 0.8,
-                            ease: "power2.inOut"
-                        });
-                    }
-                }
-            });
-
-            // News Section Color
-            ScrollTrigger.create({
-                trigger: newsRef.current,
-                start: "top 50%",
-                end: "bottom 50%",
-                onToggle: (self) => {
-                    if (self.isActive) {
-                        gsap.to(unifiedBgRef.current, {
-                            backgroundColor: "#2a2a2a",
-                            duration: 0.8,
-                            ease: "power2.inOut"
-                        });
-                    }
-                }
-            });
-        });
-
-        return () => ctx.revert();
-    }, []);
 
     // Hall of Fame 1:1 Lando Parallax & Horizontal Scroll
     useEffect(() => {
@@ -1586,7 +1557,7 @@ function App() {
             </section>
 
             {/* 5. Style */}
-            <section id="style" className="relative overflow-hidden">
+            <section id="style" className="relative overflow-hidden" style={{ backgroundColor: 'transparent' }}>
                 <div className="topo-bg opacity-20"></div>
                 <div className="style-bg-text">TEAM STYLE</div>
                 <div className="container relative z-10 reveal">
@@ -1643,10 +1614,8 @@ function App() {
                 </div>
             </section>
 
-            {/* Unified Background Container for Experience, Achievements, and News */}
-            <div ref={unifiedBgRef} className="unified-bg-section">
-                {/* 6. Experience */}
-                <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
+            {/* 6. Experience */}
+            <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20" style={{ backgroundColor: 'transparent' }}>
                 <div className="topo-bg opacity-20"></div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
@@ -1740,6 +1709,7 @@ function App() {
                 id="achievements" 
                 ref={hallOfFameRef} 
                 className="hall-of-fame-lando relative min-h-screen w-full"
+                style={{ backgroundColor: 'transparent' }}
             >
                 <div className="topo-bg opacity-30"></div>
                 
@@ -2012,13 +1982,13 @@ function App() {
 
             <div className="subsequent-content-wrapper relative">
                 {/* 7.5 News & Events */}
-                <section id="news" ref={newsRef} className="relative overflow-hidden min-h-screen">
+                <section id="news" className="relative overflow-hidden min-h-screen text-white" style={{ backgroundColor: 'transparent' }}>
                     <div className="topo-bg opacity-20"></div>
                     <div className="container relative z-10">
                     <div className="section-header">
-                        <h2>动态资讯</h2>
+                        <h2 className="text-white">动态资讯</h2>
                         <div className="line"></div>
-                        <p className="text-gray-500 mt-4">实时掌握协会最新动态，不错过任何精彩瞬间。</p>
+                        <p className="text-white/50 mt-4">实时掌握协会最新动态，不错过任何精彩瞬间。</p>
                     </div>
                     
                     <div className="flex flex-col gap-32 py-20">
@@ -2066,13 +2036,11 @@ function App() {
                     </div>
                 </div>
             </section>
-            </div>
-            </div>
 
             {/* 8. Members */}
-            <section id="members" className="page-section">
+            <section id="members" className="page-section" style={{ backgroundColor: 'transparent' }}>
                 <div className="container reveal">
-                    <div className="section-header"><h2>{t[lang].nav_members}</h2><div className="line"></div></div>
+                    <div className="section-header"><h2 className="text-white">{t[lang].nav_members}</h2><div className="line"></div></div>
                     
                     <div className="member-search-container mb-12 max-w-md mx-auto relative">
                         <input 

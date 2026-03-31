@@ -12,11 +12,11 @@
     --f-serif: 'Playfair Display', serif;
 }
 
-#news, #achievements, #experience, #style { position: relative; background-color: transparent; }
+#news, #achievements, #experience, #style, #members { position: relative; transition: background-color 1s cubic-bezier(0.23, 1, 0.32, 1); }
 .subsequent-content-wrapper { position: relative; }
-.unified-bg-section { transition: background-color 0.8s ease-in-out; background-color: #1a1a1a; }
-.unified-water-surface { position: relative; background-color: #8c907e; overflow: hidden; }
-#members, #join, #contact, footer { position: relative; background: #8c907e; color: #fff; }
+.unified-water-surface { position: relative; overflow: hidden; }
+#members, #join, #contact, footer { position: relative; background: #1a1a1a; color: #fff; }
+#members { background: transparent; }
 #join { background: transparent; }
 
 #news {
@@ -25,12 +25,11 @@
 }
 
 .hall-of-fame-lando {
-  background-color: transparent;
   color: #fff;
   position: relative;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
-  transition: background-color 0.8s ease;
+  transition: background-color 1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .hall-of-fame-lando::before {
@@ -269,7 +268,7 @@
 }
 
 html { scroll-behavior: smooth; }
-body { background-color: #fff; color: #333; overflow-x: hidden; line-height: 1.6; }
+body { background-color: #0d1117; color: #333; overflow-x: hidden; line-height: 1.6; transition: background-color 1s cubic-bezier(0.23, 1, 0.32, 1); }
 ul, li { list-style: none; }
 a { text-decoration: none; color: inherit; }
 
