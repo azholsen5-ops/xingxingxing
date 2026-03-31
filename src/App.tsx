@@ -419,7 +419,7 @@ function App() {
             '#style': '#050505',
             '#experience': '#050505',
             '#achievements': '#ffffff',
-            '#news': '#ffffff',
+            '#news': '#f0f7ff',
             '#members': '#9ca3af'
         };
 
@@ -555,6 +555,12 @@ function App() {
                             }
                         }
                     });
+
+                    // Add background color transition during horizontal scroll
+                    tl.to('body', {
+                        backgroundColor: '#f0f7ff',
+                        ease: "none"
+                    }, 0);
 
                     // Parallax for individual items
                     const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
@@ -1539,7 +1545,7 @@ function App() {
                 ref={styleTransitionRef} 
                 className="style-transition-section"
             >
-                <div className="topo-bg opacity-30"></div>
+                <div className="topo-bg opacity-20"></div>
                 <div className="style-transition-container">
                     <div className="style-transition-text style-transition-text-left">TEAM</div>
                     <div className="style-transition-image-wrapper">
@@ -1586,7 +1592,7 @@ function App() {
             </section>
 
             {/* 5. Style */}
-            <section id="style" className="relative overflow-hidden" style={{ backgroundColor: 'transparent' }}>
+            <section id="style" className="relative overflow-hidden">
                 <div className="topo-bg opacity-20"></div>
                 <div className="style-bg-text">TEAM STYLE</div>
                 <div className="container relative z-10 reveal">
@@ -1644,7 +1650,7 @@ function App() {
             </section>
 
             {/* 6. Experience */}
-            <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20" style={{ backgroundColor: 'transparent' }}>
+            <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
                 <div className="topo-bg opacity-20"></div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
@@ -1738,9 +1744,8 @@ function App() {
                 id="achievements" 
                 ref={hallOfFameRef} 
                 className="hall-of-fame-lando relative min-h-screen w-full"
-                style={{ backgroundColor: 'transparent' }}
             >
-                <div className="topo-bg opacity-30"></div>
+                <div className="topo-bg opacity-20"></div>
                 
                 {/* Scribble Animation Overlay - 精致比例版 */}
                 <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-20">
@@ -2011,7 +2016,7 @@ function App() {
 
             <div className="subsequent-content-wrapper relative">
                 {/* 7.5 News & Events */}
-                <section id="news" className="relative overflow-hidden min-h-screen text-white" style={{ backgroundColor: 'transparent' }}>
+                <section id="news" className="relative overflow-hidden min-h-screen text-white">
                     <div className="topo-bg opacity-20"></div>
                     <div className="container relative z-10">
                     <div className="section-header">
@@ -2067,7 +2072,7 @@ function App() {
             </section>
 
             {/* 8. Members */}
-            <section id="members" className="page-section" style={{ backgroundColor: 'transparent' }}>
+            <section id="members" className="page-section">
                 <div className="container reveal">
                     <div className="section-header"><h2 className="text-white">{t[lang].nav_members}</h2><div className="line"></div></div>
                     

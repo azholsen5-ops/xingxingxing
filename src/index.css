@@ -23,8 +23,8 @@ body.light-theme #achievements .lando-label,
 body.light-theme #achievements .hall-item-museum h4,
 body.light-theme #achievements .hall-item-museum p { color: #1a1a1a !important; }
 body.light-theme #achievements .line { background-color: #1a1a1a !important; }
-body.light-theme #achievements .hall-item-museum { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.05); }
-body.light-theme #achievements .hall-item-museum:hover { border-color: #1a1a1a; }
+body.light-theme #achievements .hall-item-museum { background: #ffffff; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); }
+body.light-theme #achievements .hall-item-museum:hover { border-color: #2563eb; transform: translateY(-5px); transition: all 0.3s ease; }
 body.light-theme #achievements .lando-img-container { border-color: rgba(0,0,0,0.1); }
 body.light-theme #achievements .scribble-animate { stroke: #1a1a1a !important; }
 
@@ -33,10 +33,12 @@ body.light-theme #news h2,
 body.light-theme #news h4,
 body.light-theme #news p,
 body.light-theme #news .lando-label { color: #1a1a1a !important; }
-body.light-theme #news .line { background-color: #1a1a1a !important; }
-body.light-theme #news .news-card { background: rgba(0,0,0,0.03); border-radius: 24px; padding: 20px; }
+body.light-theme #news .line { background-color: #2563eb !important; }
+body.light-theme #news .news-card { background: #ffffff; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); }
 body.light-theme #news .news-card a { color: #2563eb !important; }
 body.light-theme #news .news-card a:hover { color: #1d4ed8 !important; }
+body.light-theme #news .news-date { color: #2563eb !important; }
+body.light-theme #news .news-more { color: #2563eb !important; }
 
 /* Members Theme Overrides */
 body.light-theme #members h2,
@@ -47,14 +49,20 @@ body.light-theme #members .member-card h3 { color: #1a1a1a; }
 body.light-theme #members .member-card p { color: rgba(0,0,0,0.6) !important; }
 body.light-theme #members .member-search-container input { background: #fff; color: #1a1a1a; border-color: rgba(0,0,0,0.1); }
 
-#news, #achievements, #experience, #style, #members, #history, .three-master-wrapper { position: relative; transition: background-color 1s cubic-bezier(0.23, 1, 0.32, 1); }
-.subsequent-content-wrapper { position: relative; }
-.unified-water-surface { position: relative; overflow: hidden; }
-#members, #join, #contact, footer { position: relative; background: #1a1a1a; color: #fff; }
-#members { background: transparent; }
-#history { background: transparent; }
+#news, #achievements, #experience, #style, #members, #history, .three-master-wrapper { 
+    position: relative; 
+    background: transparent !important;
+    transition: background-color 1.2s cubic-bezier(0.23, 1, 0.32, 1); 
+}
+.subsequent-content-wrapper { position: relative; background: transparent !important; }
+.unified-water-surface { position: relative; overflow: hidden; background: transparent !important; }
+#members, #join, #contact, footer { position: relative; background: transparent !important; color: #fff; }
+#members { background: transparent !important; }
+#history { background: transparent !important; }
+#experience { background: transparent !important; }
+#achievements { background: transparent !important; }
 .three-master-wrapper { background: transparent !important; }
-#join { background: transparent; }
+#join { background: transparent !important; }
 
 #news {
     min-height: 100vh;
@@ -66,19 +74,12 @@ body.light-theme #members .member-search-container input { background: #fff; col
   position: relative;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
-  transition: background-color 1s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: background-color 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+  background: transparent !important;
 }
 
 .hall-of-fame-lando::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 300px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2), transparent);
-  pointer-events: none;
-  z-index: 2;
+  display: none;
 }
 
 .topo-bg {
