@@ -412,31 +412,60 @@ function App() {
 
     // Background Color Transitions
     useEffect(() => {
-        const sections = ['#style', '#experience', '#achievements', '#news', '#members'];
+        const sections = ['#history', '#advisor', '#style', '#experience', '#achievements', '#news', '#members'];
         const bgColors = {
-            '#style': '#121212',
-            '#experience': '#1a1c2c',
-            '#achievements': '#8c907e',
-            '#news': '#141414',
-            '#members': '#1a1a1a'
+            '#history': '#0d1117',
+            '#advisor': '#050505',
+            '#style': '#050505',
+            '#experience': '#050505',
+            '#achievements': '#ffffff',
+            '#news': '#ffffff',
+            '#members': '#9ca3af'
         };
+
+        // Reset to initial color when at the very top
+        ScrollTrigger.create({
+            trigger: 'body',
+            start: "top top",
+            end: "top 10%",
+            onEnterBack: () => {
+                gsap.to('body', { backgroundColor: '#050505', duration: 1, ease: "power2.inOut" });
+                document.body.classList.remove('light-theme');
+            }
+        });
 
         const triggers = sections.map((selector) => {
             return ScrollTrigger.create({
                 trigger: selector,
-                start: "top 50%",
-                end: "bottom 50%",
+                start: "top 60%",
+                end: "bottom 40%",
                 onEnter: () => {
-                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1, ease: "power2.inOut" });
+                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    if (['#achievements', '#news', '#members'].includes(selector)) {
+                        document.body.classList.add('light-theme');
+                    } else {
+                        document.body.classList.remove('light-theme');
+                    }
                 },
                 onEnterBack: () => {
-                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1, ease: "power2.inOut" });
+                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    if (['#achievements', '#news', '#members'].includes(selector)) {
+                        document.body.classList.add('light-theme');
+                    } else {
+                        document.body.classList.remove('light-theme');
+                    }
                 }
             });
         });
 
+        // Refresh after a delay to ensure all dynamic heights are accounted for
+        const timer = setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 1500);
+
         return () => {
             triggers.forEach(t => t.kill());
+            clearTimeout(timer);
         };
     }, []);
 
@@ -1349,7 +1378,7 @@ function App() {
             {/* --- 3D SCROLLING MODULE (Master Wrapper) --- */}
             <div className="three-master-wrapper">
                 {/* The Sticky Container for the Badge */}
-                <div id="webgl-container" className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, #1a1a1a 0%, #050505 100%)' }}>
+                <div id="webgl-container" className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'transparent' }}>
                     {is3DLoading && (
                         <div ref={loadingOverlayRef} className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-[#050505]">
                             <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden mb-4">
