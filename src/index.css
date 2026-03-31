@@ -43,11 +43,42 @@ body.light-theme #news .news-more { color: #2563eb !important; }
 /* Members Theme Overrides */
 body.light-theme #members h2,
 body.light-theme #members p { color: #1a1a1a !important; }
-body.light-theme #members .line { background-color: #1a1a1a !important; }
-body.light-theme #members .member-card { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+body.light-theme #members .line { background-color: #2563eb !important; }
+body.light-theme #members .member-card { background: #ffffff; border-color: rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
 body.light-theme #members .member-card h3 { color: #1a1a1a; }
 body.light-theme #members .member-card p { color: rgba(0,0,0,0.6) !important; }
 body.light-theme #members .member-search-container input { background: #fff; color: #1a1a1a; border-color: rgba(0,0,0,0.1); }
+
+/* Join Theme Overrides */
+body.light-theme #join h2,
+body.light-theme #join p { color: #1a1a1a !important; }
+
+/* Contact Theme Overrides */
+body.light-theme #contact h2,
+body.light-theme #contact p,
+body.light-theme #contact h4 { color: #1a1a1a !important; }
+body.light-theme #contact .line { background-color: #2563eb !important; }
+body.light-theme #contact .w-14 { background-color: #2563eb !important; color: #ffffff !important; }
+body.light-theme #contact .text-xl.font-semibold { color: #1a1a1a !important; }
+body.light-theme #contact .bg-white { background-color: #ffffff !important; border-color: rgba(0,0,0,0.05) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.05) !important; }
+body.light-theme #contact label { color: #4b5563 !important; }
+body.light-theme #contact input, 
+body.light-theme #contact textarea { background-color: #f9fafb !important; border-color: #e5e7eb !important; color: #1a1a1a !important; }
+body.light-theme #contact input:focus, 
+body.light-theme #contact textarea:focus { border-color: #2563eb !important; background-color: #ffffff !important; }
+
+/* Footer Theme Overrides */
+body.light-theme footer { color: #1a1a1a !important; border-top-color: rgba(0,0,0,0.05) !important; }
+body.light-theme footer h4 { color: #1a1a1a !important; opacity: 0.8; }
+body.light-theme footer p, 
+body.light-theme footer a { color: #4b5563 !important; }
+body.light-theme footer a:hover { color: #2563eb !important; }
+body.light-theme footer .bg-white\/5 { background-color: rgba(0,0,0,0.05) !important; color: #1a1a1a !important; }
+body.light-theme footer .bg-white\/5:hover { background-color: #2563eb !important; color: #ffffff !important; }
+body.light-theme footer .border-t { border-top-color: rgba(0,0,0,0.05) !important; }
+body.light-theme footer .text-gray-500 { color: #9ca3af !important; }
+body.light-theme footer .text-blue-500 { color: #2563eb !important; }
+body.light-theme footer .footer-logo { color: #1a1a1a !important; }
 
 #news, #achievements, #experience, #style, #members, #history, .three-master-wrapper { 
     position: relative; 

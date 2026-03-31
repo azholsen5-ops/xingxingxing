@@ -412,7 +412,7 @@ function App() {
 
     // Background Color Transitions
     useEffect(() => {
-        const sections = ['#history', '#advisor', '#style', '#experience', '#achievements', '#news', '#members'];
+        const sections = ['#history', '#advisor', '#style', '#experience', '#achievements', '#news', '#members', '#join', '#contact'];
         const bgColors = {
             '#history': '#0d1117',
             '#advisor': '#050505',
@@ -420,7 +420,9 @@ function App() {
             '#experience': '#050505',
             '#achievements': '#ffffff',
             '#news': '#f0f7ff',
-            '#members': '#9ca3af'
+            '#members': '#e5e7eb',
+            '#join': '#e5e7eb',
+            '#contact': '#e5e7eb'
         };
 
         // Reset to initial color when at the very top
@@ -441,7 +443,7 @@ function App() {
                 end: "bottom 40%",
                 onEnter: () => {
                     gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
-                    if (['#achievements', '#news', '#members'].includes(selector)) {
+                    if (['#achievements', '#news', '#members', '#join', '#contact'].includes(selector)) {
                         document.body.classList.add('light-theme');
                     } else {
                         document.body.classList.remove('light-theme');
@@ -449,7 +451,7 @@ function App() {
                 },
                 onEnterBack: () => {
                     gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
-                    if (['#achievements', '#news', '#members'].includes(selector)) {
+                    if (['#achievements', '#news', '#members', '#join', '#contact'].includes(selector)) {
                         document.body.classList.add('light-theme');
                     } else {
                         document.body.classList.remove('light-theme');
@@ -2107,20 +2109,16 @@ function App() {
             </section>
 
             {/* 9. Join Us */}
-            <section id="join" className="page-section bg-blue-600 text-white overflow-hidden relative">
-                <div className="absolute inset-0 opacity-10">
-                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-                    </svg>
-                </div>
-                <div className="container reveal text-center relative z-10">
+            <section id="join" className="page-section overflow-hidden relative">
+                <div className="topo-bg opacity-20"></div>
+                <div className="container reveal flex flex-col items-center text-center relative z-10">
                     <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tight">准备好开启你的科技之旅了吗？</h2>
-                    <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed opacity-80">
                         无论你是编程大神，还是对科技充满好奇的新手，星河协会都欢迎你的加入。在这里，你将获得最前沿的技术指导和最志同道合的伙伴。
                     </p>
                     <button 
                         onClick={() => setShowJoinModal(true)}
-                        className="px-12 py-5 bg-white text-blue-600 font-black rounded-2xl text-xl shadow-2xl hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all"
+                        className="px-12 py-5 bg-blue-600 text-white font-black rounded-2xl text-xl shadow-2xl hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
                     >
                         立即申请加入
                     </button>
@@ -2141,32 +2139,32 @@ function App() {
                             
                             <div className="space-y-6">
                                 <div className="flex items-center gap-6 group">
-                                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                    <div className="w-14 h-14 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110">
                                         <Phone size={24} />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-400 text-sm uppercase tracking-widest">联系电话</h4>
-                                        <p className="text-xl font-semibold">15865355237</p>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-1">联系电话</h4>
+                                        <p className="text-xl font-black tracking-tight">158 6535 5237</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-center gap-6 group">
-                                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                    <div className="w-14 h-14 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110">
                                         <Mail size={24} />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-400 text-sm uppercase tracking-widest">电子邮箱</h4>
-                                        <p className="text-xl font-semibold">aqxytwxsh@163.com</p>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-1">电子邮箱</h4>
+                                        <p className="text-xl font-black tracking-tight">aqxytwxsh@163.com</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-center gap-6 group">
-                                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                    <div className="w-14 h-14 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110">
                                         <MapPin size={24} />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-400 text-sm uppercase tracking-widest">办公地址</h4>
-                                        <p className="text-xl font-semibold">静远楼405室</p>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-1">办公地址</h4>
+                                        <p className="text-xl font-black tracking-tight">静远楼 405 室</p>
                                     </div>
                                 </div>
                             </div>
@@ -2211,28 +2209,28 @@ function App() {
                                     } finally {
                                         setIsContactSubmitting(false);
                                     }
-                                }} className="space-y-8">
-                                    <div className="grid md:grid-cols-2 gap-10">
-                                        <div className="space-y-3 text-center">
-                                            <label className="text-lg font-bold text-gray-700 block">您的姓名</label>
-                                            <input required name="name" type="text" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-center text-xl" placeholder="王小明" />
+                                }} className="space-y-6">
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-gray-700 block tracking-wider uppercase text-center">您的姓名</label>
+                                            <input required name="name" type="text" className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-lg text-center" placeholder="王小明" />
                                         </div>
-                                        <div className="space-y-3 text-center">
-                                            <label className="text-lg font-bold text-gray-700 block">电子邮箱</label>
-                                            <input required name="email" type="email" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-center text-xl" placeholder="example@mail.com" />
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-gray-700 block tracking-wider uppercase text-center">电子邮箱</label>
+                                            <input required name="email" type="email" className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-lg text-center" placeholder="example@mail.com" />
                                         </div>
                                     </div>
-                                    <div className="space-y-3 text-center">
-                                        <label className="text-lg font-bold text-gray-700 block">主题</label>
-                                        <input required name="subject" type="text" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-center text-xl" placeholder="关于技术合作..." />
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700 block tracking-wider uppercase text-center">主题</label>
+                                        <input required name="subject" type="text" className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-lg text-center" placeholder="关于技术合作..." />
                                     </div>
-                                    <div className="space-y-3 text-center">
-                                        <label className="text-lg font-bold text-gray-700 block">留言内容</label>
-                                        <textarea required name="content" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none h-40 resize-none text-center text-xl" placeholder="请写下您的需求或建议..."></textarea>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700 block tracking-wider uppercase text-center">留言内容</label>
+                                        <textarea required name="content" className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none h-32 resize-none text-lg text-center" placeholder="请写下您的需求或建议..."></textarea>
                                     </div>
                                     <button 
                                         disabled={isContactSubmitting}
-                                        className="w-full py-6 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-4 text-xl"
+                                        className="w-full py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-4 text-lg"
                                     >
                                         {isContactSubmitting ? (
                                             <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -2267,10 +2265,10 @@ function App() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                         {/* Brand & Social */}
                         <div className="space-y-8">
-                            <div className="text-2xl font-black tracking-tighter">
+                            <div className="text-2xl font-black tracking-tighter footer-logo">
                                 XH<span className="text-blue-500">科技创新</span>
                             </div>
-                            <p className="text-gray-400 text-sm leading-relaxed">
+                            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
                                 致力于培养具有创新精神和实践能力的高素质安全工程人才，探索科技前沿，守护生产安全。
                             </p>
                             <div className="flex gap-4">
