@@ -359,7 +359,7 @@ function App() {
 
     const slides = [
         { type: 'galaxy', text: lang === 'zh' ? '探索星河<br>科技守护安全' : 'Explore the Galaxy<br>Tech Guarding Safety' },
-        { type: 'video', src: 'https://res.cloudinary.com/dtwkzeixa/video/upload/f_auto,q_auto/微信视频2026-03-14_155822_614_jzhor0.mp4', text: t[lang].slider_1 },
+        { type: 'video', src: 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/%E5%BE%AE%E4%BF%A1%E8%A7%86%E9%A2%912026-04-01_150418_943.mp4', text: t[lang].slider_1 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbs3V.jpg', text: t[lang].slider_2 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekb2B4.jpg', text: t[lang].slider_4 },
