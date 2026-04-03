@@ -359,7 +359,7 @@ function App() {
 
     const slides = [
         { type: 'galaxy', text: lang === 'zh' ? '探索星河<br>科技守护安全' : 'Explore the Galaxy<br>Tech Guarding Safety' },
-        { type: 'video', src: 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/%E5%BE%AE%E4%BF%A1%E8%A7%86%E9%A2%912026-04-01_150418_943.mp4', text: t[lang].slider_1 },
+        { type: 'video', src: 'https://res.cloudinary.com/dtwkzeixa/video/upload/f_auto,q_auto/微信视频2026-03-14_155822_614_jzhor0.mp4', text: t[lang].slider_1 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbs3V.jpg', text: t[lang].slider_2 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekb2B4.jpg', text: t[lang].slider_4 },
@@ -856,7 +856,7 @@ function App() {
         const textureLoader = new THREE.TextureLoader(loadingManager);
         
         // Use a placeholder for the badge logo
-        textureLoader.load('https://picsum.photos/seed/xinghe/512/512', (frontTex) => {
+        textureLoader.load('/back-logo.png', (frontTex) => {
             textureLoader.load('https://picsum.photos/seed/team/512/512', (backTex) => {
                 const geometry = new THREE.CylinderGeometry(1.8, 1.8, 0.25, 64);
                 
@@ -1454,76 +1454,77 @@ function App() {
                         </div>
                     </section>
 
-                    {/* Advisor Section (Editorial Style) */}
-                    <section className="hall-of-fame" id="advisor">
-                        <div className="hall-bg-lines">
-                            <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-                                <path d="M0,100 Q250,50 500,100 T1000,100" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,200 Q250,150 500,200 T1000,200" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,300 Q250,250 500,300 T1000,300" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,400 Q250,350 500,400 T1000,400" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,500 Q250,450 500,500 T1000,500" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,600 Q250,550 500,600 T1000,600" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,700 Q250,650 500,700 T1000,700" fill="none" stroke="white" strokeWidth="0.5" />
-                                <path d="M0,800 Q250,750 500,800 T1000,800" fill="none" stroke="white" strokeWidth="0.5" />
-                            </svg>
-                        </div>
-                        
-                        <div className="container hall-content relative">
-                            <div className="absolute top-0 right-0 pointer-events-none z-10 opacity-20">
-                                <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path className="scribble-animate" d="M50 150C100 50 200 250 250 150C300 50 350 250 380 150" stroke="#39FF14" strokeWidth="100" strokeLinecap="round" />
-                                </svg>
-                            </div>
-                            <div className="hall-title-huge reveal font-black tracking-tighter leading-[0.8] mb-12 whitespace-nowrap">
-                                {t[lang].nav_advisor}<br/>
-                                <span className="text-[#39FF14]">ADVISORS</span>
-                            </div>
-                            
-                            <p className="text-blue-400 font-mono tracking-[0.3em] uppercase text-sm mb-12 reveal">
-                                {t[lang].title_teachers}
-                            </p>
-
-                            <div className="teacher-grid-container">
-                                {[
-                                    'qijiayi',
-                                    'wanganquan',
-                                    'lichuangxin',
-                                    'zhaozhinen',
-                                    'sunshijian',
-                                    'zhouyanjiu',
-                                    'wulilun',
-                                    'zhengshijian',
-                                    'qianchuangxin',
-                                    'wangzhinen'
-                                ].map((id, index) => (
-                                    <div 
-                                        key={id}
-                                        className="teacher-card-modern group reveal" 
-                                        onClick={() => showMemberModal(id)}
-                                    >
-                                        <div className="teacher-card-inner">
-                                            <div className="teacher-card-front">
-                                                <div className="teacher-avatar-wrapper">
-                                                    <img loading="lazy" src={memberData[id].avatar} alt={memberData[id].name} referrerPolicy="no-referrer" />
-                                                    <div className="teacher-number">{index + 1}</div>
-                                                </div>
-                                                <h4 className="teacher-name">{memberData[id].name}</h4>
-                                                <p className="teacher-role">{memberData[id].className}</p>
-                                            </div>
-                                            <div className="teacher-card-back">
-                                                <p className="teacher-intro-short">{memberData[id].intro.substring(0, 40)}...</p>
-                                                <div className="teacher-view-btn">VIEW PROFILE</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
                 </div>
             </div>
             {/* --- END 3D SCROLLING MODULE --- */}
+
+            {/* Advisor Section (Editorial Style) */}
+            <section className="hall-of-fame" id="advisor">
+                <div className="hall-bg-lines">
+                    <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        <path d="M0,100 Q250,50 500,100 T1000,100" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,200 Q250,150 500,200 T1000,200" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,300 Q250,250 500,300 T1000,300" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,400 Q250,350 500,400 T1000,400" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,500 Q250,450 500,500 T1000,500" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,600 Q250,550 500,600 T1000,600" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,700 Q250,650 500,700 T1000,700" fill="none" stroke="white" strokeWidth="0.5" />
+                        <path d="M0,800 Q250,750 500,800 T1000,800" fill="none" stroke="white" strokeWidth="0.5" />
+                    </svg>
+                </div>
+                
+                <div className="container hall-content relative">
+                    <div className="absolute top-0 right-0 pointer-events-none z-10 opacity-20">
+                        <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path className="scribble-animate" d="M50 150C100 50 200 250 250 150C300 50 350 250 380 150" stroke="#39FF14" strokeWidth="100" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                    <div className="hall-title-huge reveal font-black tracking-tighter leading-[0.8] mb-12 whitespace-nowrap">
+                        {t[lang].nav_advisor}<br/>
+                        <span className="text-[#39FF14]">ADVISORS</span>
+                    </div>
+                    
+                    <p className="text-blue-400 font-mono tracking-[0.3em] uppercase text-sm mb-12 reveal">
+                        {t[lang].title_teachers}
+                    </p>
+
+                    <div className="teacher-grid-container">
+                        {[
+                            'qijiayi',
+                            'wanganquan',
+                            'lichuangxin',
+                            'zhaozhinen',
+                            'sunshijian',
+                            'zhouyanjiu',
+                            'wulilun',
+                            'zhengshijian',
+                            'qianchuangxin',
+                            'wangzhinen'
+                        ].map((id, index) => (
+                            <div 
+                                key={id}
+                                className="teacher-card-modern group reveal" 
+                                onClick={() => showMemberModal(id)}
+                            >
+                                <div className="teacher-card-inner">
+                                    <div className="teacher-card-front">
+                                        <div className="teacher-avatar-wrapper">
+                                            <img loading="lazy" src={memberData[id].avatar} alt={memberData[id].name} referrerPolicy="no-referrer" />
+                                            <div className="teacher-number">{index + 1}</div>
+                                        </div>
+                                        <h4 className="teacher-name">{memberData[id].name}</h4>
+                                        <p className="teacher-role">{memberData[id].className}</p>
+                                    </div>
+                                    <div className="teacher-card-back">
+                                        <p className="teacher-intro-short">{memberData[id].intro.substring(0, 40)}...</p>
+                                        <div className="teacher-view-btn">VIEW PROFILE</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
 
             {/* 4. History */}
@@ -1561,7 +1562,7 @@ function App() {
                             Xinghe Sci-Tech Innovation Association
                         </div>
                         <img 
-                            src="https://s41.ax1x.com/2026/03/12/pekbfE9.jpg" 
+                            src="https://s41.ax1x.com/2026/03/31/peGSu0x.jpg" 
                             alt="Team Style Transition" 
                             className="style-transition-image"
                         />

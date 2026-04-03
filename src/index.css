@@ -188,7 +188,7 @@ body.light-theme footer .footer-logo { color: #1a1a1a !important; }
 }
 
 .lando-big-text {
-  font-size: clamp(2.5rem, 6vw, 7rem);
+  font-size: clamp(1.5rem, 4vw, 5rem);
   font-weight: 900;
   line-height: 0.8;
   letter-spacing: -0.05em;
@@ -484,7 +484,7 @@ a { text-decoration: none; color: inherit; }
     pointer-events: auto;
 }
 .huge-text {
-    font-size: 28vw;
+    font-size: 24vw;
     font-weight: 900; letter-spacing: -5px; line-height: 0.8;
     color: #f0f0f0; margin-top: 10vh;
 }
@@ -504,7 +504,7 @@ a { text-decoration: none; color: inherit; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; border-bottom: 1px solid #333; padding-bottom: 40px;}
 
 .stat-box p { color: #888; font-size: 14px; margin-bottom: 5px; }
-.stat-box h2 { font-size: 80px; font-weight: 900; line-height: 1; color: #d1ff27; }
+.stat-box h2 { font-size: 70px; font-weight: 900; line-height: 1; color: #d1ff27; }
 .stat-box.white h2 { color: #fff; }
 
 .progress-table { width: 100%; border-collapse: collapse; }
@@ -1188,7 +1188,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 }
 
 .hall-title-huge {
-    font-size: clamp(4rem, 15vw, 250px);
+    font-size: clamp(3.5rem, 12vw, 200px);
     font-weight: 900;
     line-height: 0.85;
     letter-spacing: -0.04em;
@@ -1269,12 +1269,12 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 @media (max-width: 1024px) {
     .hall-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
     .hall-item-1, .hall-item-2, .hall-item-3, .hall-item-4 { grid-column: span 1; margin-top: 0; }
-    .hall-title-huge { font-size: 20vw; }
+    .hall-title-huge { font-size: 16vw; }
 }
 
 @media (max-width: 768px) {
     .hall-grid { grid-template-columns: 1fr; }
-    .hall-title-huge { font-size: 24vw; }
+    .hall-title-huge { font-size: 20vw; }
 }
 
 /* ================= Custom Cursor (Idea 8) ================= */
