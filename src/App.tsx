@@ -960,13 +960,16 @@ function App() {
             });
 
             // Badge Path: Right -> Bottom Left -> Center
-            // Starting from Hand (Math.PI) -> Side (Math.PI * 1.5) -> Logo (Math.PI * 2)
             heroTl.to(badgeGroup.position, { x: -2.2, y: -1.5, z: 1, duration: 0.75, ease: "power2.inOut" })
                   .to(badgeGroup.rotation, { y: Math.PI * 1.5, x: 0.2, z: 0.1, duration: 0.75, ease: "power2.inOut" }, 0)
                   .to(badgeGroup.position, { x: 0, y: 0, z: 0, duration: 0.75, ease: "power2.inOut" })
                   .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75)
-                  .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "back.out(1.7)" }, 0.75)
-                  .to({}, { duration: 1.5 }); // Stay in center for the last 50% of the scroll
+                  .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "back.out(1.7)" }, 0.75);
+
+            // History Section Badge Animation (Stays centered, maybe rotates slowly)
+            heroTl.to(badgeGroup.rotation, { y: Math.PI * 4, duration: 3, ease: "none" }, 1.5);
+            heroTl.to(badgeGroup.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 1, ease: "power2.inOut" }, 1.5);
+
 
             // Text Fading
             gsap.to("#text1-three", {
@@ -1097,28 +1100,50 @@ function App() {
     // History GSAP
     useEffect(() => {
         let scrollTimeout: NodeJS.Timeout;
-        const historyTl = gsap.timeline({
-            scrollTrigger: {
-                trigger: "#history",
-                start: "top top", 
-                end: "+=4500", 
-                pin: true, 
-                scrub: 1,
-                onUpdate: (self) => {
-                    const velocity = self.getVelocity();
-                    const xOffset = gsap.utils.clamp(-60, 60, -velocity * 0.02); 
-                    gsap.to(".history-fixed-arrow", { x: xOffset, xPercent: -50, duration: 0.4, ease: "power2.out", overwrite: "auto" });
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        gsap.to(".history-fixed-arrow", { x: 0, xPercent: -50, duration: 1.5, ease: "elastic.out(1, 0.3)" });
-                    }, 50);
+        // Video Inspired History Animation
+        const track = document.querySelector(".history-items-wrapper");
+        const items = document.querySelectorAll(".history-item");
+        const bgText = document.querySelector(".history-bg-text");
+        
+        if (track) {
+            const historyTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#history",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1,
                 }
+            });
+
+            // 1. Horizontal movement of the track
+            historyTl.to(track, {
+                x: () => -(track.scrollWidth - window.innerWidth / 2),
+                ease: "none"
+            });
+
+            // 2. Subtle parallax for background text
+            if (bgText) {
+                historyTl.to(bgText, {
+                    x: -200,
+                    ease: "none"
+                }, 0);
             }
-        });
-        historyTl.to(".history-scroll-indicator", { opacity: 0, duration: 1 }, 0);
-        historyTl.to(".history-intro-group", { y: -100, opacity: 0, duration: 2 }, 0);
-        historyTl.to(".history-wheel-container", { rotation: -130, ease: "none", duration: 10 }, 0);
-        historyTl.to(".history-counter-rotate", { rotation: "+=130", ease: "none", duration: 10 }, 0);
+
+            // 3. Active state for items as they pass the center
+            items.forEach((item, i) => {
+                ScrollTrigger.create({
+                    trigger: item,
+                    containerAnimation: historyTl,
+                    start: "center center",
+                    end: "center center",
+                    onToggle: self => {
+                        if (self.isActive) item.classList.add("active");
+                        else item.classList.remove("active");
+                    }
+                });
+            });
+        }
+
     }, []);
 
     // Style Transition GSAP (Lando Norris Inspired)
@@ -1454,6 +1479,59 @@ function App() {
                         </div>
                     </section>
 
+                    {/* 4. History (Video Inspired Horizontal Scroll) */}
+                    <section className="history-horizontal-section" id="history">
+                        {/* Scroll to Explore Icon from Video */}
+                        <div className="history-scroll-hint">
+                            <div className="scroll-hint-text">scroll to explore</div>
+                            <div className="scroll-hint-icon">
+                                <div className="scroll-hint-dot"></div>
+                            </div>
+                        </div>
+
+                        {/* Large Background Text from Video */}
+                        <div className="history-bg-text-wrap">
+                            <div className="history-bg-text">
+                                Advancing China's Safety Engineering<br/>
+                                Performance History
+                            </div>
+                        </div>
+
+                        <div className="history-horizontal-track">
+                            <div className="history-items-wrapper">
+                                {[
+                                    { year: '2023', desc: t[lang].history_1 },
+                                    { year: '2024', desc: t[lang].history_2 },
+                                    { year: '2024.9', desc: t[lang].history_3 },
+                                    { year: '2025.6', desc: t[lang].history_4 },
+                                    { year: '2026', desc: t[lang].history_5 }
+                                ].map((item, idx) => (
+                                    <div key={idx} className={`history-item history-item-${idx} ${idx % 2 === 0 ? 'item-top' : 'item-bottom'}`}>
+                                        <div className="history-item-content">
+                                            <div className="history-year-red">{item.year}</div>
+                                            <div className="history-desc-text">{item.desc}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Dotted Curve and Arrow at Bottom */}
+                        <div className="history-bottom-nav">
+                            <div className="history-curve-container">
+                                <svg viewBox="0 0 1000 100" className="history-curve-svg">
+                                    <path d="M0,80 Q500,0 1000,80" fill="none" stroke="#dc2626" strokeWidth="2" strokeDasharray="5 10" opacity="0.4" />
+                                </svg>
+                                <div className="history-center-arrow">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
                 </div>
             </div>
             {/* --- END 3D SCROLLING MODULE --- */}
@@ -1522,29 +1600,6 @@ function App() {
                                 </div>
                             </div>
                         ))}
-                    </div>
-                </div>
-            </section>
-
-
-            {/* 4. History */}
-            <section className="history-gsap-section" id="history">
-                <div className="history-scroll-indicator"><span>{t[lang].history_scroll}</span><div className="history-mouse-icon"></div></div>
-                <div className="history-intro-group">
-                    <div className="history-intro-bg">Advancing<br/>China's<br/>Alkaline<br/>Batteries</div>
-                    <div className="history-intro-fg" dangerouslySetInnerHTML={{ __html: t[lang].history_fg }}></div>
-                </div>
-                <div className="history-fade-mask">
-                    <div className="history-fixed-arrow">
-                        <svg viewBox="0 0 32 24" className="w-20 h-12 fill-current"><path d="M2 12h28M20 5l8 7-8 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                    </div>
-                    <div className="history-wheel-container">
-                        <svg className="history-dotted-circle" viewBox="0 0 2400 2400"><circle cx="1200" cy="1200" r="1198" fill="none" stroke="#fca5a5" strokeWidth="4" strokeDasharray="8 20" strokeLinecap="round"/></svg>
-                        <div className="absolute top-1/2 left-1/2 w-0 h-0 origin-center" style={{ transform: 'rotate(30deg) translateY(-1650px)' }}><div className="history-counter-rotate" style={{ transform: 'rotate(-30deg)' }}><div className="history-year-num">2023</div><div className="history-year-desc">{t[lang].history_1}</div></div></div>
-                        <div className="absolute top-1/2 left-1/2 w-0 h-0 origin-center" style={{ transform: 'rotate(55deg) translateY(-1550px)' }}><div className="history-counter-rotate" style={{ transform: 'rotate(-55deg)' }}><div className="history-year-num">2024</div><div className="history-year-desc">{t[lang].history_2}</div></div></div>
-                        <div className="absolute top-1/2 left-1/2 w-0 h-0 origin-center" style={{ transform: 'rotate(85deg) translateY(-1850px)' }}><div className="history-counter-rotate" style={{ transform: 'rotate(-85deg)' }}><div className="history-year-num">2024.9</div><div className="history-year-desc">{t[lang].history_3}</div></div></div>
-                        <div className="absolute top-1/2 left-1/2 w-0 h-0 origin-center" style={{ transform: 'rotate(115deg) translateY(-1600px)' }}><div className="history-counter-rotate" style={{ transform: 'rotate(-115deg)' }}><div className="history-year-num">2025.6</div><div className="history-year-desc">{t[lang].history_4}</div></div></div>
-                        <div className="absolute top-1/2 left-1/2 w-0 h-0 origin-center" style={{ transform: 'rotate(145deg) translateY(-1800px)' }}><div className="history-counter-rotate" style={{ transform: 'rotate(-145deg)' }}><div className="history-year-num">2026</div><div className="history-year-desc">{t[lang].history_5}</div></div></div>
                     </div>
                 </div>
             </section>

@@ -432,7 +432,7 @@ a { text-decoration: none; color: inherit; }
 .three-master-wrapper {
     position: relative;
     width: 100vw;
-    height: 600vh; /* Increased height for longer scroll footprint */
+    height: 900vh; /* Increased height for longer scroll footprint including history */
     background-color: transparent;
 }
 
@@ -902,47 +902,132 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     .teacher-grid-container { grid-template-columns: 1fr; }
 }
 
-.history-gsap-section { position: relative; width: 100%; height: 100vh; background-color: transparent; overflow: hidden; z-index: 20; }
-.history-scroll-indicator {
-    position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    color: #888; font-size: 12px; letter-spacing: 2px; z-index: 30;
+/* ================= Horizontal History Section ================= */
+.history-horizontal-section {
+    position: relative;
+    width: 100vw;
+    height: 400vh; /* Long scroll for horizontal effect */
+    background: transparent;
+    pointer-events: auto;
 }
-.history-mouse-icon {
-    width: 20px; height: 32px; border: 2px solid #888; border-radius: 10px; position: relative;
+
+.history-horizontal-track {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
 }
-.history-mouse-icon::after {
-    content: ''; position: absolute; top: 6px; left: 50%; width: 2px; height: 6px;
-    background: #888; transform: translateX(-50%); border-radius: 1px;
-    animation: scroll-down 1.5s infinite;
+
+.history-items-wrapper {
+    display: flex;
+    padding: 0 50vw; /* Start from center */
+    gap: 40vw;
+    align-items: center;
+    will-change: transform;
 }
-.history-intro-group {
-    position: absolute; top: 50%; left: 8%; transform: translateY(-50%);
-    text-align: left; width: auto; z-index: 5;
+
+.history-item {
+    flex: 0 0 450px;
+    height: 75vh; /* Increased height for better staggering */
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.5s ease;
 }
-.history-intro-bg {
-    font-size: 15vw; font-weight: 900; color: rgba(255, 255, 255, 0.05); line-height: 0.85;
-    letter-spacing: -0.05em; position: absolute; top: 50%; left: 0;
-    transform: translateY(-50%); z-index: 1; white-space: nowrap; opacity: 1;
+
+/* Staggering effect: alternate year and description positions */
+.history-item:nth-child(even) {
+    flex-direction: column-reverse;
 }
-.history-intro-fg {
-    font-size: 6rem; font-weight: 900; color: #fff; position: relative; z-index: 2;
-    line-height: 1; letter-spacing: -0.03em; margin-top: 20px;
+
+.history-year-huge {
+    font-size: clamp(6rem, 15vw, 180px);
+    font-weight: 900;
+    color: #ff4d4d; /* Brighter, more vibrant red */
+    line-height: 0.8;
+    margin: 0;
+    opacity: 0.4; /* Increased base visibility */
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    letter-spacing: -0.05em;
+    filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.3));
 }
-.history-fade-mask { position: absolute; inset: 0; z-index: 10; pointer-events: none; mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%); }
-.history-fixed-arrow { 
-    position: absolute; left: 50%; top: 80vh; z-index: 20; 
-    color: #dc2626; filter: drop-shadow(0px 4px 10px rgba(220, 38, 38, 0.4)); 
-    transform: translate(-50%, -50%); 
+
+.history-item.active .history-year-huge {
+    opacity: 1;
+    transform: scale(1.15);
+    color: #ff3333; /* Very bright red when active */
+    text-shadow: 0 0 50px rgba(255, 51, 51, 0.9), 0 0 100px rgba(255, 51, 51, 0.4);
+    filter: drop-shadow(0 0 20px rgba(255, 51, 51, 0.6));
 }
-.history-fixed-arrow svg {
-    fill: #dc2626;
+
+.history-desc-box {
+    font-size: 20px;
+    color: #60a5fa;
+    max-width: 380px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    line-height: 1.6;
+    font-weight: 500;
 }
-.history-wheel-container { position: absolute; left: 50%; top: calc(80vh + 1200px); width: 2400px; height: 2400px; margin-left: -1200px; margin-top: -1200px; border-radius: 50%; will-change: transform; }
-.history-dotted-circle { position: absolute; inset: 0; width: 100%; height: 100%; }
-.history-counter-rotate { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; white-space: nowrap; padding-bottom: 20px; }
-.history-year-num { font-size: 140px; font-weight: 900; color: #dc2626; line-height: 1; flex-shrink: 0; text-shadow: 0 10px 20px rgba(220, 38, 38, 0.1); }
-.history-year-desc { font-size: 28px; font-weight: 500; color: #1a1a1a; line-height: 1.5; flex-shrink: 0; background: rgba(255, 255, 255, 0.8); padding: 4px 12px; border-radius: 8px; }
+
+.history-item:nth-child(even) .history-desc-box {
+    transform: translateY(-20px);
+}
+
+.history-item.active .history-desc-box {
+    opacity: 1;
+    transform: translateY(0);
+    color: #93c5fd;
+}
+
+.history-curve-bg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40vh;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.history-curve-svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 2;
+    stroke-dasharray: 10 15;
+}
+
+.history-badge-placeholder {
+    width: 300px;
+    height: 300px;
+    /* This is where the 3D badge will be positioned */
+}
+
+.history-intro-overlay {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    z-index: 5;
+}
+
+.history-intro-overlay h2 {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #3b82f6; /* Blue color */
+    letter-spacing: -0.03em;
+}
+
 
 .awards-carousel-museum { position: relative; width: 100%; overflow: hidden; padding: 80px 0; }
 .carousel-btn-museum {
