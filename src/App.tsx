@@ -856,17 +856,21 @@ function App() {
         const textureLoader = new THREE.TextureLoader(loadingManager);
         
         // Use a placeholder for the badge logo
-        textureLoader.load('/back-logo.png', (frontTex) => {
-            textureLoader.load('https://picsum.photos/seed/team/512/512', (backTex) => {
+        textureLoader.load('/logo   4.0.pnd.png', (frontTex) => {
+            textureLoader.load('/back-logo.png', (backTex) => {
                 const geometry = new THREE.CylinderGeometry(1.8, 1.8, 0.25, 64);
                 
-                // Rotate back texture 180 degrees and flip horizontally
-                backTex.wrapS = THREE.RepeatWrapping;
-                backTex.wrapT = THREE.RepeatWrapping;
+                // Fix front texture orientation: ensure it's upright and not mirrored
+                frontTex.center.set(0.5, 0.5);
+                frontTex.rotation = 0; 
+                frontTex.repeat.x = 1;
+                frontTex.offset.x = 0;
+
+                // Fix back texture orientation: ensure it's upright and not mirrored
                 backTex.center.set(0.5, 0.5);
-                backTex.rotation = Math.PI;
-                backTex.repeat.x = -1;
-                backTex.offset.x = 1;
+                backTex.rotation = Math.PI; // Keep rotation to stay upright
+                backTex.repeat.x = 1; 
+                backTex.offset.x = 0;
 
                 // Configure textures for better clarity and color accuracy
                 frontTex.colorSpace = THREE.SRGBColorSpace;
@@ -874,38 +878,26 @@ function App() {
                 backTex.colorSpace = THREE.SRGBColorSpace;
                 backTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-                // 1. 正面材质（Logo面）：模拟厚实的滴胶（Epoxy）质感
+                // 1. 正面材质（Logo面）：干净、平滑的滴胶质感
                 const frontMat = new THREE.MeshPhysicalMaterial({
                   map: frontTex,
-                  metalness: 0.0,           // 滴胶表面不是金属
-                  roughness: 0.01,          // 极度平滑
-                  clearcoat: 1.0,           // 顶层清漆
+                  metalness: 0.0,
+                  roughness: 0.05,          // 稍微增加一点粗糙度，减少刺眼的反射
+                  clearcoat: 1.0,
                   clearcoatRoughness: 0.0,
-                  transmission: 0.2,        // 增加透光性，模拟树脂深度
-                  thickness: 1.5,           // 模拟滴胶的厚度
-                  ior: 1.55,                // 树脂折射率
-                  iridescence: 0.2,         // 极轻微的虹彩感，增加高级感
-                  iridescenceIOR: 1.3,
-                  iridescenceThicknessRange: [100, 400],
-                  emissive: new THREE.Color(0xffffff), 
-                  emissiveMap: frontTex,
-                  emissiveIntensity: 0.15    
+                  transparent: true,        // 开启透明支持
+                  alphaTest: 0.1,           // 过滤掉接近透明的像素
                 });
 
-                // 2. 背面材质：同样的滴胶质感
+                // 2. 背面材质
                 const backMat = new THREE.MeshPhysicalMaterial({
                   map: backTex,
                   metalness: 0.0,
-                  roughness: 0.01,
+                  roughness: 0.05,
                   clearcoat: 1.0,
                   clearcoatRoughness: 0.0,
-                  transmission: 0.2,
-                  thickness: 1.5,
-                  ior: 1.55,
-                  iridescence: 0.2,
-                  emissive: new THREE.Color(0xffffff),
-                  emissiveMap: backTex,
-                  emissiveIntensity: 0.15
+                  transparent: true,
+                  alphaTest: 0.1,
                 });
 
                 // 3. 侧边材质：哑光拉丝感银色
@@ -1099,11 +1091,12 @@ function App() {
 
     // History GSAP
     useEffect(() => {
-        let scrollTimeout: NodeJS.Timeout;
         // Video Inspired History Animation
         const track = document.querySelector(".history-items-wrapper");
         const items = document.querySelectorAll(".history-item");
         const bgText = document.querySelector(".history-bg-text");
+        const wheel = document.querySelector(".history-wheel-bg");
+        const scrollHint = document.querySelector(".history-scroll-hint");
         
         if (track) {
             const historyTl = gsap.timeline({
@@ -1111,31 +1104,48 @@ function App() {
                     trigger: "#history",
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 1,
+                    scrub: 3, // High damping for "high-end" feel
                 }
             });
 
             // 1. Horizontal movement of the track
             historyTl.to(track, {
-                x: () => -(track.scrollWidth - window.innerWidth / 2),
+                x: () => -(track.scrollWidth - window.innerWidth),
                 ease: "none"
             });
 
-            // 2. Subtle parallax for background text
+            // 2. Pronounced parallax for background text
             if (bgText) {
                 historyTl.to(bgText, {
-                    x: -200,
+                    x: -500,
                     ease: "none"
                 }, 0);
             }
 
-            // 3. Active state for items as they pass the center
-            items.forEach((item, i) => {
+            // 3. Scroll-driven wheel rotation
+            if (wheel) {
+                historyTl.to(wheel, {
+                    rotation: 360,
+                    ease: "none"
+                }, 0);
+            }
+
+            // 4. Fade out scroll hint
+            if (scrollHint) {
+                historyTl.to(scrollHint, {
+                    opacity: 0,
+                    y: -50,
+                    ease: "power2.in"
+                }, 0);
+            }
+
+            // 5. Active state for items as they pass the center
+            items.forEach((item) => {
                 ScrollTrigger.create({
                     trigger: item,
                     containerAnimation: historyTl,
-                    start: "center center",
-                    end: "center center",
+                    start: "center center+=100",
+                    end: "center center-=100",
                     onToggle: self => {
                         if (self.isActive) item.classList.add("active");
                         else item.classList.remove("active");
@@ -1296,7 +1306,7 @@ function App() {
             {/* Header */}
             <header className={scrolled ? 'scrolled' : ''}>
                 <div className="header-content">
-                    <div className="logo font-black leading-[0.8] tracking-tighter text-2xl">
+                    <div className="logo font-black leading-[1.1] tracking-tighter text-2xl">
                         XINGHE<br/>
                         <span className="text-xs tracking-[0.3em] opacity-60 uppercase">{t[lang].logo_text}</span>
                     </div>
@@ -1481,6 +1491,15 @@ function App() {
 
                     {/* 4. History (Video Inspired Horizontal Scroll) */}
                     <section className="history-horizontal-section" id="history">
+                        {/* High-end Damping Wheel Background */}
+                        <div className="history-wheel-bg">
+                            <svg viewBox="0 0 1000 1000" className="history-wheel-svg">
+                                <circle cx="500" cy="500" r="450" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+                                <circle cx="500" cy="500" r="350" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1" strokeDasharray="10 20" />
+                                <circle cx="500" cy="500" r="250" fill="none" stroke="rgba(255,255,255,0.01)" strokeWidth="1" />
+                            </svg>
+                        </div>
+
                         {/* Scroll to Explore Icon from Video */}
                         <div className="history-scroll-hint">
                             <div className="scroll-hint-text">scroll to explore</div>
@@ -1497,6 +1516,19 @@ function App() {
                             </div>
                         </div>
 
+                        {/* Red Arrow Path from Video */}
+                        <div className="history-red-track">
+                            <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="history-red-svg">
+                                <path d="M0,150 Q500,50 1000,150" fill="none" stroke="#ff3333" strokeWidth="2" strokeDasharray="10 15" />
+                            </svg>
+                            <div className="history-red-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ff3333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
                         <div className="history-horizontal-track">
                             <div className="history-items-wrapper">
                                 {[
@@ -1508,27 +1540,14 @@ function App() {
                                 ].map((item, idx) => (
                                     <div key={idx} className={`history-item history-item-${idx} ${idx % 2 === 0 ? 'item-top' : 'item-bottom'}`}>
                                         <div className="history-item-content">
-                                            <div className="history-year-red">{item.year}</div>
-                                            <div className="history-desc-text">{item.desc}</div>
+                                            <div className="history-year-huge">{item.year}</div>
+                                            <div className="history-desc-box">{item.desc}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Dotted Curve and Arrow at Bottom */}
-                        <div className="history-bottom-nav">
-                            <div className="history-curve-container">
-                                <svg viewBox="0 0 1000 100" className="history-curve-svg">
-                                    <path d="M0,80 Q500,0 1000,80" fill="none" stroke="#dc2626" strokeWidth="2" strokeDasharray="5 10" opacity="0.4" />
-                                </svg>
-                                <div className="history-center-arrow">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
                     </section>
 
 
@@ -1557,7 +1576,7 @@ function App() {
                             <path className="scribble-animate" d="M50 150C100 50 200 250 250 150C300 50 350 250 380 150" stroke="#39FF14" strokeWidth="100" strokeLinecap="round" />
                         </svg>
                     </div>
-                    <div className="hall-title-huge reveal font-black tracking-tighter leading-[0.8] mb-12 whitespace-nowrap">
+                    <div className="hall-title-huge reveal font-black tracking-tighter leading-[1.1] mb-12 whitespace-nowrap">
                         {t[lang].nav_advisor}<br/>
                         <span className="text-[#39FF14]">ADVISORS</span>
                     </div>
@@ -1870,7 +1889,7 @@ function App() {
                 <div ref={horizontalScrollRef} className="horizontal-scroll-wrapper">
                     
                     {/* Block 1: Big Text */}
-                    <div className="flex-shrink-0 mr-[-10vw] parallax-layer" data-speed="0.1">
+                    <div className="flex-shrink-0 mr-10 parallax-layer" data-speed="0.1">
                         <h2 className="lando-big-text" dangerouslySetInnerHTML={{ __html: t[lang].style_big_text }}></h2>
                     </div>
 
@@ -1920,7 +1939,7 @@ function App() {
                     {/* Block 7: On Track / Off Track Typography */}
                     <div className="flex-shrink-0 ml-40 mr-20 flex flex-col justify-center parallax-layer" data-speed="0.15">
                         <div className="relative">
-                            <h2 className="text-[13vw] font-black leading-[0.8] tracking-tighter opacity-10 absolute -top-20 -left-10 select-none">
+                            <h2 className="text-[13vw] font-black leading-[1.1] tracking-tighter opacity-10 absolute -top-20 -left-10 select-none">
                                 RACING
                             </h2>
                             <div className="flex items-baseline gap-4">

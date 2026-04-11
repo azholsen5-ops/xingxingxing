@@ -144,7 +144,7 @@ body.light-theme footer .footer-logo { color: #1a1a1a !important; }
 .lando-logo {
   font-weight: 900;
   font-size: 2.2rem;
-  line-height: 0.8;
+  line-height: 1.1;
   letter-spacing: -0.05em;
   pointer-events: auto;
 }
@@ -190,8 +190,8 @@ body.light-theme footer .footer-logo { color: #1a1a1a !important; }
 .lando-big-text {
   font-size: clamp(1.5rem, 4vw, 5rem);
   font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.05em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   max-width: 1200px;
   position: relative;
@@ -485,7 +485,7 @@ a { text-decoration: none; color: inherit; }
 }
 .huge-text {
     font-size: 24vw;
-    font-weight: 900; letter-spacing: -5px; line-height: 0.8;
+    font-weight: 900; letter-spacing: -5px; line-height: 1.0;
     color: #f0f0f0; margin-top: 10vh;
 }
 
@@ -909,6 +909,130 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     height: 400vh; /* Long scroll for horizontal effect */
     background: transparent;
     pointer-events: auto;
+    overflow: hidden;
+}
+
+.history-wheel-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120vh;
+    height: 120vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+}
+
+.history-wheel-svg {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.history-bg-text-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.history-bg-text {
+    font-size: clamp(4rem, 10vw, 12rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: rgba(255, 255, 255, 0.03);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.history-red-track {
+    position: absolute;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60vw;
+    height: 100px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.history-red-svg {
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+}
+
+.history-red-arrow {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: arrowBounce 2s infinite ease-in-out;
+}
+
+@keyframes arrowBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+.history-scroll-hint {
+    position: absolute;
+    top: 15vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+    opacity: 0.6;
+}
+
+.scroll-hint-text {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-weight: 600;
+}
+
+.scroll-hint-icon {
+    width: 20px;
+    height: 35px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    position: relative;
+}
+
+.scroll-hint-dot {
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: scrollDot 2s infinite;
+}
+
+@keyframes scrollDot {
+    0% { opacity: 0; transform: translateX(-50%) translateY(0); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(15px); }
 }
 
 .history-horizontal-track {
@@ -919,73 +1043,68 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     display: flex;
     align-items: center;
     overflow: hidden;
+    z-index: 2;
 }
 
 .history-items-wrapper {
     display: flex;
-    padding: 0 50vw; /* Start from center */
-    gap: 40vw;
+    padding: 0 50vw;
+    gap: 50vw;
     align-items: center;
     will-change: transform;
 }
 
 .history-item {
-    flex: 0 0 450px;
-    height: 75vh; /* Increased height for better staggering */
+    flex: 0 0 500px;
+    height: 80vh;
     text-align: center;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    transition: transform 0.5s ease;
+    transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Staggering effect: alternate year and description positions */
-.history-item:nth-child(even) {
-    flex-direction: column-reverse;
+.item-top {
+    justify-content: flex-start;
+    padding-top: 10vh;
+}
+
+.item-bottom {
+    justify-content: flex-end;
+    padding-bottom: 10vh;
 }
 
 .history-year-huge {
-    font-size: clamp(6rem, 15vw, 180px);
+    font-size: clamp(5rem, 12vw, 150px);
     font-weight: 900;
-    color: #ff4d4d; /* Brighter, more vibrant red */
-    line-height: 0.8;
+    color: #ff3333;
+    line-height: 1;
     margin: 0;
-    opacity: 0.4; /* Increased base visibility */
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    opacity: 0.3;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     letter-spacing: -0.05em;
-    filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.3));
 }
 
 .history-item.active .history-year-huge {
     opacity: 1;
-    transform: scale(1.15);
-    color: #ff3333; /* Very bright red when active */
-    text-shadow: 0 0 50px rgba(255, 51, 51, 0.9), 0 0 100px rgba(255, 51, 51, 0.4);
-    filter: drop-shadow(0 0 20px rgba(255, 51, 51, 0.6));
+    transform: scale(1.1);
 }
 
 .history-desc-box {
-    font-size: 20px;
-    color: #60a5fa;
-    max-width: 380px;
-    margin: 0 auto;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 400px;
+    margin: 20px auto 0;
+    opacity: 0.4;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     line-height: 1.6;
-    font-weight: 500;
-}
-
-.history-item:nth-child(even) .history-desc-box {
-    transform: translateY(-20px);
 }
 
 .history-item.active .history-desc-box {
     opacity: 1;
-    transform: translateY(0);
-    color: #93c5fd;
+    color: white;
 }
 
 .history-curve-bg {
@@ -1236,7 +1355,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 120px;
-    line-height: 0.8;
+    line-height: 1.1;
     color: rgba(255, 255, 255, 0.05);
     position: absolute;
     top: -20px;
@@ -1275,7 +1394,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 .hall-title-huge {
     font-size: clamp(3.5rem, 12vw, 200px);
     font-weight: 900;
-    line-height: 0.85;
+    line-height: 1.1;
     letter-spacing: -0.04em;
     text-transform: uppercase;
     margin-bottom: 60px;
@@ -1654,7 +1773,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     text-transform: uppercase;
     letter-spacing: -0.05em;
     opacity: 0;
-    line-height: 0.8;
+    line-height: 1.0;
 }
 
 .style-transition-text-left {
