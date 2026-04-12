@@ -5,6 +5,7 @@
 
 import React, { Component, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { animate, svg, stagger } from 'animejs';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -13,6 +14,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight } from 'lucide-react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
+import ImageTrail from './components/ImageTrail';
+import ProfileCard from './components/ProfileCard';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -217,6 +220,7 @@ function App() {
     const [scrollProgress, setScrollProgress] = useState(0);
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
+    const [isTrailHovering, setIsTrailHovering] = useState(false);
     const [isMusicPlaying, setIsMusicPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -707,13 +711,13 @@ function App() {
         const renderPass = new RenderPass(scene, camera);
         composer.addPass(renderPass);
 
-        // --- 0. Mouse Tracking for Parallax ---
-        const mouse = { x: 0, y: 0 };
-        const handleMouseMove = (event: MouseEvent) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        };
-        window.addEventListener('mousemove', handleMouseMove);
+        // --- 0. Mouse Tracking for Parallax (Disabled per user request) ---
+        // const mouse = { x: 0, y: 0 };
+        // const handleMouseMove = (event: MouseEvent) => {
+        //     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        //     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        // };
+        // window.addEventListener('mousemove', handleMouseMove);
 
         // --- 0.5 Enhanced Particle System (Realistic Bokeh Dust) ---
         const particlesCount = 150;
@@ -919,8 +923,8 @@ function App() {
             badgeGroup.add(badgeMesh);
             scene.add(badgeGroup);
 
-            badgeGroup.position.set(1.5, 0, 0);
-            badgeGroup.rotation.set(0.2, Math.PI - 0.3, 0); // Start with the hand side (Back face)
+            badgeGroup.position.set(2.2, 0, 0);
+            badgeGroup.rotation.set(0, Math.PI * 2, 0); // Start facing forward (Logo side)
 
             // GSAP Animations for 3D
             // Initial state: Hidden
@@ -952,12 +956,12 @@ function App() {
                 }
             });
 
-            // Badge Path: Right -> Bottom Left -> Center
-            heroTl.to(badgeGroup.position, { x: -2.2, y: -1.5, z: 1, duration: 0.75, ease: "power2.inOut" })
-                  .to(badgeGroup.rotation, { y: Math.PI * 1.5, x: 0.2, z: 0.1, duration: 0.75, ease: "power2.inOut" }, 0)
+            // Badge Path: Stay Right & Front -> Center
+            heroTl.to(badgeGroup.position, { x: 2.2, y: 0, z: 0, duration: 0.75, ease: "power2.inOut" })
+                  .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0)
                   .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "power2.inOut" }, 0) // Scale up early and smoothly
                   .to(badgeGroup.position, { x: 0, y: 0, z: 0, duration: 0.75, ease: "power2.inOut" })
-                  .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75);
+                  .to(badgeGroup.rotation, { y: Math.PI * 4, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75);
 
             // Text Fading
             gsap.to("#text1-three", {
@@ -1025,8 +1029,8 @@ function App() {
 
         let animationId: number;
         const clock = new THREE.Clock();
-        const animate = () => {
-            animationId = requestAnimationFrame(animate);
+        const threeAnimate = () => {
+            animationId = requestAnimationFrame(threeAnimate);
             const elapsedTime = clock.getElapsedTime();
             
             if (badgeGroupRef.current) {
@@ -1034,14 +1038,9 @@ function App() {
                 // Subtle Y movement and very slow base rotation
                 badgeGroupRef.current.position.y = Math.sin(elapsedTime * 0.8) * 0.15;
                 
-                // 2. Mouse Parallax (Interactive Tilt)
-                // Lerping the rotation for smoothness
-                const targetRotationX = mouse.y * 0.2;
-                const targetRotationZ = -mouse.x * 0.2;
-                
-                // We add the parallax on top of the base rotation
-                badgeGroupRef.current.rotation.x += (targetRotationX - badgeGroupRef.current.rotation.x) * 0.05;
-                badgeGroupRef.current.rotation.z += (targetRotationZ - badgeGroupRef.current.rotation.z) * 0.05;
+                // 2. Mouse Parallax (Disabled per user request)
+                // badgeGroupRef.current.rotation.x += (0 - badgeGroupRef.current.rotation.x) * 0.05;
+                // badgeGroupRef.current.rotation.z += (0 - badgeGroupRef.current.rotation.z) * 0.05;
             }
 
             // 3. Enhanced Particles Animation
@@ -1052,7 +1051,16 @@ function App() {
 
             composer.render();
         };
-        animate();
+        threeAnimate();
+
+        // Anime.js SVG Animation
+        animate(svg.createDrawable('.huge-svg .line'), {
+            draw: ['0 0', '0 1', '1 1'],
+            ease: 'inOutQuad',
+            duration: 2000,
+            delay: stagger(100),
+            loop: true
+        });
 
         const handleResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -1064,7 +1072,6 @@ function App() {
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            window.removeEventListener('mousemove', handleMouseMove);
             ScrollTrigger.getAll().forEach(t => t.kill());
             
             // Dispose Three.js resources
@@ -1325,7 +1332,7 @@ function App() {
 
             {/* Custom Cursor (Idea 8) */}
             <div 
-                className={`custom-cursor ${isHovering ? 'hover' : ''}`}
+                className={`custom-cursor ${isHovering ? 'hover' : ''} ${isTrailHovering ? 'opacity-0' : ''}`}
                 style={{ left: `${cursorPos.x}px`, top: `${cursorPos.y}px` }}
             >
                 <div className="star-cursor">
@@ -1485,7 +1492,27 @@ function App() {
 
                 {/* The Content that scrolls over/under the badge */}
                 <div className="three-content-overlay">
-                    <section className="three-section" id="sec-hero-three">
+                    <section 
+                        className="three-section" 
+                        id="sec-hero-three"
+                        onMouseEnter={() => setIsTrailHovering(true)}
+                        onMouseLeave={() => setIsTrailHovering(false)}
+                    >
+                        <div className="absolute inset-0 z-0 pointer-events-none">
+                            <ImageTrail 
+                                variant="1"
+                                items={[
+                                    'https://picsum.photos/id/287/300/300',
+                                    'https://picsum.photos/id/1001/300/300',
+                                    'https://picsum.photos/id/1025/300/300',
+                                    'https://picsum.photos/id/1026/300/300',
+                                    'https://picsum.photos/id/1027/300/300',
+                                    'https://picsum.photos/id/1028/300/300',
+                                    'https://picsum.photos/id/1029/300/300',
+                                    'https://picsum.photos/id/1030/300/300',
+                                ]}
+                            />
+                        </div>
                         <div className="top-text-three" id="text1-three" dangerouslySetInnerHTML={{ __html: t[lang].three_top }}></div>
                         <div className="bottom-text-three" id="text2-three" dangerouslySetInnerHTML={{ __html: t[lang].three_bottom }}></div>
                     </section>
@@ -1494,7 +1521,28 @@ function App() {
                     <section className="three-section" style={{ height: '150vh', pointerEvents: 'none' }}></section>
 
                     <section className="huge-text-section" id="sec-huge-three" style={{ height: '150vh' }}>
-                        <h1 className="huge-text">XINGHE</h1>
+                        <div className="huge-svg-container">
+                            <svg viewBox="35 15 460 210" className="huge-svg">
+                                {/* Shadow Layer for 3D effect */}
+                                <g stroke="rgba(88, 166, 255, 0.4)" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" transform="translate(5, 5)">
+                                    <path className="line" d="M100 100 A 60 60 0 1 1 100 99 M100 100 H 160" />
+                                    <path className="line" d="M180 120 A 40 40 0 1 1 180 119 M220 80 V 160" />
+                                    <path className="line" d="M240 40 V 160" />
+                                    <path className="line" d="M280 120 A 40 40 0 1 1 280 119 M320 80 V 160" />
+                                    <path className="line" d="M350 80 L 410 160 M410 80 L 350 160" />
+                                    <path className="line" d="M440 80 V 140 A 20 20 0 0 0 480 140 V 80 M480 140 V 180 A 40 40 0 0 1 400 180" />
+                                </g>
+                                {/* Main Layer */}
+                                <g stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3">
+                                    <path className="line" d="M100 100 A 60 60 0 1 1 100 99 M100 100 H 160" />
+                                    <path className="line" d="M180 120 A 40 40 0 1 1 180 119 M220 80 V 160" />
+                                    <path className="line" d="M240 40 V 160" />
+                                    <path className="line" d="M280 120 A 40 40 0 1 1 280 119 M320 80 V 160" />
+                                    <path className="line" d="M350 80 L 410 160 M410 80 L 350 160" />
+                                    <path className="line" d="M440 80 V 140 A 20 20 0 0 0 480 140 V 80 M480 140 V 180 A 40 40 0 0 1 400 180" />
+                                </g>
+                            </svg>
+                        </div>
                     </section>
 
                     <section className="stats-three-section" id="sec-stats-three" style={{ height: '150vh' }}>
@@ -1636,27 +1684,26 @@ function App() {
                             'zhengshijian',
                             'qianchuangxin',
                             'wangzhinen'
-                        ].map((id, index) => (
-                            <div 
+                        ].map((id) => (
+                            <ProfileCard 
                                 key={id}
-                                className="teacher-card-modern group reveal" 
-                                onClick={() => showMemberModal(id)}
-                            >
-                                <div className="teacher-card-inner">
-                                    <div className="teacher-card-front">
-                                        <div className="teacher-avatar-wrapper">
-                                            <img loading="lazy" src={memberData[id].avatar} alt={memberData[id].name} referrerPolicy="no-referrer" />
-                                            <div className="teacher-number">{index + 1}</div>
-                                        </div>
-                                        <h4 className="teacher-name">{memberData[id].name}</h4>
-                                        <p className="teacher-role">{memberData[id].className}</p>
-                                    </div>
-                                    <div className="teacher-card-back">
-                                        <p className="teacher-intro-short">{memberData[id].intro.substring(0, 40)}...</p>
-                                        <div className="teacher-view-btn">VIEW PROFILE</div>
-                                    </div>
-                                </div>
-                            </div>
+                                name={memberData[id].name}
+                                title={memberData[id].className}
+                                handle={id}
+                                status="Online"
+                                contactText="VIEW PROFILE"
+                                avatarUrl={memberData[id].avatar}
+                                showUserInfo
+                                enableTilt={true}
+                                enableMobileTilt
+                                onContactClick={() => showMemberModal(id)}
+                                behindGlowColor="rgba(57, 255, 20, 0.3)"
+                                behindGlowEnabled
+                                behindGlowSize="35%"
+                                innerGradient="linear-gradient(145deg, rgba(0,0,0,0.9) 0%, rgba(57, 255, 20, 0.1) 100%)"
+                                iconUrl="data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15z' fill='%2339FF14' fill-opacity='0.1'/%3E%3C/svg%3E"
+                                className="reveal"
+                            />
                         ))}
                     </div>
                 </div>
