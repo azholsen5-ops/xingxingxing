@@ -112,10 +112,10 @@ const memberData: Record<string, Member> = {
         awards:["2024年安全创新一等奖", "优秀学生干部"] 
     },
     zhangming: {
-        id: 'zhangming',
-        name: "张明",
+        id: 'lupeng',
+        name: "路鹏",
         className: "安全23-2",
-        avatar: "https://picsum.photos/150/150?member4",
+        avatar: "/public/2317d6156558f4618fe9ac7194fc9201_compressed.jpg",
         intro: "擅长安全系统工程与风险评估。",
         awards: ["2024年校级优秀学生"]
     },
@@ -371,8 +371,8 @@ function App() {
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekb2B4.jpg', text: t[lang].slider_4 },
         { type: 'image', src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80', text: "跨学科合作<br>突破技术壁垒" },
-        { type: 'image', src: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=80', text: "实战模拟演练<br>提升工程效率" },
-        { type: 'image', src: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1600&q=80', text: "多元文化融合<br>迸发无限灵感" },
+        { type: 'image', src: '/public/a571e63fdca829ed428888e19430a731_compressed.jpg', text: "实战模拟演练<br>提升工程效率" },
+        { type: 'image', src: '/public/34d0f06b7f10dec793580b9936f4b52b_compressed.jpg', text: "多元文化融合<br>迸发无限灵感" },
         { type: 'image', src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80', text: "星河长存<br>创新无悔" },
     ];
 
