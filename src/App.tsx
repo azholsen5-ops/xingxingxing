@@ -16,6 +16,8 @@ import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
 import ImageTrail from './components/ImageTrail';
 import ProfileCard from './components/ProfileCard';
+import GlitchText from './components/GlitchText';
+import ShinyText from './components/ShinyText';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -217,12 +219,13 @@ function App() {
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [selectedAward, setSelectedAward] = useState<any | null>(null);
     const [showBackToTop, setShowBackToTop] = useState(false);
-    const [scrollProgress, setScrollProgress] = useState(0);
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
     const [isTrailHovering, setIsTrailHovering] = useState(false);
     const [isMusicPlaying, setIsMusicPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const progressBarRef = useRef<HTMLDivElement>(null);
+    const progressCircleRef = useRef<SVGCircleElement>(null);
 
     const [isContactSubmitting, setIsContactSubmitting] = useState(false);
     const [contactSubmitted, setContactSubmitted] = useState(false);
@@ -376,23 +379,26 @@ function App() {
     // --- Effects ---
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-            setShowBackToTop(window.scrollY > 300);
+            const scrollY = window.scrollY;
+            setScrolled(scrollY > 50);
+            setShowBackToTop(scrollY > 300);
             
             // Calculate scroll progress for top bar
             const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            setScrollProgress(scrolled);
+            const progress = (winScroll / height) * 100;
+            
+            if (progressBarRef.current) {
+                progressBarRef.current.style.width = `${progress}%`;
+            }
 
             // Update scroll progress ring
-            const circle = document.getElementById('progress-circle');
-            if (circle) {
+            if (progressCircleRef.current) {
                 const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
-                const scrollProgress = window.scrollY / scrollTotal;
+                const scrollProgress = scrollY / scrollTotal;
                 const circumference = 2 * Math.PI * 30;
                 const offset = circumference - (scrollProgress * circumference);
-                circle.style.strokeDashoffset = offset.toString();
+                progressCircleRef.current.style.strokeDashoffset = offset.toString();
             }
 
             // Reveal animation
@@ -404,6 +410,7 @@ function App() {
         };
 
         const handleMouseMove = (e: MouseEvent) => {
+            if (window.innerWidth < 1024) return;
             setCursorPos({ x: e.clientX, y: e.clientY });
             
             // Check if hovering over interactive elements
@@ -671,9 +678,10 @@ function App() {
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 6;
 
-        const renderer = new THREE.WebGLRenderer({ canvas: mainCanvasRef.current, alpha: true, antialias: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: mainCanvasRef.current, alpha: true, antialias: window.innerWidth >= 1024 });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        const isMobile = window.innerWidth < 1024;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
         // In Three.js r152+, outputEncoding is replaced by outputColorSpace
         (renderer as any).outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -720,7 +728,7 @@ function App() {
         // window.addEventListener('mousemove', handleMouseMove);
 
         // --- 0.5 Enhanced Particle System (Realistic Bokeh Dust) ---
-        const particlesCount = 150;
+        const particlesCount = isMobile ? 40 : 150;
         const positions = new Float32Array(particlesCount * 3);
         const sizes = new Float32Array(particlesCount);
         const randoms = new Float32Array(particlesCount); // For individual animation offsets
@@ -802,6 +810,7 @@ function App() {
             0.4,  // 半径 (radius)
             0.85  // 阈值 (threshold)
         );
+        if (isMobile) bloomPass.enabled = false;
         composer.addPass(bloomPass);
 
         // --- 1. 环境映射 (Environment Mapping) ---
@@ -1029,8 +1038,16 @@ function App() {
 
         let animationId: number;
         const clock = new THREE.Clock();
+        let isVisible = true;
+        const observer = new IntersectionObserver((entries) => {
+            isVisible = entries[0].isIntersecting;
+        }, { threshold: 0.1 });
+        if (mainCanvasRef.current) observer.observe(mainCanvasRef.current);
+
         const threeAnimate = () => {
             animationId = requestAnimationFrame(threeAnimate);
+            if (!isVisible) return;
+            
             const elapsedTime = clock.getElapsedTime();
             
             if (badgeGroupRef.current) {
@@ -1072,6 +1089,7 @@ function App() {
 
         return () => {
             window.removeEventListener('resize', handleResize);
+            observer.disconnect();
             ScrollTrigger.getAll().forEach(t => t.kill());
             
             // Dispose Three.js resources
@@ -1328,11 +1346,11 @@ function App() {
     return (
         <div className="relative">
             {/* Scroll Progress Bar (Idea 7) */}
-            <div className="scroll-progress-bar" style={{ width: `${scrollProgress}%` }}></div>
+            <div ref={progressBarRef} className="scroll-progress-bar"></div>
 
             {/* Custom Cursor (Idea 8) */}
             <div 
-                className={`custom-cursor ${isHovering ? 'hover' : ''} ${isTrailHovering ? 'opacity-0' : ''}`}
+                className={`custom-cursor hidden lg:flex ${isHovering ? 'hover' : ''} ${isTrailHovering ? 'lg:hidden' : ''}`}
                 style={{ left: `${cursorPos.x}px`, top: `${cursorPos.y}px` }}
             >
                 <div className="star-cursor">
@@ -1361,8 +1379,8 @@ function App() {
                     </div>
                     <ul className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
                         <li><a href="#intro" className="nav-item active">{t[lang].nav_intro}</a></li>
-                        <li><a href="#advisor" className="nav-item">{t[lang].nav_advisor}</a></li>
                         <li><a href="#history" className="nav-item">{t[lang].nav_history}</a></li>
+                        <li><a href="#advisor" className="nav-item">{t[lang].nav_advisor}</a></li>
                         <li><a href="#style" className="nav-item">{t[lang].nav_style}</a></li>
                         <li><a href="#experience" className="nav-item">{t[lang].nav_experience}</a></li>
                         <li><a href="#achievements" className="nav-item">{t[lang].nav_achieve}</a></li>
@@ -1471,7 +1489,7 @@ function App() {
             </div>
 
             {/* --- 3D SCROLLING MODULE (Master Wrapper) --- */}
-            <div className="three-master-wrapper">
+            <div className="three-master-wrapper cursor-none">
                 {/* The Sticky Container for the Badge */}
                 <div id="webgl-container" className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'transparent' }}>
                     {is3DLoading && (
@@ -1493,7 +1511,7 @@ function App() {
                 {/* The Content that scrolls over/under the badge */}
                 <div className="three-content-overlay">
                     <section 
-                        className="three-section" 
+                        className="three-section cursor-none" 
                         id="sec-hero-three"
                         onMouseEnter={() => setIsTrailHovering(true)}
                         onMouseLeave={() => setIsTrailHovering(false)}
@@ -1545,7 +1563,7 @@ function App() {
                         </div>
                     </section>
 
-                    <section className="stats-three-section" id="sec-stats-three" style={{ height: '150vh' }}>
+                    <section className="stats-three-section cursor-auto" id="sec-stats-three" style={{ height: '150vh' }}>
                         <div className="stats-left">
                             <h2 style={{ fontSize: '40px', marginBottom: '20px' }}>
                                 {t[lang].stats_title}<br/>
@@ -1577,7 +1595,7 @@ function App() {
                     </section>
 
                     {/* 4. History (Video Inspired Horizontal Scroll) */}
-                    <section className="history-horizontal-section" id="history" style={{ height: '800vh' }}>
+                    <section className="history-horizontal-section cursor-auto" id="history" style={{ height: '800vh' }}>
                         {/* High-end Damping Wheel Background */}
                         <div className="history-wheel-bg">
                             <svg viewBox="0 0 1000 1000" className="history-wheel-svg">
@@ -1682,8 +1700,7 @@ function App() {
                             'zhouyanjiu',
                             'wulilun',
                             'zhengshijian',
-                            'qianchuangxin',
-                            'wangzhinen'
+                            'qianchuangxin'
                         ].map((id) => (
                             <ProfileCard 
                                 key={id}
@@ -1697,10 +1714,10 @@ function App() {
                                 enableTilt={true}
                                 enableMobileTilt
                                 onContactClick={() => showMemberModal(id)}
-                                behindGlowColor="rgba(57, 255, 20, 0.3)"
+                                behindGlowColor="rgba(37, 99, 235, 0.4)"
                                 behindGlowEnabled
-                                behindGlowSize="35%"
-                                innerGradient="linear-gradient(145deg, rgba(0,0,0,0.9) 0%, rgba(57, 255, 20, 0.1) 100%)"
+                                behindGlowSize="45%"
+                                innerGradient="linear-gradient(145deg, rgba(37, 99, 235, 0.15) 0%, rgba(57, 255, 20, 0.1) 100%)"
                                 iconUrl="data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15z' fill='%2339FF14' fill-opacity='0.1'/%3E%3C/svg%3E"
                                 className="reveal"
                             />
@@ -2270,16 +2287,29 @@ function App() {
             {/* 9. Join Us */}
             <section id="join" className="page-section overflow-hidden relative">
                 <div className="topo-bg opacity-20"></div>
-                <div className="container reveal flex flex-col items-center text-center relative z-10">
-                    <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tight">准备好开启你的科技之旅了吗？</h2>
+                <div className="container mx-auto reveal flex flex-col items-center text-center relative z-10">
+                    <GlitchText
+                        speed={1}
+                        enableShadows
+                        enableOnHover={false}
+                        className="text-4xl md:text-5xl font-black mb-8 tracking-tight"
+                    >
+                        准备好开启你的科技之旅了吗？
+                    </GlitchText>
                     <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed opacity-80">
                         无论你是编程大神，还是对科技充满好奇的新手，星河协会都欢迎你的加入。在这里，你将获得最前沿的技术指导和最志同道合的伙伴。
                     </p>
                     <button 
                         onClick={() => setShowJoinModal(true)}
-                        className="px-12 py-5 bg-blue-600 text-white font-black rounded-2xl text-xl shadow-2xl hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
+                        className="px-12 py-5 bg-white border-2 border-black text-black font-black rounded-2xl text-xl shadow-xl hover:bg-black/5 hover:scale-105 active:scale-95 transition-all"
                     >
-                        立即申请加入
+                        <ShinyText
+                            text="立即申请加入"
+                            speed={3}
+                            color="#000000"
+                            shineColor="#888888"
+                            direction="right"
+                        />
                     </button>
                 </div>
             </section>
@@ -2503,7 +2533,13 @@ function App() {
         {/* Back to Top */}
             <div className={`back-to-top ${showBackToTop ? 'show' : ''}`} onClick={scrollToTop}>
                 <svg className="scroll-progress-ring" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="30" id="progress-circle" />
+                    <circle 
+                        ref={progressCircleRef}
+                        cx="32" cy="32" r="30" 
+                        id="progress-circle" 
+                        strokeDasharray="188.5"
+                        strokeDashoffset="188.5"
+                    />
                 </svg>
                 <ArrowUp size={20} />
             </div>
@@ -2826,7 +2862,9 @@ const GalaxyParticles = () => {
 
         const init = () => {
             particles = [];
-            for (let i = 0; i < 150; i++) {
+            const isMobile = window.innerWidth < 768;
+            const count = isMobile ? 50 : 150;
+            for (let i = 0; i < count; i++) {
                 particles.push(new Particle());
             }
         };

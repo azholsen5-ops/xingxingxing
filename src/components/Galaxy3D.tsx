@@ -31,9 +31,10 @@ const Galaxy3D: React.FC = () => {
         controls.maxDistance = 20;
 
         // Galaxy Parameters
+        const isMobile = window.innerWidth < 768;
         const parameters = {
-            count: 300000, 
-            size: 0.005, // Even smaller for a cleaner look
+            count: isMobile ? 50000 : 300000, 
+            size: isMobile ? 0.01 : 0.005, 
             radius: 5,
             branches: 3,
             spin: 1.2,
@@ -168,15 +169,22 @@ const Galaxy3D: React.FC = () => {
         generateGalaxy();
 
         const clock = new THREE.Clock();
+        let isVisible = true;
+        const observer = new IntersectionObserver((entries) => {
+            isVisible = entries[0].isIntersecting;
+        }, { threshold: 0.1 });
+        observer.observe(container);
 
         const animate = () => {
-            const elapsedTime = clock.getElapsedTime();
-            if (points) points.rotation.y = elapsedTime * 0.03;
-            if (dust) dust.rotation.y = elapsedTime * 0.01;
-            if (corePoints) corePoints.rotation.y = elapsedTime * 0.05;
-            
-            controls.update();
-            renderer.render(scene, camera); // Back to standard renderer
+            if (isVisible) {
+                const elapsedTime = clock.getElapsedTime();
+                if (points) points.rotation.y = elapsedTime * 0.03;
+                if (dust) dust.rotation.y = elapsedTime * 0.01;
+                if (corePoints) corePoints.rotation.y = elapsedTime * 0.05;
+                
+                controls.update();
+                renderer.render(scene, camera);
+            }
             requestAnimationFrame(animate);
         };
 
@@ -194,6 +202,7 @@ const Galaxy3D: React.FC = () => {
 
         return () => {
             window.removeEventListener('resize', handleResize);
+            observer.disconnect();
             renderer.dispose();
             if (container.contains(renderer.domElement)) {
                 container.removeChild(renderer.domElement);

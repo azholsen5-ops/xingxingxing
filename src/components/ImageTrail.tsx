@@ -86,13 +86,15 @@ class ImageTrailVariant1 {
     this.imagesTotal = this.images.length;
 
     this.handlePointerMove = (ev: any) => {
+      if (window.innerWidth < 1024) return; // Disable trail on mobile/tablets
       const rect = this.container.getBoundingClientRect();
       this.mousePos = getLocalPointerPos(ev, rect);
     };
     window.addEventListener('mousemove', this.handlePointerMove);
-    window.addEventListener('touchmove', this.handlePointerMove);
+    window.addEventListener('touchmove', this.handlePointerMove, { passive: true });
 
     this.initRender = (ev: any) => {
+      if (window.innerWidth < 1024) return;
       const rect = this.container.getBoundingClientRect();
       this.mousePos = getLocalPointerPos(ev, rect);
       this.cacheMousePos = { ...this.mousePos };
@@ -107,6 +109,7 @@ class ImageTrailVariant1 {
   }
 
   render() {
+    if (window.innerWidth < 1024) return;
     // Only show images if mouse is within container bounds
     const rect = this.container.getBoundingClientRect();
     const isInside = 
