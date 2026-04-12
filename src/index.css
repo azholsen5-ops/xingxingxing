@@ -1817,29 +1817,6 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 }
 
 .members-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-top: 30px; }
-.member-card { 
-    background: #fff; border-radius: 20px; padding: 30px 15px; text-align: center; cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); border: 1px solid #f0f0f0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-    position: relative;
-    overflow: hidden;
-}
-.member-card img {
-    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-}
-.member-card:hover { 
-    transform: translateY(-8px); 
-    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.1);
-    border-color: rgba(37, 99, 235, 0.3);
-}
-.member-card:hover img {
-    transform: scale(1.08);
-}
-.member-card:active {
-    transform: translateY(-4px) scale(0.96);
-    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.08);
-    transition-duration: 0.1s;
-}
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 2000; display: flex; align-items: center; justify-content: center; }
 .modal-content { background: #fff; width: 90%; max-width: 500px; border-radius: 20px; padding: 40px; position: relative; text-align: center; }

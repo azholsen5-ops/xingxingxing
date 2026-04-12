@@ -1713,6 +1713,7 @@ function App() {
                                 showUserInfo
                                 enableTilt={true}
                                 enableMobileTilt
+                                variant="dark"
                                 onContactClick={() => showMemberModal(id)}
                                 behindGlowColor="rgba(37, 99, 235, 0.4)"
                                 behindGlowEnabled
@@ -2270,15 +2271,16 @@ function App() {
                             .filter(m => !['qijiayi', 'wanganquan', 'lichuangxin', 'zhaozhinen', 'sunshijian', 'zhouyanjiu', 'wulilun', 'zhengshijian', 'qianchuangxin', 'wangzhinen'].includes(m.id))
                             .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
                             .map((member) => (
-                                <div key={member.id} className="member-card reveal" onClick={() => showMemberModal(member.id)}>
-                                    <div className="member-avatar">
-                                        <img loading="lazy" src={member.avatar} alt={member.name} />
-                                    </div>
-                                    <div className="member-info">
-                                        <h3>{member.name}</h3>
-                                        <p>{member.className}</p>
-                                    </div>
-                                </div>
+                                <ProfileCard 
+                                    key={member.id}
+                                    name={member.name}
+                                    title={member.className}
+                                    handle={member.id}
+                                    avatarUrl={member.avatar}
+                                    variant="light"
+                                    onContactClick={() => showMemberModal(member.id)}
+                                    className="reveal"
+                                />
                             ))}
                     </div>
                 </div>

@@ -35,6 +35,7 @@ interface ProfileCardProps {
   contactText?: string;
   showUserInfo?: boolean;
   onContactClick?: () => void;
+  variant?: 'dark' | 'light';
 }
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
@@ -56,7 +57,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   status = 'Online',
   contactText = 'Contact',
   showUserInfo = true,
-  onContactClick
+  onContactClick,
+  variant = 'dark'
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -317,11 +319,15 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     () => ({
       '--icon': iconUrl ? `url(${iconUrl})` : 'none',
       '--grain': grainUrl ? `url(${grainUrl})` : 'none',
-      '--inner-gradient': innerGradient ?? DEFAULT_INNER_GRADIENT,
-      '--behind-glow-color': behindGlowColor ?? 'rgba(125, 190, 255, 0.67)',
-      '--behind-glow-size': behindGlowSize ?? '50%'
+      '--inner-gradient': innerGradient ?? (variant === 'light' ? 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(37,99,235,0.05) 100%)' : DEFAULT_INNER_GRADIENT),
+      '--behind-glow-color': behindGlowColor ?? (variant === 'light' ? 'rgba(37, 99, 235, 0.2)' : 'rgba(125, 190, 255, 0.67)'),
+      '--behind-glow-size': behindGlowSize ?? '50%',
+      '--card-bg': variant === 'light' ? '#f9fafb' : 'rgba(0, 0, 0, 0.9)',
+      '--text-primary': variant === 'light' ? '#111827' : '#ffffff',
+      '--text-secondary': variant === 'light' ? '#4b5563' : 'rgba(255, 255, 255, 0.7)',
+      '--border-color': variant === 'light' ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.1)'
     } as React.CSSProperties),
-    [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize]
+    [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize, variant]
   );
 
   const handleContactClick = useCallback((e: React.MouseEvent) => {
@@ -330,7 +336,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   }, [onContactClick]);
 
   return (
-    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
+    <div ref={wrapRef} className={`pc-card-wrapper pc-variant-${variant} ${className}`.trim()} style={cardStyle}>
       {behindGlowEnabled && <div className="pc-behind" />}
       <div ref={shellRef} className="pc-card-shell">
         <section className="pc-card">
