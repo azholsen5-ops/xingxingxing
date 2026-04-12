@@ -932,7 +932,7 @@ function App() {
                 trigger: "#sec-hero-three",
                 start: "top 80%",
                 endTrigger: "#advisor",
-                end: "top 60%",
+                end: "top top",
                 onToggle: self => gsap.to("#webgl-container", { 
                     opacity: self.isActive ? 1 : 0, 
                     duration: 0.4,
@@ -946,7 +946,8 @@ function App() {
                 scrollTrigger: {
                     trigger: ".three-master-wrapper",
                     start: "top top",
-                    end: "bottom bottom",
+                    endTrigger: "#history",
+                    end: "top top",
                     scrub: 2 // Increased for more "weight" and smoothness
                 }
             });
@@ -957,11 +958,6 @@ function App() {
                   .to(badgeGroup.position, { x: 0, y: 0, z: 0, duration: 0.75, ease: "power2.inOut" })
                   .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75)
                   .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "back.out(1.7)" }, 0.75);
-
-            // History Section Badge Animation (Stays centered, maybe rotates slowly)
-            heroTl.to(badgeGroup.rotation, { y: Math.PI * 4, duration: 3, ease: "none" }, 1.5);
-            heroTl.to(badgeGroup.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 1, ease: "power2.inOut" }, 1.5);
-
 
             // Text Fading
             gsap.to("#text1-three", {
@@ -1104,30 +1100,54 @@ function App() {
                     trigger: "#history",
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 3, // High damping for "high-end" feel
+                    pin: true,
+                    scrub: 1.5, // Smoother but more responsive
+                    onEnter: () => gsap.to("#history", { autoAlpha: 1, duration: 0.5, overwrite: "auto" }),
+                    onLeave: () => gsap.to("#history", { autoAlpha: 0, duration: 0.5, overwrite: "auto" }),
+                    onEnterBack: () => gsap.to("#history", { autoAlpha: 1, duration: 0.5, overwrite: "auto" }),
+                    onLeaveBack: () => gsap.to("#history", { autoAlpha: 0, duration: 0.5, overwrite: "auto" })
                 }
             });
 
-            // 1. Horizontal movement of the track
-            historyTl.to(track, {
-                x: () => -(track.scrollWidth - window.innerWidth),
-                ease: "none"
-            });
-
-            // 2. Pronounced parallax for background text
-            if (bgText) {
-                historyTl.to(bgText, {
-                    x: -500,
-                    ease: "none"
-                }, 0);
+            // 1. Initial Phase: Center the badge perfectly before horizontal scroll starts
+            if (badgeGroupRef.current) {
+                historyTl.to(badgeGroupRef.current.position, { x: 0, y: 0, z: 0, duration: 0.5, ease: "power2.inOut" })
+                         .to(badgeGroupRef.current.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 0.5, ease: "power2.inOut" }, 0)
+                         .to(badgeGroupRef.current.rotation, { y: "+=" + (Math.PI * 0.5), duration: 0.5, ease: "power2.inOut" }, 0);
             }
 
-            // 3. Scroll-driven wheel rotation
+            // 2. Horizontal Scroll Phase: Move the track while badge stays fixed
+            historyTl.to(track, {
+                x: () => -(track.scrollWidth - window.innerWidth),
+                ease: "none",
+                duration: 3
+            }, ">");
+
+            // Continuous rotation during horizontal scroll
+            if (badgeGroupRef.current) {
+                historyTl.to(badgeGroupRef.current.rotation, { 
+                    y: "+=" + (Math.PI * 6), 
+                    ease: "none",
+                    duration: 3
+                }, "<");
+            }
+
+            // 3. Parallax for background text
+            if (bgText) {
+                historyTl.to(bgText, {
+                    x: -1500,
+                    ease: "none",
+                    duration: 3
+                }, "<");
+            }
+
+            // 4. Scroll-driven wheel rotation
             if (wheel) {
                 historyTl.to(wheel, {
-                    rotation: 360,
-                    ease: "none"
-                }, 0);
+                    rotation: 1080,
+                    ease: "none",
+                    duration: 3
+                }, "<");
             }
 
             // 4. Fade out scroll hint
@@ -1135,25 +1155,39 @@ function App() {
                 historyTl.to(scrollHint, {
                     opacity: 0,
                     y: -50,
-                    ease: "power2.in"
-                }, 0);
+                    ease: "power2.in",
+                    duration: 0.3
+                }, 0); // Fade out early
             }
+
+            // 5. Buffer at the end to ensure 2026 is seen
+            historyTl.to({}, { duration: 0.5 }); 
+
+            // 6. Final Fade Out of content to prevent leakage
+            historyTl.to([track, bgText, wheel, ".history-red-track"], {
+                opacity: 0,
+                y: -100,
+                duration: 0.5,
+                ease: "power2.in"
+            }, ">");
 
             // 5. Active state for items as they pass the center
             items.forEach((item) => {
                 ScrollTrigger.create({
                     trigger: item,
                     containerAnimation: historyTl,
-                    start: "center center+=100",
-                    end: "center center-=100",
+                    start: "center center+=150",
+                    end: "center center-=150",
                     onToggle: self => {
                         if (self.isActive) item.classList.add("active");
                         else item.classList.remove("active");
                     }
                 });
             });
-        }
 
+            // Force refresh after a tick to ensure scrollWidth is correct
+            setTimeout(() => ScrollTrigger.refresh(), 100);
+        }
     }, []);
 
     // Style Transition GSAP (Lando Norris Inspired)
@@ -1490,7 +1524,7 @@ function App() {
                     </section>
 
                     {/* 4. History (Video Inspired Horizontal Scroll) */}
-                    <section className="history-horizontal-section" id="history">
+                    <section className="history-horizontal-section" id="history" style={{ height: '800vh' }}>
                         {/* High-end Damping Wheel Background */}
                         <div className="history-wheel-bg">
                             <svg viewBox="0 0 1000 1000" className="history-wheel-svg">

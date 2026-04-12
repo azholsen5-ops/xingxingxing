@@ -432,7 +432,7 @@ a { text-decoration: none; color: inherit; }
 .three-master-wrapper {
     position: relative;
     width: 100vw;
-    height: 900vh; /* Increased height for longer scroll footprint including history */
+    height: 1350vh; /* Synced with App.tsx total height (100+150+150+150+800) */
     background-color: transparent;
 }
 
@@ -906,10 +906,11 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 .history-horizontal-section {
     position: relative;
     width: 100vw;
-    height: 400vh; /* Long scroll for horizontal effect */
+    height: 800vh; /* Synced with App.tsx */
     background: transparent;
     pointer-events: auto;
     overflow: hidden;
+    z-index: 10;
 }
 
 .history-wheel-bg {
@@ -949,7 +950,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     font-size: clamp(4rem, 10vw, 12rem);
     font-weight: 900;
     line-height: 1.1;
-    color: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.2);
     text-transform: uppercase;
     letter-spacing: -0.02em;
 }
@@ -1036,26 +1037,29 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 }
 
 .history-horizontal-track {
-    position: sticky;
-    top: 0;
+    position: relative;
     height: 100vh;
     width: 100%;
     display: flex;
     align-items: center;
     overflow: hidden;
     z-index: 2;
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
 }
 
 .history-items-wrapper {
     display: flex;
     padding: 0 50vw;
-    gap: 50vw;
+    gap: 20vw; /* Increased for better spacing and visibility */
     align-items: center;
     will-change: transform;
+    width: max-content;
+    flex-wrap: nowrap;
+    overflow: visible;
 }
 
 .history-item {
-    flex: 0 0 500px;
+    flex: 0 0 300px; /* Narrower for higher density */
     height: 80vh;
     text-align: center;
     position: relative;
@@ -1077,12 +1081,12 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 }
 
 .history-year-huge {
-    font-size: clamp(5rem, 12vw, 150px);
+    font-size: clamp(6rem, 20vw, 250px); /* Even larger for impact */
     font-weight: 900;
     color: #ff3333;
-    line-height: 1;
+    line-height: 0.9;
     margin: 0;
-    opacity: 0.3;
+    opacity: 0.1; /* Very faint when inactive */
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     letter-spacing: -0.05em;
 }
@@ -1090,6 +1094,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
 .history-item.active .history-year-huge {
     opacity: 1;
     transform: scale(1.1);
+    filter: drop-shadow(0 0 30px rgba(255, 51, 51, 0.4));
 }
 
 .history-desc-box {
@@ -1097,13 +1102,15 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     color: rgba(255, 255, 255, 0.7);
     max-width: 400px;
     margin: 20px auto 0;
-    opacity: 0.4;
+    opacity: 0; /* Hidden when not active */
+    transform: translateY(20px);
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     line-height: 1.6;
 }
 
 .history-item.active .history-desc-box {
     opacity: 1;
+    transform: translateY(0);
     color: white;
 }
 
@@ -1376,6 +1383,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     padding: 120px 0;
     position: relative;
     overflow: hidden;
+    z-index: 200; /* Higher than three-content-overlay (110) to prevent leakage */
 }
 
 .hall-bg-lines {
