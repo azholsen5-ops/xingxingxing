@@ -955,9 +955,9 @@ function App() {
             // Badge Path: Right -> Bottom Left -> Center
             heroTl.to(badgeGroup.position, { x: -2.2, y: -1.5, z: 1, duration: 0.75, ease: "power2.inOut" })
                   .to(badgeGroup.rotation, { y: Math.PI * 1.5, x: 0.2, z: 0.1, duration: 0.75, ease: "power2.inOut" }, 0)
+                  .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "power2.inOut" }, 0) // Scale up early and smoothly
                   .to(badgeGroup.position, { x: 0, y: 0, z: 0, duration: 0.75, ease: "power2.inOut" })
-                  .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75)
-                  .to(badgeGroup.scale, { x: 0.4, y: 0.4, z: 0.4, duration: 0.75, ease: "back.out(1.7)" }, 0.75);
+                  .to(badgeGroup.rotation, { y: Math.PI * 2, x: 0, z: 0, duration: 0.75, ease: "power2.inOut" }, 0.75);
 
             // Text Fading
             gsap.to("#text1-three", {
@@ -1101,7 +1101,7 @@ function App() {
                     start: "top top",
                     end: "bottom bottom",
                     pin: true,
-                    scrub: 1.5, // Smoother but more responsive
+                    scrub: 2, // Matched with previous sections for consistency
                     onEnter: () => gsap.to("#history", { autoAlpha: 1, duration: 0.5, overwrite: "auto" }),
                     onLeave: () => gsap.to("#history", { autoAlpha: 0, duration: 0.5, overwrite: "auto" }),
                     onEnterBack: () => gsap.to("#history", { autoAlpha: 1, duration: 0.5, overwrite: "auto" }),
@@ -1111,9 +1111,8 @@ function App() {
 
             // 1. Initial Phase: Center the badge perfectly before horizontal scroll starts
             if (badgeGroupRef.current) {
-                historyTl.to(badgeGroupRef.current.position, { x: 0, y: 0, z: 0, duration: 0.5, ease: "power2.inOut" })
-                         .to(badgeGroupRef.current.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 0.5, ease: "power2.inOut" }, 0)
-                         .to(badgeGroupRef.current.rotation, { y: "+=" + (Math.PI * 0.5), duration: 0.5, ease: "power2.inOut" }, 0);
+                historyTl.to(badgeGroupRef.current.position, { x: 0, y: 0, z: 0, duration: 0.5, ease: "power2.inOut" });
+                // Removed scale animation here to maintain the size from the previous section
             }
 
             // 2. Horizontal Scroll Phase: Move the track while badge stays fixed
@@ -1126,7 +1125,7 @@ function App() {
             // Continuous rotation during horizontal scroll
             if (badgeGroupRef.current) {
                 historyTl.to(badgeGroupRef.current.rotation, { 
-                    y: "+=" + (Math.PI * 6), 
+                    y: "+=" + (Math.PI * 6), // 3 full rotations to end back at front-facing
                     ease: "none",
                     duration: 3
                 }, "<");
@@ -1162,9 +1161,15 @@ function App() {
 
             // 5. Buffer at the end to ensure 2026 is seen
             historyTl.to({}, { duration: 0.5 }); 
-
-            // 6. Final Fade Out of content to prevent leakage
-            historyTl.to([track, bgText, wheel, ".history-red-track"], {
+            if (badgeGroupRef.current) {
+                historyTl.to(badgeGroupRef.current.rotation, { 
+                    y: Math.PI * 8, // Ensure it's perfectly forward facing (multiple of 2PI)
+                    duration: 0.5,
+                    ease: "power2.out"
+                }, "<");
+            }
+            // 6. Final Fade Out of content to prevent leakage (including the badge)
+            historyTl.to([track, bgText, wheel, ".history-red-track", "#webgl-container"], {
                 opacity: 0,
                 y: -100,
                 duration: 0.5,
@@ -1176,8 +1181,8 @@ function App() {
                 ScrollTrigger.create({
                     trigger: item,
                     containerAnimation: historyTl,
-                    start: "center center+=150",
-                    end: "center center-=150",
+                    start: "center center+=400", // Activate much earlier
+                    end: "center center-=400",   // Stay active longer
                     onToggle: self => {
                         if (self.isActive) item.classList.add("active");
                         else item.classList.remove("active");
