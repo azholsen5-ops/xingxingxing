@@ -221,7 +221,6 @@ function App() {
     const [showBackToTop, setShowBackToTop] = useState(false);
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
-    const [isTrailHovering, setIsTrailHovering] = useState(false);
     const [isMusicPlaying, setIsMusicPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const progressBarRef = useRef<HTMLDivElement>(null);
@@ -1350,7 +1349,7 @@ function App() {
 
             {/* Custom Cursor (Idea 8) */}
             <div 
-                className={`custom-cursor hidden lg:flex ${isHovering ? 'hover' : ''} ${isTrailHovering ? 'lg:hidden' : ''}`}
+                className={`custom-cursor hidden lg:flex ${isHovering ? 'hover' : ''}`}
                 style={{ left: `${cursorPos.x}px`, top: `${cursorPos.y}px` }}
             >
                 <div className="star-cursor">
@@ -1513,24 +1512,7 @@ function App() {
                     <section 
                         className="three-section cursor-none" 
                         id="sec-hero-three"
-                        onMouseEnter={() => setIsTrailHovering(true)}
-                        onMouseLeave={() => setIsTrailHovering(false)}
                     >
-                        <div className="absolute inset-0 z-0 pointer-events-none">
-                            <ImageTrail 
-                                variant="1"
-                                items={[
-                                    'https://picsum.photos/id/287/300/300',
-                                    'https://picsum.photos/id/1001/300/300',
-                                    'https://picsum.photos/id/1025/300/300',
-                                    'https://picsum.photos/id/1026/300/300',
-                                    'https://picsum.photos/id/1027/300/300',
-                                    'https://picsum.photos/id/1028/300/300',
-                                    'https://picsum.photos/id/1029/300/300',
-                                    'https://picsum.photos/id/1030/300/300',
-                                ]}
-                            />
-                        </div>
                         <div className="top-text-three" id="text1-three" dangerouslySetInnerHTML={{ __html: t[lang].three_top }}></div>
                         <div className="bottom-text-three" id="text2-three" dangerouslySetInnerHTML={{ __html: t[lang].three_bottom }}></div>
                     </section>
@@ -1615,10 +1597,7 @@ function App() {
 
                         {/* Large Background Text from Video */}
                         <div className="history-bg-text-wrap">
-                            <div className="history-bg-text">
-                                Advancing China's Safety Engineering<br/>
-                                Performance History
-                            </div>
+                            <div className="history-bg-text" dangerouslySetInnerHTML={{ __html: t[lang].history_fg }}></div>
                         </div>
 
                         {/* Red Arrow Path from Video */}

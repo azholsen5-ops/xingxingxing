@@ -932,7 +932,7 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     font-size: clamp(4rem, 10vw, 12rem);
     font-weight: 900;
     line-height: 1.1;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 51, 51, 0.3);
     text-transform: uppercase;
     letter-spacing: -0.02em;
 }
