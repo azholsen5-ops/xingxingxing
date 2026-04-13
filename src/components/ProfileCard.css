@@ -65,7 +65,6 @@
   border-radius: var(--card-radius);
   position: relative;
   background-blend-mode: screen, normal, normal, normal;
-  animation: glow-bg 12s linear infinite;
   box-shadow: rgba(0, 0, 0, 0.8) calc((var(--pointer-from-left) * 10px) - 3px)
     calc((var(--pointer-from-top) * 20px) - 6px) 20px -5px;
   transition: transform 1s ease;
@@ -256,8 +255,7 @@
   left: 50%;
   top: 50%;
   transform-origin: 50% 50%;
-  transform: translate(-50%, -50%) translateZ(0)
-    scaleY(calc(1 + (var(--pointer-from-top) - 0.5) * 0.02)) scaleX(calc(1 + (var(--pointer-from-left) - 0.5) * 0.01));
+  transform: translate(-50%, -50%) translateZ(0);
   backface-visibility: hidden;
   will-change: transform;
   transition: transform 120ms ease-out;

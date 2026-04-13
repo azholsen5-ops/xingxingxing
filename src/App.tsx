@@ -1695,7 +1695,7 @@ function App() {
                                 avatarUrl={memberData[id].avatar}
                                 showUserInfo
                                 enableTilt={true}
-                                enableMobileTilt
+                                enableMobileTilt={false}
                                 variant="dark"
                                 onContactClick={() => showMemberModal(id)}
                                 behindGlowColor="rgba(37, 99, 235, 0.4)"
