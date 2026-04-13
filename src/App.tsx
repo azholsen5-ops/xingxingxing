@@ -12,12 +12,14 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
 import ImageTrail from './components/ImageTrail';
 import ProfileCard from './components/ProfileCard';
 import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
+import AgreementOverlay from './components/AgreementOverlay';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -233,6 +235,8 @@ function App() {
     const [joinData, setJoinData] = useState({ name: '', studentId: '', majorClass: '', phone: '', intro: '' });
     const [isJoinSubmitting, setIsJoinSubmitting] = useState(false);
     const [joinSubmitted, setJoinSubmitted] = useState(false);
+    const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState(false);
+    const [signatureData, setSignatureData] = useState<string | null>(null);
 
     const [achieveIndex, setAchieveIndex] = useState(0);
     const [memberSearchTerm, setMemberSearchTerm] = useState('');
@@ -2548,7 +2552,7 @@ function App() {
                     setJoinStep(1);
                     setJoinSubmitted(false);
                 }}>
-                    <div className="relative bg-[#0d1117] text-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.25)] border border-white/10 animate-modal-in flex flex-col md:flex-row min-h-[550px]" onClick={e => e.stopPropagation()}>
+                    <div className="relative bg-[#0d1117] text-white w-full max-w-6xl rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.25)] border border-white/10 animate-modal-in flex flex-col md:flex-row h-[85vh] min-h-[650px]" onClick={e => e.stopPropagation()}>
                         {/* Left Column: Form */}
                         <div className="flex-1 p-8 md:p-12 relative z-10 flex flex-col justify-center">
                             <button className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-20 md:hidden" onClick={() => {
@@ -2685,40 +2689,48 @@ function App() {
                                                 <div className="flex gap-3">
                                                     <button onClick={() => setJoinStep(3)} className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all text-sm">返回</button>
                                                     <button 
-                                                        disabled={isJoinSubmitting || !joinData.intro}
-                                                        onClick={async () => {
-                                                            setIsJoinSubmitting(true);
-                                                            try {
-                                                                await addDocument('recruitment', joinData);
-                                                                const controller = new AbortController();
-                                                                const timeoutId = setTimeout(() => controller.abort(), 15000);
-                                                                try {
-                                                                    await fetch('/api/notify', {
-                                                                        method: 'POST',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify({ type: 'recruitment', data: joinData }),
-                                                                        signal: controller.signal
-                                                                    });
-                                                                    clearTimeout(timeoutId);
-                                                                } catch (e) {
-                                                                    clearTimeout(timeoutId);
-                                                                    console.warn("Email notification failed but document was saved");
-                                                                }
-                                                                setJoinSubmitted(true);
-                                                            } catch (error: any) {
-                                                                alert(`提交失败: ${error.message || '未知错误'}`);
-                                                            } finally {
-                                                                setIsJoinSubmitting(false);
-                                                            }
-                                                        }}
-                                                        className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_10px_40px_rgba(37,99,235,0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-50"
+                                                        disabled={!joinData.intro}
+                                                        onClick={() => setJoinStep(5)}
+                                                        className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/20 hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-50 group"
                                                     >
-                                                        {isJoinSubmitting ? (
-                                                            <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                        ) : (
-                                                            <>提交申请 <ChevronRight size={20} /></>
-                                                        )}
+                                                        下一步 <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                                                     </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {joinStep === 5 && (
+                                            <div className="absolute inset-0 z-[100] bg-[#0d1117] flex flex-col overflow-hidden rounded-[2.5rem]">
+                                                <div className="absolute top-8 left-8 z-[110]">
+                                                    <button 
+                                                        onClick={() => setJoinStep(4)}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10 transition-all text-white/60 hover:text-white"
+                                                    >
+                                                        <ChevronLeft size={14} /> 返回修改资料
+                                                    </button>
+                                                </div>
+                                                <div className="flex-1 overflow-hidden relative">
+                                                    <AgreementOverlay 
+                                                        isSubmitting={isJoinSubmitting}
+                                                        onAccept={(signature) => {
+                                                            setSignatureData(signature);
+                                                            setHasAcceptedAgreement(true);
+                                                            // Auto-trigger submission after agreement
+                                                            const finalData = { ...joinData, signature };
+                                                            (async () => {
+                                                                setIsJoinSubmitting(true);
+                                                                try {
+                                                                    await addDocument('recruitment', finalData);
+                                                                    setJoinSubmitted(true);
+                                                                } catch (error: any) {
+                                                                    alert(`提交失败: ${error.message || '未知错误'}`);
+                                                                    setHasAcceptedAgreement(false);
+                                                                } finally {
+                                                                    setIsJoinSubmitting(false);
+                                                                }
+                                                            })();
+                                                        }} 
+                                                    />
                                                 </div>
                                             </div>
                                         )}

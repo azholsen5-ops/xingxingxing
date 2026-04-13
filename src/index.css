@@ -1018,6 +1018,25 @@ header:not(.scrolled) .lang-switch span.active { color: #fff; }
     100% { opacity: 0; transform: translateX(-50%) translateY(15px); }
 }
 
+/* Custom Scrollbar for Agreement Content */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.4);
+}
+
 .history-horizontal-track {
     position: relative;
     height: 100vh;
