@@ -11,7 +11,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
@@ -322,7 +322,7 @@ function App() {
             footer_recruit: "招新纳贤", footer_requirements: "招新要求", footer_apply: "报名方式", footer_questions: "常见问题",
             footer_privacy: "隐私政策", footer_terms: "使用条款", footer_sitemap: "网站地图",
             modal_awards: "获奖情况",
-            style_big_text: "重定义极限，为胜利而战，<br/>全方位投入。在创新赛道上，<br/>定义属于我们的传奇。",
+            style_big_text: "星河璀璨，创新无界。<br/>在科技的征途中，<br/>书写属于我们的辉煌篇章。",
             style_quote: "创新是引领发展的第一动力，星河人永远在路上。",
             style_final_text: "自协会成立以来，我们怀揣着对科技的热爱，<br/>不懈努力，只为将每一个创新的梦想变为现实。",
             three_top: "星河科技创新协会<br/>Xinghe Sci-Tech<br/>Innovation Association<br/><span class='neon-blue'>探索未知，链接未来。</span>",
@@ -360,7 +360,7 @@ function App() {
             footer_recruit: "Recruitment", footer_requirements: "Requirements", footer_apply: "How to Apply", footer_questions: "FAQ",
             footer_privacy: "Privacy Policy", footer_terms: "Terms of Use", footer_sitemap: "Sitemap",
             modal_awards: "Awards",
-            style_big_text: "REDEFINING LIMITS, FIGHTING FOR <span class='text-blue-400'>WINS</span>, <br/>BRINGING IT ALL IN ALL WAYS. DEFINING A <br/><span class='text-blue-400'> LEGACY</span> IN FORMULA 1 ON AND OFF THE TRACK.",
+            style_big_text: "STARRY RIVER, BOUNDLESS INNOVATION. <br/>ON THE JOURNEY OF TECHNOLOGY, <br/>WRITING OUR OWN <span class='text-blue-400'>GLORIOUS CHAPTER</span>.",
             style_quote: "Innovation is the primary driver of development; Xinghe people are always on the road.",
             style_final_text: "SINCE THE ASSOCIATION WAS FOUNDED, WE HAVE CARRIED A LOVE FOR TECHNOLOGY, <br/>WORKING TIRELESSLY TO MAKE EVERY INNOVATIVE DREAM COME TRUE.",
             three_top: "Xinghe Sci-Tech<br/>Innovation Association<br/><span class='neon-blue'>Explore the unknown, link the future.</span>",
@@ -583,17 +583,23 @@ function App() {
                         onUpdate: function() {
                             const progress = this.progress();
                             const counter = document.querySelector('.lando-counter span');
+                            const progressBar = document.querySelector('.lando-progress-fill') as HTMLElement;
+                            
                             if (counter) {
                                 const slideNum = Math.min(8, Math.max(1, Math.ceil(progress * 8)));
                                 counter.textContent = slideNum.toString();
+                            }
+                            
+                            if (progressBar) {
+                                progressBar.style.width = `${progress * 100}%`;
                             }
                         }
                     });
 
                     // Add background color transition during horizontal scroll
                     tl.to('body', {
-                        backgroundColor: '#f0f7ff',
-                        ease: "none"
+                        backgroundColor: '#ffffff',
+                        ease: "power2.inOut"
                     }, 0);
 
                     // Parallax for individual items
@@ -1936,11 +1942,10 @@ function App() {
                 ref={hallOfFameRef} 
                 className="hall-of-fame-lando relative min-h-screen w-full"
             >
-                <div className="topo-bg opacity-20"></div>
+                <div className="topo-bg opacity-10"></div>
                 
-                {/* Scribble Animation Overlay - 精致比例版 */}
-                <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-20">
-                    <div className="w-[45vw] max-w-[800px] h-auto">
+                <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-40">
+                    <div className="w-[60vw] max-w-[1000px] h-auto">
                         <svg 
                             ref={scribbleRef} 
                             viewBox="0 0 5708 2100" 
@@ -1948,49 +1953,36 @@ function App() {
                             xmlns="http://www.w3.org/2000/svg" 
                             className="w-full h-auto"
                         >
-                            <path
-                                id="xinghe-signature"
-                                className="scribble-animate"
-                                stroke="#39FF14" 
-                                strokeWidth="100"
-                                strokeLinecap="round" 
-                                strokeLinejoin="round"
-                                style={{ filter: 'drop-shadow(0 0 10px rgba(225, 255, 0, 0.4))' }}
-                                d="M0.060791 734.599C1929.23 498.432 5771.36 50.799 5706.56 149.599C5625.56 273.099 4670.06 559.099 3619.06 630.099C2568.06 701.099 1897.56 844.099 1460.06 706.099C1003.56 525.099 1051.06 710.099 984.561 320.599C918.061 -68.9009 1729.59 -8.52636 1897.56 26.0992C2011.56 49.5991 2159.06 149.599 2021.06 425.599C1874.69 718.341 1241.06 1176.6 1312.56 1248.1C1388.56 1270.9 1677.91 1205.1 1793.06 872.599C1849.11 710.765 1835.56 1048.1 1621.56 1276.6C1621.56 1337.4 1637.56 1377.93 1645.56 1390.6C1664.76 1276.2 1850.23 1266.93 1940.56 1276.6L1793.06 1771.1C1946.89 1324.1 2257.36 445.299 2268.56 506.099C2282.56 582.099 2420.56 720.599 2392.06 872.599C2363.56 1024.6 2486.56 406.099 2824.56 320.599C3162.56 235.099 3352.56 154.599 3362.06 278.099C3371.56 401.599 3390.06 649.099 3076.56 810.599C2763.06 972.099 2658.56 976.599 2644.06 924.599C2629.56 872.599 2972.56 520.599 3024.56 539.599C3157.56 458.599 3402.86 368.599 3457.06 368.599C3547.56 368.599 3609.56 292.599 3666.56 368.599C3704.56 398.432 3774.86 482.899 3752.06 582.099C3723.56 706.099 3681.06 957.599 3619.06 1038.6C3569.46 1103.4 3024.39 1772.6 2758.06 2099.1" 
-                            />
+                                <path
+                                    id="xinghe-signature"
+                                    className="scribble-animate"
+                                    stroke="#39FF14" 
+                                    strokeWidth="80"
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    style={{ filter: 'drop-shadow(0 0 15px rgba(57, 255, 20, 0.3))' }}
+                                    d="M0.060791 734.599C1929.23 498.432 5771.36 50.799 5706.56 149.599C5625.56 273.099 4670.06 559.099 3619.06 630.099C2568.06 701.099 1897.56 844.099 1460.06 706.099C1003.56 525.099 1051.06 710.099 984.561 320.599C918.061 -68.9009 1729.59 -8.52636 1897.56 26.0992C2011.56 49.5991 2159.06 149.599 2021.06 425.599C1874.69 718.341 1241.06 1176.6 1312.56 1248.1C1388.56 1270.9 1677.91 1205.1 1793.06 872.599C1849.11 710.765 1835.56 1048.1 1621.56 1276.6C1621.56 1337.4 1637.56 1377.93 1645.56 1390.6C1664.76 1276.2 1850.23 1266.93 1940.56 1276.6L1793.06 1771.1C1946.89 1324.1 2257.36 445.299 2268.56 506.099C2282.56 582.099 2420.56 720.599 2392.06 872.599C2363.56 1024.6 2486.56 406.099 2824.56 320.599C3162.56 235.099 3352.56 154.599 3362.06 278.099C3371.56 401.599 3390.06 649.099 3076.56 810.599C2763.06 972.099 2658.56 976.599 2644.06 924.599C2629.56 872.599 2972.56 520.599 3024.56 539.599C3157.56 458.599 3402.86 368.599 3457.06 368.599C3547.56 368.599 3609.56 292.599 3666.56 368.599C3704.56 398.432 3774.86 482.899 3752.06 582.099C3723.56 706.099 3681.06 957.599 3619.06 1038.6C3569.46 1103.4 3024.39 1772.6 2758.06 2099.1" 
+                                />
                         </svg>
                     </div>
                 </div>
                 
                 {/* Bottom Marquee Overlay */}
-                <div className="absolute bottom-0 left-0 w-full overflow-hidden border-t border-white/10 py-6 z-20 pointer-events-none">
+                <div className="absolute bottom-0 left-0 w-full overflow-hidden border-t border-black/5 py-6 z-20 pointer-events-none">
                     <div className="editorial-marquee-content flex whitespace-nowrap">
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
-                        <span className="editorial-marquee-text">XINGHE TECHNOLOGY</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
+                        <span className="editorial-marquee-text text-black/20">STARRY RIVER INNOVATION</span>
                     </div>
                 </div>
                 
-                {/* Fixed Header within Pinned Section */}
+                {/* Watermark Header */}
                 <div className="lando-header">
                     <div className="lando-logo">
-                        LANDO<br/>NORRIS
-                    </div>
-                    <div className="lando-message-label">
-                        MESSAGE FROM LANDO
-                    </div>
-                    <div className="flex items-center gap-6 pointer-events-auto">
-                        <button className="lando-store-btn">
-                            <Search size={18} />
-                            STORE
-                        </button>
-                        <div className="w-10 h-10 bg-white/10 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/20 transition-colors">
-                            <div className="w-5 h-0.5 bg-white"></div>
-                            <div className="w-5 h-0.5 bg-white"></div>
-                        </div>
+                        XINGHE<br/>AWARDS
                     </div>
                 </div>
 
@@ -2044,52 +2036,80 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Block 7: On Track / Off Track Typography */}
+                    {/* Block 7: Innovation Typography */}
                     <div className="flex-shrink-0 ml-40 mr-20 flex flex-col justify-center parallax-layer" data-speed="0.15">
-                        <div className="relative">
-                            <h2 className="text-[13vw] font-black leading-[1.1] tracking-tighter opacity-10 absolute -top-20 -left-10 select-none">
-                                RACING
+                        <div className="relative group">
+                            <h2 className="text-[15vw] font-black leading-[0.8] tracking-tighter opacity-[0.03] absolute -top-32 -left-20 select-none text-black group-hover:opacity-[0.05] transition-opacity duration-1000">
+                                INNOVATION
                             </h2>
-                            <div className="flex items-baseline gap-4">
-                                <span className="text-[7vw] font-black leading-none italic text-[#39FF14]">ON</span>
-                                <span className="text-[7vw] font-black leading-none">TRACK</span>
-                            </div>
-                            <div className="flex items-baseline gap-4 ml-20 -mt-4">
-                                <span className="text-[7vw] font-black leading-none italic text-[#39FF14]">OFF</span>
-                                <span className="text-[7vw] font-black leading-none">TRACK</span>
+                            <div className="flex flex-col gap-2 relative z-10">
+                                <div className="flex items-baseline gap-6">
+                                    <span className="text-[8vw] font-black leading-none italic text-blue-600 drop-shadow-sm">IN</span>
+                                    <span className="text-[8vw] font-black leading-none text-black tracking-tighter">LAB</span>
+                                </div>
+                                <div className="flex items-center gap-4 ml-12">
+                                    <div className="h-[2px] w-24 bg-blue-600/20"></div>
+                                    <span className="text-xs font-bold tracking-[0.3em] text-blue-600/40 uppercase">Research & Development</span>
+                                </div>
+                                <div className="flex items-baseline gap-6 ml-24">
+                                    <span className="text-[8vw] font-black leading-none italic text-blue-600 drop-shadow-sm">OUT</span>
+                                    <span className="text-[8vw] font-black leading-none text-black tracking-tighter">LAB</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Block 8: Honors & Certificates Hall of Fame Grid (2 Rows) */}
                     <div className="flex-shrink-0 ml-40 mr-40 flex flex-col justify-center">
-                        <div className="mb-12">
-                            <h3 className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 mb-2">CERTIFICATES</h3>
-                            <h2 className="text-4xl font-black tracking-tighter">HONORS & AWARDS</h2>
+                        <div className="mb-16 flex justify-between items-end border-b border-black/5 pb-8">
+                            <div>
+                                <h3 className="text-[11px] font-black tracking-[0.4em] uppercase opacity-30 mb-3 text-black">XINGHE ARCHIVE / VOL. 01</h3>
+                                <h2 className="text-6xl font-black tracking-tighter text-black leading-none">HONORS & <span className="text-blue-600">AWARDS</span></h2>
+                            </div>
+                            <div className="text-right hidden md:block">
+                                <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest mb-1">Collection No.</p>
+                                <p className="text-2xl font-mono font-bold text-black/80">#2023-2026</p>
+                            </div>
                         </div>
                         
-                        <div className="grid grid-rows-2 grid-flow-col gap-6 h-[600px]">
+                        <div className="grid grid-rows-2 grid-flow-col gap-8 h-[650px] relative">
+                            {/* Museum Marquee Background */}
+                            <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.02] select-none overflow-hidden">
+                                <div className="text-[20vw] font-black whitespace-nowrap animate-marquee-slow">XINGHE ARCHIVE XINGHE ARCHIVE XINGHE ARCHIVE</div>
+                                <div className="text-[20vw] font-black whitespace-nowrap animate-marquee-slow-reverse self-end">HONOR & GLORY HONOR & GLORY HONOR & GLORY</div>
+                            </div>
+                            
                             {[
-                                { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
-                                { id: 2, name: "省级一等奖", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600" },
-                                { id: 3, name: "创新杯金奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
-                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" },
-                                { id: 5, name: "技术突破奖", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600" },
-                                { id: 6, name: "专利授权证书", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg" },
-                                { id: 7, name: "社会实践奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg" },
-                                { id: 8, name: "学术论文奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg" }
-                            ].map((award) => (
-                                <div key={award.id} className="w-[400px] bg-black/20 rounded-2xl p-6 border border-white/5 hover:bg-black/30 transition-all group cursor-pointer">
-                                    <div className="aspect-video mb-4 overflow-hidden rounded-xl bg-black/40">
-                                        <img src={award.img} alt={award.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+                                { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2024", category: "National", project: "矿山智能巡检机器人", desc: "该项目在挑战杯全国大学生课外学术科技作品竞赛中荣获国家级奖项。", tech: ["AI视觉", "自主导航", "5G通信"] },
+                                { id: 2, name: "省级一等奖", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Provincial", project: "智慧安全云平台", desc: "基于大数据与云计算的安全监测平台，获得辽宁省科创竞赛一等奖。", tech: ["大数据", "云计算", "实时监测"] },
+                                { id: 3, name: "创新杯金奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Excellence", project: "多功能安全传感器", desc: "自主研发的新型传感器，解决了极端环境下的数据采集难题。", tech: ["硬件开发", "传感器技术", "低功耗设计"] },
+                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg", year: "2025", category: "Team", project: "星河科创团队", desc: "协会团队因在年度科技创新活动中的卓越表现，被评为校级优秀团队。", tech: ["团队协作", "项目管理", "创新思维"] },
+                                { id: 5, name: "技术突破奖", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Tech", project: "动力环技术优化", desc: "在动力环核心算法上取得重大突破，大幅提升了系统响应速度。", tech: ["算法优化", "控制理论", "仿真模拟"] },
+                                { id: 6, name: "专利授权证书", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2025", category: "Patent", project: "一种智能预警装置", desc: "该发明专利已获得国家知识产权局正式授权，具有极高的实用价值。", tech: ["专利申请", "机械设计", "电子电路"] },
+                                { id: 7, name: "社会实践奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Social", project: "安全科普进社区", desc: "团队深入社区开展安全知识普及活动，获得社会各界一致好评。", tech: ["社会实践", "公益科普", "沟通表达"] },
+                                { id: 8, name: "学术论文奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg", year: "2025", category: "Academic", project: "安全工程前沿研究", desc: "团队成员在核心期刊发表高水平学术论文，展现了深厚的科研功底。", tech: ["学术研究", "论文写作", "数据分析"] }
+                            ].map((award, idx) => (
+                                <div 
+                                    key={award.id} 
+                                    className="w-[450px] bg-white rounded-[32px] p-8 border border-black/5 hover:border-blue-600/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 group cursor-pointer relative overflow-hidden"
+                                    onClick={() => setSelectedAward(award)}
+                                >
+                                    <div className="absolute top-8 right-8 text-[40px] font-black text-black/5 group-hover:text-blue-600/10 transition-colors">
+                                        0{idx + 1}
+                                    </div>
+                                    <div className="aspect-video mb-6 overflow-hidden rounded-2xl bg-black/5">
+                                        <img src={award.img} alt={award.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
                                     </div>
                                     <div className="flex justify-between items-end">
                                         <div>
-                                            <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest mb-1">Certificate</p>
-                                            <h4 className="text-base font-black tracking-tight">{award.name}</h4>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-0.5 bg-blue-600/10 text-blue-600 text-[9px] font-bold rounded uppercase tracking-wider">{award.category}</span>
+                                                <span className="text-[9px] font-bold opacity-30 uppercase tracking-widest">{award.year}</span>
+                                            </div>
+                                            <h4 className="text-xl font-black tracking-tight text-black group-hover:text-blue-600 transition-colors">{award.name}</h4>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#39FF14] group-hover:border-[#39FF14] group-hover:text-black transition-all">
-                                            <ArrowRight size={14} />
+                                        <div className="w-12 h-12 rounded-full border border-black/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white transition-all duration-500 text-black">
+                                            <ArrowRight size={20} />
                                         </div>
                                     </div>
                                 </div>
@@ -2097,31 +2117,45 @@ function App() {
                         </div>
                         
                         <div className="mt-12 flex items-center gap-8">
-                            <p className="text-sm opacity-60 max-w-md">
+                            <p className="text-sm opacity-60 max-w-md text-black">
                                 每一份荣誉都是团队汗水的结晶，记录着我们在科技创新道路上的每一个坚实足迹。
                             </p>
-                            <button className="px-8 py-4 bg-white text-black font-black text-[10px] tracking-widest uppercase rounded-full hover:bg-[#39FF14] transition-colors">
-                                查看更多成果
+                            <button className="px-10 py-5 bg-black text-white font-black text-[11px] tracking-[0.2em] uppercase rounded-full hover:bg-blue-600 hover:scale-105 transition-all duration-300 shadow-xl shadow-black/10">
+                                {lang === 'zh' ? '查看更多成果' : 'VIEW ALL ARCHIVES'}
                             </button>
                         </div>
                     </div>
 
                     {/* Block 9: Final Big Text */}
-                    <div className="flex-shrink-0 ml-40 mr-[-10vw] lando-item-center parallax-layer" data-speed="0.1">
-                        <h2 className="lando-big-text" dangerouslySetInnerHTML={{ __html: t[lang].style_final_text }}></h2>
-                        <div className="mt-12 flex items-center gap-4">
-                            <div className="w-12 h-[1px] bg-[#39FF14]"></div>
-                            <span className="lando-sig">Xinghe Team</span>
+                    <div className="flex-shrink-0 ml-40 mr-60 lando-item-center parallax-layer flex flex-col items-center" data-speed="0.1">
+                        <h2 className="lando-big-text text-black text-center" dangerouslySetInnerHTML={{ __html: t[lang].style_final_text }}></h2>
+                        <div className="mt-12 flex flex-col items-center gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-[1px] bg-blue-600"></div>
+                                <span className="lando-sig text-blue-600">Xinghe Team</span>
+                            </div>
+                            <div className="mt-20 animate-bounce flex flex-col items-center gap-2 opacity-30">
+                                <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-black">Keep Scrolling</span>
+                                <ArrowUp className="rotate-180" size={20} />
+                            </div>
                         </div>
                     </div>
 
                 </div>
 
-                {/* UI Elements */}
-                <div className="lando-counter">
-                    <span>1</span>
-                    <div className="line"></div>
-                    <Trophy size={24} className="text-[#39FF14]" />
+                {/* UI Elements - Progress Bar */}
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-4 text-black font-mono text-xs font-bold tracking-widest">
+                        <span className="opacity-30">01</span>
+                        <div className="w-40 h-[2px] bg-black/5 relative overflow-hidden">
+                            <div 
+                                className="lando-progress-fill absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300"
+                                style={{ width: '0%' }}
+                            ></div>
+                        </div>
+                        <span className="opacity-30">08</span>
+                    </div>
+                    <div className="lando-counter hidden"><span>1</span></div>
                 </div>
             </section>
 
@@ -2138,7 +2172,7 @@ function App() {
                                 {/* Left: Award Image */}
                                 <div className="lg:w-1/2 flex flex-col justify-center">
                                     <div className="relative group">
-                                <img src={selectedAward.img} className="w-full rounded-2xl shadow-2xl border border-white/10" alt={selectedAward.title} />
+                                <img src={selectedAward.img} className="w-full rounded-2xl shadow-2xl border border-white/10" alt={selectedAward.name} />
                                         <div className="absolute -bottom-6 -right-6 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-xl">
                                             CERTIFIED
                                         </div>
@@ -2146,19 +2180,19 @@ function App() {
                                     <div className="mt-12 grid grid-cols-2 gap-4">
                                         <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                                             <p className="text-blue-400 text-xs uppercase tracking-wider mb-1">获奖时间</p>
-                                            <p className="font-bold">2024年12月</p>
+                                            <p className="font-bold">{selectedAward.year}年</p>
                                         </div>
                                         <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                                            <p className="text-blue-400 text-xs uppercase tracking-wider mb-1">奖项级别</p>
-                                            <p className="font-bold">国家级/省级</p>
+                                            <p className="text-blue-400 text-xs uppercase tracking-wider mb-1">奖项类别</p>
+                                            <p className="font-bold">{selectedAward.category}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Right: Project Details (Glassmorphism) */}
+                                {/* Right: Project Details */}
                                 <div className="lg:w-1/2 flex flex-col">
                                     <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-3xl font-bold">{selectedAward.title}</h3>
+                                        <h3 className="text-3xl font-bold">{selectedAward.name}</h3>
                                         <button 
                                             className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-sm font-medium"
                                             onClick={(e) => handleShareAward(e, selectedAward)}
@@ -2177,7 +2211,7 @@ function App() {
                                         <div>
                                             <h5 className="text-sm uppercase tracking-widest text-white/40 mb-3">核心技术</h5>
                                             <div className="flex flex-wrap gap-3">
-                                                {selectedAward.tech.map((t: string, i: number) => (
+                                                {selectedAward.tech && selectedAward.tech.map((t: string, i: number) => (
                                                     <span key={i} className="px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-300 text-sm">
                                                         {t}
                                                     </span>
@@ -2197,7 +2231,7 @@ function App() {
             
             {/* Spacer to account for pinned Achievements section when pinSpacing is false */}
 
-            <div className="subsequent-content-wrapper relative">
+            <div className="subsequent-content-wrapper relative bg-black">
                 {/* 7.5 News & Events */}
                 <section id="news" className="relative overflow-hidden min-h-screen text-white">
                     <div className="topo-bg opacity-20"></div>
