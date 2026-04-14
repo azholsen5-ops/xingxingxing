@@ -11,7 +11,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
@@ -2660,82 +2660,80 @@ function App() {
             </section>
 
             {/* Footer */}
-            <footer id="footer" className="bg-gray-900 text-white py-20 border-t border-white/5">
-                <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-                        {/* Brand & Social */}
-                        <div className="space-y-8">
-                            <div className="text-2xl font-black tracking-tighter footer-logo">
-                                XH<span className="text-blue-500">科技创新</span>
-                            </div>
-                            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-                                致力于培养具有创新精神和实践能力的高素质安全工程人才，探索科技前沿，守护生产安全。
-                            </p>
-                            <div className="flex gap-4">
-                                <div className="group relative">
-                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-blue-600 transition-all cursor-pointer">
-                                        <MessageCircle size={20} />
-                                    </div>
-                                    <div className="absolute bottom-full left-0 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-                                        <div className="bg-white p-2 rounded-xl shadow-2xl">
-                                            <img src="https://picsum.photos/seed/wechat/200/200" alt="WeChat" className="w-32 h-32 rounded-lg" />
-                                            <p className="text-black text-[10px] text-center mt-2 font-bold">微信公众号</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="group relative">
-                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-blue-600 transition-all cursor-pointer">
-                                        <User size={20} />
-                                    </div>
-                                    <div className="absolute bottom-full left-0 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-                                        <div className="bg-white p-2 rounded-xl shadow-2xl">
-                                            <img src="https://picsum.photos/seed/qq/200/200" alt="QQ" className="w-32 h-32 rounded-lg" />
-                                            <p className="text-black text-[10px] text-center mt-2 font-bold">QQ交流群</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-blue-600 transition-all cursor-pointer">
-                                    <Mail size={20} />
+            <footer id="footer">
+                <div className="footer-container">
+                    {/* Follow Us Section */}
+                    <div className="footer-follow">
+                        <h3>{t[lang].footer_follow}</h3>
+                        <div className="social-icons">
+                            {/* WeChat */}
+                            <div className="social-icon-wrapper">
+                                <a href="#"><i className="fab fa-weixin"></i></a>
+                                <div className="qrcode-popup">
+                                    <img src="https://picsum.photos/120/120?wechat" alt="WeChat" referrerPolicy="no-referrer" />
+                                    <p>{t[lang].footer_wechat}</p>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Links */}
-                        <div>
-                            <h4 className="font-bold mb-6 text-gray-200 uppercase tracking-widest text-xs">{t[lang].footer_about}</h4>
-                            <ul className="space-y-4 text-sm text-gray-400">
-                                <li><a href="#intro" className="hover:text-white transition-colors">{t[lang].nav_intro}</a></li>
-                                <li><a href="#history" className="hover:text-white transition-colors">{t[lang].nav_history}</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_structure}</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-6 text-gray-200 uppercase tracking-widest text-xs">{t[lang].nav_achieve}</h4>
-                            <ul className="space-y-4 text-sm text-gray-400">
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_awards}</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_projects}</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_patents}</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-6 text-gray-200 uppercase tracking-widest text-xs">{t[lang].footer_recruit}</h4>
-                            <ul className="space-y-4 text-sm text-gray-400">
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_requirements}</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_apply}</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">{t[lang].footer_questions}</a></li>
-                            </ul>
+                            {/* QQ */}
+                            <div className="social-icon-wrapper">
+                                <a href="#"><i className="fab fa-qq"></i></a>
+                                <div className="qrcode-popup">
+                                    <img src="https://s41.ax1x.com/2026/03/12/peAi2AP.png" alt="QQ" referrerPolicy="no-referrer" />
+                                    <p>{t[lang].footer_qq}</p>
+                                </div>
+                            </div>
+                            {/* TikTok */}
+                            <div className="social-icon-wrapper">
+                                <a href="#"><i className="fab fa-tiktok"></i></a>
+                                <div className="qrcode-popup">
+                                    <img src="https://picsum.photos/120/120?douyin" alt="TikTok" referrerPolicy="no-referrer" />
+                                    <p>{t[lang].footer_douyin}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex gap-8 text-xs text-gray-500">
-                            <a href="#" className="hover:text-white transition-colors">{t[lang].footer_privacy}</a>
-                            <a href="#" className="hover:text-white transition-colors">{t[lang].footer_terms}</a>
-                            <a href="#" className="hover:text-white transition-colors">{t[lang].footer_sitemap}</a>
+                    {/* Nav Section */}
+                    <div className="footer-nav">
+                        <div className="footer-nav-columns">
+                            {/* About Us */}
+                            <div className="footer-nav-column">
+                                <h4>{t[lang].footer_about}</h4>
+                                <ul>
+                                    <li><a href="#intro">{t[lang].nav_intro}</a></li>
+                                    <li><a href="#history">{t[lang].nav_history}</a></li>
+                                    <li><a href="#">{t[lang].footer_structure}</a></li>
+                                </ul>
+                            </div>
+                            {/* Achievements */}
+                            <div className="footer-nav-column">
+                                <h4>{t[lang].nav_achieve}</h4>
+                                <ul>
+                                    <li><a href="#">{t[lang].footer_awards}</a></li>
+                                    <li><a href="#">{t[lang].footer_projects}</a></li>
+                                    <li><a href="#">{t[lang].footer_patents}</a></li>
+                                </ul>
+                            </div>
+                            {/* Recruitment */}
+                            <div className="footer-nav-column">
+                                <h4>{t[lang].footer_recruit}</h4>
+                                <ul>
+                                    <li><a href="#">{t[lang].footer_requirements}</a></li>
+                                    <li><a href="#">{t[lang].footer_apply}</a></li>
+                                    <li><a href="#">{t[lang].footer_questions}</a></li>
+                                </ul>
+                            </div>
                         </div>
-                        <p className="text-xs text-gray-500">{t[lang].footer_copyright}</p>
+
+                        {/* Large Logo */}
+                        <div className="footer-logo">
+                            XH科技创新协会
+                        </div>
+                    </div>
+
+                    {/* Copyright */}
+                    <div className="footer-copyright">
+                        <p>{t[lang].footer_copyright}</p>
                     </div>
                 </div>
             </footer>
