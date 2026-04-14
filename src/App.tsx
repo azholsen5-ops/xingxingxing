@@ -945,7 +945,7 @@ function App() {
         const textureLoader = new THREE.TextureLoader(loadingManager);
         
         // Use a placeholder for the badge logo
-        textureLoader.load('/logo   4.0.pnd.png', (frontTex) => {
+        textureLoader.load('/logo-main.png', (frontTex) => {
             textureLoader.load('/back-logo.png', (backTex) => {
                 const geometry = new THREE.CylinderGeometry(1.8, 1.8, 0.25, 64);
                 
@@ -1460,7 +1460,7 @@ function App() {
             <div className={`splash-screen ${!isLoading ? 'hidden' : ''}`}>
                 <div className="splash-logo mb-8">
                     <img 
-                        src="/微信图片_20260414163900_3668_2.png" 
+                        src="/wechat-qr.png" 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                         referrerPolicy="no-referrer"
@@ -1474,7 +1474,7 @@ function App() {
                 <div className="header-content">
                     <div className="logo h-14 flex items-center">
                         <img 
-                            src="/微信图片_20260414163900_3668_2.png" 
+                            src="/wechat-qr.png" 
                             alt="星河科技创新协会" 
                             className="h-full w-auto object-contain scale-125 origin-left nav-logo-img" 
                             referrerPolicy="no-referrer"
@@ -2670,7 +2670,7 @@ function App() {
                             <div className="social-icon-wrapper">
                                 <a href="#"><i className="fab fa-weixin"></i></a>
                                 <div className="qrcode-popup">
-                                    <img src="/微信图片_20260414163900_3668_2.png" alt="WeChat" referrerPolicy="no-referrer" />
+                                    <img src="/wechat-qr.png" alt="WeChat" referrerPolicy="no-referrer" />
                                     <p>{t[lang].footer_wechat}</p>
                                 </div>
                             </div>
@@ -2728,7 +2728,7 @@ function App() {
                         {/* Large Logo Image */}
                         <div className="footer-logo">
                             <img 
-                                src="/微信图片_20260414163900_3668_2.png" 
+                                src="/wechat-qr.png" 
                                 alt="XH科技创新协会" 
                                 className="footer-logo-img"
                                 referrerPolicy="no-referrer" 
