@@ -86,6 +86,7 @@ interface Member {
     avatar: string;
     intro: string;
     awards: string[];
+    category?: 'student' | 'teacher' | 'service';
 }
 
 const memberData: Record<string, Member> = {
@@ -209,6 +210,33 @@ const memberData: Record<string, Member> = {
         avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=400",
         intro: "机器人竞赛金牌教练，指导学生在各类机器人大赛中屡获佳绩。",
         awards: ["ROBOCON优秀指导教师", "机器人技术专家"]
+    },
+    zhangxiaoming: {
+        id: 'zhangxiaoming',
+        name: "张晓明",
+        className: "宣传部部长",
+        avatar: "https://picsum.photos/150/150?service1",
+        intro: "负责协会品牌宣传与活动推广，擅长视觉设计与新媒体运营。",
+        awards: ["优秀学生干部", "校园媒体大赛二等奖"],
+        category: 'service'
+    },
+    wangfang: {
+        id: 'wangfang',
+        name: "王芳",
+        className: "秘书处秘书长",
+        avatar: "https://picsum.photos/150/150?service2",
+        intro: "负责协会日常行政事务与财务管理，工作细致严谨。",
+        awards: ["社会实践先进个人", "校级奖学金"],
+        category: 'service'
+    },
+    liwei: {
+        id: 'liwei',
+        name: "李伟",
+        className: "组织部部长",
+        avatar: "https://picsum.photos/150/150?service3",
+        intro: "负责协会成员考核与团队建设，具有极强的组织协调能力。",
+        awards: ["优秀志愿者", "团队协作奖"],
+        category: 'service'
     }
 };
 
@@ -244,6 +272,17 @@ function App() {
     const [shareToast, setShareToast] = useState<string | null>(null);
     const [is3DLoading, setIs3DLoading] = useState(true);
     const [loadingProgress, setLoadingProgress] = useState(0);
+    const [isPageLoaded, setIsPageLoaded] = useState(false);
+
+    useEffect(() => {
+        const handleLoad = () => setIsPageLoaded(true);
+        if (document.readyState === 'complete') {
+            setIsPageLoaded(true);
+        } else {
+            window.addEventListener('load', handleLoad);
+        }
+        return () => window.removeEventListener('load', handleLoad);
+    }, []);
 
     const handleShareAward = async (e: React.MouseEvent, award: any) => {
         e.stopPropagation();
@@ -322,6 +361,8 @@ function App() {
             footer_recruit: "招新纳贤", footer_requirements: "招新要求", footer_apply: "报名方式", footer_questions: "常见问题",
             footer_privacy: "隐私政策", footer_terms: "使用条款", footer_sitemap: "网站地图",
             modal_awards: "获奖情况",
+            members_core: "核心成员",
+            members_service: "服务人员",
             style_big_text: "星河璀璨，创新无界。<br/>在科技的征途中，<br/>书写属于我们的辉煌篇章。",
             style_quote: "创新是引领发展的第一动力，星河人永远在路上。",
             style_final_text: "自协会成立以来，我们怀揣着对科技的热爱，<br/>不懈努力，只为将每一个创新的梦想变为现实。",
@@ -360,6 +401,8 @@ function App() {
             footer_recruit: "Recruitment", footer_requirements: "Requirements", footer_apply: "How to Apply", footer_questions: "FAQ",
             footer_privacy: "Privacy Policy", footer_terms: "Terms of Use", footer_sitemap: "Sitemap",
             modal_awards: "Awards",
+            members_core: "Core Members",
+            members_service: "Service Personnel",
             style_big_text: "STARRY RIVER, BOUNDLESS INNOVATION. <br/>ON THE JOURNEY OF TECHNOLOGY, <br/>WRITING OUR OWN <span class='text-blue-400'>GLORIOUS CHAPTER</span>.",
             style_quote: "Innovation is the primary driver of development; Xinghe people are always on the road.",
             style_final_text: "SINCE THE ASSOCIATION WAS FOUNDED, WE HAVE CARRIED A LOVE FOR TECHNOLOGY, <br/>WORKING TIRELESSLY TO MAKE EVERY INNOVATIVE DREAM COME TRUE.",
@@ -538,18 +581,22 @@ function App() {
                 const initScroll = () => {
                     if (!horizontalScrollRef.current || !hallOfFameRef.current || !experienceRef.current) return;
                     
-                    // Kill existing triggers to avoid duplicates
-                    ScrollTrigger.getById("experience-pin")?.kill();
-                    ScrollTrigger.getById("achievements-pin")?.kill();
+                    // Kill all existing triggers related to this section to avoid stacking
+                    ScrollTrigger.getAll().forEach(t => {
+                        if (t.vars.id === "achievements-pin" || (t.trigger === hallOfFameRef.current && t.vars.scrub)) {
+                            t.kill();
+                        }
+                    });
+                    
+                    // IMPORTANT: Reset transform before measuring scrollWidth to get accurate dimensions
+                    gsap.set(horizontalScrollRef.current, { x: 0 });
                     
                     // Force layout recalculation
                     const scrollWidth = horizontalScrollRef.current.scrollWidth;
                     const windowWidth = window.innerWidth;
-                    const windowHeight = window.innerHeight;
                     
-                    // If scrollWidth is too small, it's likely not loaded yet. 
-                    // We expect at least ~2000px based on fixed widths of items.
-                    if (scrollWidth < 2000 && horizontalScrollRef.current.children.length > 3) {
+                    // If scrollWidth is too small, it's likely not loaded yet or flex items are wrapping.
+                    if (scrollWidth <= windowWidth + 100 && horizontalScrollRef.current.children.length > 3) {
                         return;
                     }
 
@@ -563,7 +610,12 @@ function App() {
                         pin: true,
                         pinSpacing: true,
                         invalidateOnRefresh: true,
-                        id: "achievements-pin"
+                        id: "achievements-pin",
+                        onRefresh: (self) => {
+                            if (self.progress === 0) {
+                                gsap.set(horizontalScrollRef.current, { x: 0 });
+                            }
+                        }
                     });
 
                     // Timeline for horizontal scroll
@@ -595,12 +647,6 @@ function App() {
                             }
                         }
                     });
-
-                    // Add background color transition during horizontal scroll
-                    tl.to('body', {
-                        backgroundColor: '#ffffff',
-                        ease: "power2.inOut"
-                    }, 0);
 
                     // Parallax for individual items
                     const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
@@ -870,19 +916,28 @@ function App() {
             setLoadingProgress(Math.round((itemsLoaded / itemsTotal) * 100));
         };
         loadingManager.onLoad = () => {
-            // Small delay for a smoother transition
-            setTimeout(() => {
-                if (loadingOverlayRef.current) {
-                    gsap.to(loadingOverlayRef.current, {
-                        opacity: 0,
-                        duration: 0.8,
-                        ease: "power2.out",
-                        onComplete: () => setIs3DLoading(false)
-                    });
+            // Check if page is also loaded
+            const checkAllLoaded = () => {
+                if (document.readyState === 'complete') {
+                    // Small delay for a smoother transition
+                    setTimeout(() => {
+                        if (loadingOverlayRef.current) {
+                            gsap.to(loadingOverlayRef.current, {
+                                opacity: 0,
+                                duration: 1.2,
+                                ease: "power3.inOut",
+                                onComplete: () => setIs3DLoading(false)
+                            });
+                        } else {
+                            setIs3DLoading(false);
+                        }
+                    }, 800);
                 } else {
-                    setIs3DLoading(false);
+                    // If page not ready, wait a bit and check again
+                    setTimeout(checkAllLoaded, 100);
                 }
-            }, 500);
+            };
+            checkAllLoaded();
         };
 
         const badgeGroup = new THREE.Group();
@@ -1523,16 +1578,55 @@ function App() {
                 {/* The Sticky Container for the Badge */}
                 <div id="webgl-container" className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'transparent' }}>
                     {is3DLoading && (
-                        <div ref={loadingOverlayRef} className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-[#050505]">
-                            <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden mb-4">
-                                <div 
-                                    className="h-full bg-blue-500 transition-all duration-300 ease-out"
-                                    style={{ width: `${loadingProgress}%` }}
-                                ></div>
+                        <div ref={loadingOverlayRef} className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-[#050505] overflow-hidden">
+                            {/* Animated Background Elements */}
+                            <div className="absolute inset-0 opacity-20">
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-scan-line"></div>
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent"></div>
                             </div>
-                            <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-mono">
-                                Loading 3D Assets {loadingProgress}%
-                            </p>
+
+                            <div className="relative z-10 flex flex-col items-center">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                    className="mb-12"
+                                >
+                                    <h1 className="text-4xl md:text-6xl font-black tracking-[0.3em] text-white uppercase lando-sig-font">
+                                        星河科技创新协会
+                                    </h1>
+                                    <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-600 to-transparent mt-4 shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
+                                </motion.div>
+
+                                <div className="w-72 md:w-96 h-[3px] bg-white/5 rounded-full overflow-hidden relative">
+                                    <div 
+                                        className="h-full bg-blue-500 transition-all duration-500 ease-out shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+                                        style={{ width: `${loadingProgress}%` }}
+                                    ></div>
+                                    {/* Glint effect on progress bar */}
+                                    <div className="absolute top-0 left-0 h-full w-20 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" style={{ left: `${loadingProgress - 10}%` }}></div>
+                                </div>
+
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="mt-6 flex flex-col items-center gap-2"
+                                >
+                                    <p className="text-white/30 text-[10px] uppercase tracking-[0.4em] font-mono animate-pulse">
+                                        Initializing System Core
+                                    </p>
+                                    <p className="text-blue-400/60 text-[14px] font-mono font-bold">
+                                        {loadingProgress}%
+                                    </p>
+                                </motion.div>
+                            </div>
+
+                            {/* Corner Accents */}
+                            <div className="absolute top-10 left-10 w-12 h-12 border-t-2 border-l-2 border-white/10"></div>
+                            <div className="absolute top-10 right-10 w-12 h-12 border-t-2 border-r-2 border-white/10"></div>
+                            <div className="absolute bottom-10 left-10 w-12 h-12 border-b-2 border-l-2 border-white/10"></div>
+                            <div className="absolute bottom-10 right-10 w-12 h-12 border-b-2 border-r-2 border-white/10"></div>
                         </div>
                     )}
                     <canvas ref={mainCanvasRef} id="webgl-canvas" aria-label="星河协会 3D 徽章展示" role="img"></canvas>
@@ -2304,22 +2398,57 @@ function App() {
                         <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {Object.values(memberData)
-                            .filter(m => !['qijiayi', 'wanganquan', 'lichuangxin', 'zhaozhinen', 'sunshijian', 'zhouyanjiu', 'wulilun', 'zhengshijian', 'qianchuangxin', 'wangzhinen'].includes(m.id))
-                            .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
-                            .map((member) => (
-                                <ProfileCard 
-                                    key={member.id}
-                                    name={member.name}
-                                    title={member.className}
-                                    handle={member.id}
-                                    avatarUrl={member.avatar}
-                                    variant="light"
-                                    onContactClick={() => showMemberModal(member.id)}
-                                    className="reveal"
-                                />
-                            ))}
+                    <div className="space-y-20">
+                        {/* Core Members */}
+                        <div>
+                            <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-3">
+                                <span className="w-8 h-1 bg-[#39FF14]"></span>
+                                {t[lang].members_core}
+                            </h3>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {Object.values(memberData)
+                                    .filter(m => !['qijiayi', 'wanganquan', 'lichuangxin', 'zhaozhinen', 'sunshijian', 'zhouyanjiu', 'wulilun', 'zhengshijian', 'qianchuangxin', 'wangzhinen'].includes(m.id))
+                                    .filter(m => m.category !== 'service')
+                                    .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
+                                    .map((member) => (
+                                        <ProfileCard 
+                                            key={member.id}
+                                            name={member.name}
+                                            title={member.className}
+                                            handle={member.id}
+                                            avatarUrl={member.avatar}
+                                            variant="light"
+                                            onContactClick={() => showMemberModal(member.id)}
+                                            className="reveal"
+                                        />
+                                    ))}
+                            </div>
+                        </div>
+
+                        {/* Service Personnel */}
+                        <div>
+                            <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-3">
+                                <span className="w-8 h-1 bg-[#39FF14]"></span>
+                                {t[lang].members_service}
+                            </h3>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {Object.values(memberData)
+                                    .filter(m => m.category === 'service')
+                                    .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
+                                    .map((member) => (
+                                        <ProfileCard 
+                                            key={member.id}
+                                            name={member.name}
+                                            title={member.className}
+                                            handle={member.id}
+                                            avatarUrl={member.avatar}
+                                            variant="light"
+                                            onContactClick={() => showMemberModal(member.id)}
+                                            className="reveal"
+                                        />
+                                    ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
