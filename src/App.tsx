@@ -1460,7 +1460,7 @@ function App() {
             <div className={`splash-screen ${!isLoading ? 'hidden' : ''}`}>
                 <div className="splash-logo mb-8">
                     <img 
-                        src="/wechat-qr.png" 
+                        src="/logo-xh.jpg" 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
@@ -1473,7 +1473,7 @@ function App() {
                 <div className="header-content">
                     <div className="logo h-14 flex items-center">
                         <img 
-                            src="/wechat-qr.png" 
+                            src="/logo-xh.jpg" 
                             alt="星河科技创新协会" 
                             className="h-full w-auto object-contain scale-125 origin-left nav-logo-img" 
                         />
@@ -2726,7 +2726,7 @@ function App() {
                         {/* Large Logo Image */}
                         <div className="footer-logo">
                             <img 
-                                src="/wechat-qr.png" 
+                                src="/logo-xh.jpg" 
                                 alt="XH科技创新协会" 
                                 className="footer-logo-img"
                             />
