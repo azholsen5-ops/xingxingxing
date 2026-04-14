@@ -216,6 +216,7 @@ function App() {
     const [lang, setLang] = useState<'zh' | 'en'>('zh');
     const [isLoading, setIsLoading] = useState(true);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [activeSection, setActiveSection] = useState('intro');
     const [scrolled, setScrolled] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -430,10 +431,11 @@ function App() {
         };
     }, []);
 
-    // Background Color Transitions
+    // Background Color Transitions & Active Section Tracking
     useEffect(() => {
-        const sections = ['#history', '#advisor', '#style', '#experience', '#achievements', '#news', '#members', '#join', '#contact'];
+        const sections = ['#intro', '#history', '#advisor', '#style', '#experience', '#achievements', '#news', '#members', '#join', '#contact'];
         const bgColors = {
+            '#intro': '#050505',
             '#history': '#0d1117',
             '#advisor': '#050505',
             '#style': '#050505',
@@ -453,16 +455,24 @@ function App() {
             onEnterBack: () => {
                 gsap.to('body', { backgroundColor: '#050505', duration: 1, ease: "power2.inOut" });
                 document.body.classList.remove('light-theme');
+                setActiveSection('intro');
             }
         });
 
         const triggers = sections.map((selector) => {
             return ScrollTrigger.create({
                 trigger: selector,
-                start: "top 60%",
-                end: "bottom 40%",
+                start: "top 50%",
+                end: "bottom 50%",
+                onToggle: (self) => {
+                    if (self.isActive) {
+                        setActiveSection(selector.substring(1));
+                    }
+                },
                 onEnter: () => {
-                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    if (bgColors[selector as keyof typeof bgColors]) {
+                        gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    }
                     if (['#achievements', '#news', '#members', '#join', '#contact'].includes(selector)) {
                         document.body.classList.add('light-theme');
                     } else {
@@ -470,7 +480,9 @@ function App() {
                     }
                 },
                 onEnterBack: () => {
-                    gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    if (bgColors[selector as keyof typeof bgColors]) {
+                        gsap.to('body', { backgroundColor: bgColors[selector as keyof typeof bgColors], duration: 1.2, ease: "power2.inOut" });
+                    }
                     if (['#achievements', '#news', '#members', '#join', '#contact'].includes(selector)) {
                         document.body.classList.add('light-theme');
                     } else {
@@ -1364,33 +1376,42 @@ function App() {
             </div>
             {/* Splash Screen */}
             <div className={`splash-screen ${!isLoading ? 'hidden' : ''}`}>
-                <div className="splash-logo">
-                    <div className="splash-xh">XH</div>
+                <div className="splash-logo mb-8">
+                    <img 
+                        src="/微信图片_20260414163900_3668_2.png" 
+                        alt="星河科技创新协会" 
+                        className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
+                        referrerPolicy="no-referrer"
+                    />
                 </div>
-                <div className="splash-loader-text">XINGHE SECURITY</div>
+                <div className="splash-loader-text">星河科技创新协会</div>
             </div>
 
             {/* Header */}
             <header className={scrolled ? 'scrolled' : ''}>
                 <div className="header-content">
-                    <div className="logo font-black leading-[1.1] tracking-tighter text-2xl">
-                        XINGHE<br/>
-                        <span className="text-xs tracking-[0.3em] opacity-60 uppercase">{t[lang].logo_text}</span>
+                    <div className="logo h-14 flex items-center">
+                        <img 
+                            src="/微信图片_20260414163900_3668_2.png" 
+                            alt="星河科技创新协会" 
+                            className="h-full w-auto object-contain scale-125 origin-left nav-logo-img" 
+                            referrerPolicy="no-referrer"
+                        />
                     </div>
                     <div className="menu-btn" onClick={toggleMenu}>
                         {isMenuOpen ? <X /> : <Menu />}
                     </div>
                     <ul className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
-                        <li><a href="#intro" className="nav-item active">{t[lang].nav_intro}</a></li>
-                        <li><a href="#history" className="nav-item">{t[lang].nav_history}</a></li>
-                        <li><a href="#advisor" className="nav-item">{t[lang].nav_advisor}</a></li>
-                        <li><a href="#style" className="nav-item">{t[lang].nav_style}</a></li>
-                        <li><a href="#experience" className="nav-item">{t[lang].nav_experience}</a></li>
-                        <li><a href="#achievements" className="nav-item">{t[lang].nav_achieve}</a></li>
-                        <li><a href="#news" className="nav-item">动态资讯</a></li>
-                        <li><a href="#members" className="nav-item">{t[lang].nav_members}</a></li>
-                        <li><a href="#join" className="nav-item text-red-600 font-bold">{t[lang].nav_join}</a></li>
-                        <li><a href="#contact" className="nav-item">{t[lang].nav_contact}</a></li>
+                        <li><a href="#intro" className={`nav-item ${activeSection === 'intro' ? 'active' : ''}`}>{t[lang].nav_intro}</a></li>
+                        <li><a href="#history" className={`nav-item ${activeSection === 'history' ? 'active' : ''}`}>{t[lang].nav_history}</a></li>
+                        <li><a href="#advisor" className={`nav-item ${activeSection === 'advisor' ? 'active' : ''}`}>{t[lang].nav_advisor}</a></li>
+                        <li><a href="#style" className={`nav-item ${activeSection === 'style' ? 'active' : ''}`}>{t[lang].nav_style}</a></li>
+                        <li><a href="#experience" className={`nav-item ${activeSection === 'experience' ? 'active' : ''}`}>{t[lang].nav_experience}</a></li>
+                        <li><a href="#achievements" className={`nav-item ${activeSection === 'achievements' ? 'active' : ''}`}>{t[lang].nav_achieve}</a></li>
+                        <li><a href="#news" className={`nav-item ${activeSection === 'news' ? 'active' : ''}`}>动态资讯</a></li>
+                        <li><a href="#members" className={`nav-item ${activeSection === 'members' ? 'active' : ''}`}>{t[lang].nav_members}</a></li>
+                        <li><a href="#join" className={`nav-item text-red-600 font-bold ${activeSection === 'join' ? 'active' : ''}`}>{t[lang].nav_join}</a></li>
+                        <li><a href="#contact" className={`nav-item ${activeSection === 'contact' ? 'active' : ''}`}>{t[lang].nav_contact}</a></li>
                     </ul>
                     <div className="lang-switch">
                         <button 
