@@ -709,7 +709,7 @@ body.light-theme .nav-logo-img {
 }
 .nav-item:hover, .nav-item.active { opacity: 0.8; }
 .menu-btn { display: none; cursor: pointer; }
-.lang-switch { display: flex; gap: 10px; font-size: 14px; cursor: pointer; align-items: center; color: inherit; }
+.lang-switch { display: flex; gap: 10px; font-size: 14px; cursor: pointer; align-items: center; color: inherit; pointer-events: auto; }
 .lang-switch span { transition: 0.3s; color: inherit; }
 .lang-switch span.active { color: inherit; font-weight: bold; text-decoration: underline; }
 
@@ -1990,6 +1990,8 @@ body.light-theme .award-detail-panel p.text-blue-400 {
     transition: all 0.3s ease;
     margin-right: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1001;
 }
 
 .music-toggle:hover {

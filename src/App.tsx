@@ -1394,16 +1394,37 @@ function App() {
         });
     }, []);
 
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = 0.4;
+        }
+    }, []);
+
     // --- Handlers ---
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const toggleMusic = () => {
+        console.log("Toggle music clicked. Current state:", isMusicPlaying);
         if (audioRef.current) {
             if (isMusicPlaying) {
+                console.log("Pausing audio");
                 audioRef.current.pause();
+                setIsMusicPlaying(false);
             } else {
-                audioRef.current.play().catch(() => {});
+                console.log("Attempting to play audio from:", audioRef.current.src);
+                audioRef.current.volume = 0.4;
+                const playPromise = audioRef.current.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log("Playback started successfully");
+                        setIsMusicPlaying(true);
+                    }).catch(error => {
+                        console.error("Playback failed:", error);
+                        setIsMusicPlaying(false);
+                    });
+                }
             }
-            setIsMusicPlaying(!isMusicPlaying);
+        } else {
+            console.error("Audio ref is null");
         }
     };
     const switchLang = (l: 'zh' | 'en') => setLang(l);
@@ -1489,7 +1510,28 @@ function App() {
                         <span className={lang === 'zh' ? 'active' : ''} onClick={() => switchLang('zh')}>简</span> / <span className={lang === 'en' ? 'active' : ''} onClick={() => switchLang('en')}>EN</span>
                     </div>
                 </div>
-                <audio ref={audioRef} loop src="https://assets.mixkit.co/music/preview/mixkit-space-ambient-591.mp3" />
+                <audio 
+                    ref={audioRef} 
+                    loop 
+                    preload="auto"
+                    crossOrigin="anonymous"
+                    src="https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3" 
+                    onLoadStart={() => console.log("Audio load started")}
+                    onCanPlay={() => console.log("Audio can play")}
+                    onPlay={() => console.log("Audio started playing")}
+                    onPause={() => console.log("Audio paused")}
+                    onVolumeChange={() => console.log("Audio volume changed to:", audioRef.current?.volume)}
+                    onWaiting={() => console.log("Audio waiting for data...")}
+                    onStalled={() => console.log("Audio stalled")}
+                    onSuspend={() => console.log("Audio suspended")}
+                    onEmptied={() => console.log("Audio emptied")}
+                    onAbort={() => console.log("Audio aborted")}
+                    onEnded={() => console.log("Audio ended")}
+                    onProgress={() => console.log("Audio progress...")}
+                    onLoadedMetadata={() => console.log("Audio metadata loaded")}
+                    onLoadedData={() => console.log("Audio data loaded")}
+                    onError={(e) => console.error("Audio error:", e)}
+                />
             </header>
 
             {/* 1. Hero Slider */}
