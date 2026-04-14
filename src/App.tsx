@@ -2670,7 +2670,7 @@ function App() {
                             <div className="social-icon-wrapper">
                                 <a href="#"><i className="fab fa-weixin"></i></a>
                                 <div className="qrcode-popup">
-                                    <img src="https://picsum.photos/120/120?wechat" alt="WeChat" referrerPolicy="no-referrer" />
+                                    <img src="/微信图片_20260414163900_3668_2.png" alt="WeChat" referrerPolicy="no-referrer" />
                                     <p>{t[lang].footer_wechat}</p>
                                 </div>
                             </div>
@@ -2725,9 +2725,14 @@ function App() {
                             </div>
                         </div>
 
-                        {/* Large Logo */}
+                        {/* Large Logo Image */}
                         <div className="footer-logo">
-                            XH科技创新协会
+                            <img 
+                                src="/微信图片_20260414163900_3668_2.png" 
+                                alt="XH科技创新协会" 
+                                className="footer-logo-img"
+                                referrerPolicy="no-referrer" 
+                            />
                         </div>
                     </div>
 
