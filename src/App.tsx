@@ -1481,14 +1481,8 @@ function App() {
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
-                    {/* Debug image to test direct path */}
-                    <img 
-                        src="/images/logo.jpg" 
-                        alt="Debug Logo" 
-                        className="h-10 w-auto opacity-50"
-                    />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.0.8</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.0.9</div>
             </div>
 
             {/* Header */}
@@ -2154,7 +2148,7 @@ function App() {
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.3">
                         <span className="lando-label">NATIONAL AWARD, 2024</span>
                         <div className="lando-img-container w-[600px] aspect-video">
-                            <img src="https://s41.ax1x.com/2026/03/12/peAptG4.jpg" alt="Award 1" referrerPolicy="no-referrer" />
+                            <img src="https://s41.ax1x.com/2026/03/12/peAptG4.jpg" alt="Award 1" />
                         </div>
                     </div>
 
@@ -2173,7 +2167,7 @@ function App() {
                     <div className="lando-item lando-item-center parallax-layer" data-speed="-0.15">
                         <span className="lando-label">PROVINCIAL FIRST PRIZE, 2024</span>
                         <div className="lando-img-container w-[720px] aspect-video">
-                            <img src="https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200" alt="Award 2" referrerPolicy="no-referrer" />
+                            <img src="https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200" alt="Award 2" />
                         </div>
                     </div>
 
@@ -2181,7 +2175,7 @@ function App() {
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.5">
                         <span className="lando-label">INNOVATION EXCELLENCE, 2024</span>
                         <div className="lando-img-container w-[500px] aspect-[16/9]">
-                            <img src="https://s41.ax1x.com/2026/03/12/peApuxs.jpg" alt="Award 3" referrerPolicy="no-referrer" />
+                            <img src="https://s41.ax1x.com/2026/03/12/peApuxs.jpg" alt="Award 3" />
                         </div>
                     </div>
 
@@ -2189,7 +2183,7 @@ function App() {
                     <div className="lando-item lando-item-down parallax-layer" data-speed="0.2">
                         <span className="lando-label">OUTSTANDING TEAM, 2025</span>
                         <div className="lando-img-container w-[650px] aspect-video">
-                            <img src="https://s41.ax1x.com/2026/03/12/peApMMn.jpg" alt="Award 4" referrerPolicy="no-referrer" />
+                            <img src="https://s41.ax1x.com/2026/03/12/peApMMn.jpg" alt="Award 4" />
                         </div>
                     </div>
 
@@ -2255,7 +2249,7 @@ function App() {
                                         0{idx + 1}
                                     </div>
                                     <div className="aspect-video mb-6 overflow-hidden rounded-2xl bg-black/5">
-                                        <img src={award.img} alt={award.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
+                                        <img src={award.img} alt={award.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                                     </div>
                                     <div className="flex justify-between items-end">
                                         <div>
@@ -2699,7 +2693,7 @@ function App() {
                             <div className="social-icon-wrapper">
                                 <a href="#"><i className="fab fa-qq"></i></a>
                                 <div className="qrcode-popup">
-                                    <img src="https://s41.ax1x.com/2026/03/12/peAi2AP.png" alt="QQ" referrerPolicy="no-referrer" />
+                                    <img src="https://s41.ax1x.com/2026/03/12/peAi2AP.png" alt="QQ" />
                                     <p>{t[lang].footer_qq}</p>
                                 </div>
                             </div>
@@ -2707,7 +2701,7 @@ function App() {
                             <div className="social-icon-wrapper">
                                 <a href="#"><i className="fab fa-tiktok"></i></a>
                                 <div className="qrcode-popup">
-                                    <img src="https://picsum.photos/120/120?douyin" alt="TikTok" referrerPolicy="no-referrer" />
+                                    <img src="https://picsum.photos/120/120?douyin" alt="TikTok" />
                                     <p>{t[lang].footer_douyin}</p>
                                 </div>
                             </div>
@@ -3021,7 +3015,6 @@ function App() {
                                     } 
                                     className="absolute inset-0 w-full h-full object-cover animate-fade-in"
                                     alt="Recruitment Step"
-                                    referrerPolicy="no-referrer"
                                 />
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-r from-[#0d1117] via-transparent to-transparent"></div>
