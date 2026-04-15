@@ -6,7 +6,7 @@
       "destination": "/api/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp|mp4|webm)).*)",
       "destination": "/index.html"
     }
   ]
