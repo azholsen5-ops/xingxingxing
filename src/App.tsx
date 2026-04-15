@@ -21,6 +21,22 @@ import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 
+import logoXh from './assets/logo-xh.jpg';
+import wechatQr from './assets/wechat-qr.png';
+import backLogo from './assets/back-logo.png';
+import clubName from './assets/club-name.png';
+import logoMain from './assets/logo-main.png';
+
+import img2317 from './assets/2317d6156558f4618fe9ac7194fc9201_compressed.jpg';
+import img2904 from './assets/29044dda435a3be2c5277128760a6dd8_compressed.jpg';
+import img34d0 from './assets/34d0f06b7f10dec793580b9936f4b52b_compressed.jpg';
+import img67ed from './assets/67edb5010ee8485a1e8ea860b5951aa2_compressed.jpg';
+import img981b from './assets/981be86df3b3b8e32f8377f37faed65c_compressed.jpg';
+import imga571 from './assets/a571e63fdca829ed428888e19430a731_compressed.jpg';
+import imgd342 from './assets/d342fcca3547b5792307ef9d7bd04970_compressed.jpg';
+import imgdcff from './assets/dcffe5bc5e73c69661b19eb8b339aed3_compressed.jpg';
+import imgfeef from './assets/feef282aac5b430d855639ed69c6fc1d_compressed.jpg';
+
 interface ErrorBoundaryProps {
     children: React.ReactNode;
 }
@@ -118,7 +134,7 @@ const memberData: Record<string, Member> = {
         id: 'lupeng',
         name: "路鹏",
         className: "安全23-2",
-        avatar: "/2317d6156558f4618fe9ac7194fc9201_compressed.jpg",
+        avatar: img2317,
         intro: "擅长安全系统工程与风险评估。",
         awards: ["2024年校级优秀学生"]
     },
@@ -418,9 +434,9 @@ function App() {
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekb2B4.jpg', text: t[lang].slider_4 },
         { type: 'image', src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80', text: "跨学科合作<br>突破技术壁垒" },
-        { type: 'image', src: '/a571e63fdca829ed428888e19430a731_compressed.jpg', text: "实战模拟演练<br>提升工程效率" },
-        { type: 'image', src: '/34d0f06b7f10dec793580b9936f4b52b_compressed.jpg', text: "多元文化融合<br>迸发无限灵感" },
-        { type: 'image', src: '/d342fcca3547b5792307ef9d7bd04970_compressed.jpg', text: "星河长存<br>创新无悔" },
+        { type: 'image', src: imga571, text: "实战模拟演练<br>提升工程效率" },
+        { type: 'image', src: img34d0, text: "多元文化融合<br>迸发无限灵感" },
+        { type: 'image', src: imgd342, text: "星河长存<br>创新无悔" },
     ];
 
     // --- Effects ---
@@ -945,8 +961,8 @@ function App() {
         const textureLoader = new THREE.TextureLoader(loadingManager);
         
         // Use a placeholder for the badge logo
-        textureLoader.load('/logo-main.png', (frontTex) => {
-            textureLoader.load('/back-logo.png', (backTex) => {
+        textureLoader.load(logoMain, (frontTex) => {
+            textureLoader.load(backLogo, (backTex) => {
                 const geometry = new THREE.CylinderGeometry(1.8, 1.8, 0.25, 64);
                 
                 // Fix front texture orientation: ensure it's upright and not mirrored
@@ -1460,7 +1476,7 @@ function App() {
             <div className={`splash-screen ${!isLoading ? 'hidden' : ''}`}>
                 <div className="splash-logo mb-8">
                     <img 
-                        src="/logo-xh.jpg" 
+                        src={logoXh} 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
@@ -1473,7 +1489,7 @@ function App() {
                 <div className="header-content">
                     <div className="logo h-14 flex items-center">
                         <img 
-                            src="/logo-xh.jpg" 
+                            src={logoXh} 
                             alt="星河科技创新协会" 
                             className="h-full w-auto object-contain scale-125 origin-left nav-logo-img" 
                         />
@@ -1716,7 +1732,7 @@ function App() {
                                 {t[lang].stats_title}<br/>
                                 <span style={{ color: '#888', fontSize: '24px' }}>{t[lang].stats_subtitle}</span>
                             </h2>
-                            <img loading="lazy" src="/981be86df3b3b8e32f8377f37faed65c_compressed.jpg" alt="Tech" />
+                            <img loading="lazy" src={img981b} alt="Tech" />
                         </div>
                         
                         <div className="stats-right">
@@ -1947,7 +1963,7 @@ function App() {
                         <div className="bento-item w-[500px] aspect-video relative group reveal mt-20" style={{ transform: 'rotate(3deg)' }}>
                             <span className="lando-label">PROJECT DEFENSE, 2024</span>
                             <div className="lando-img-container h-full">
-                                <img loading="lazy" src="/67edb5010ee8485a1e8ea860b5951aa2_compressed.jpg" alt="项目答辩现场" />
+                                <img loading="lazy" src={img67ed} alt="项目答辩现场" />
                             </div>
                             <div className="mt-4">
                                 <div className="text-base font-black tracking-tight">项目答辩现场</div>
@@ -1958,7 +1974,7 @@ function App() {
                         <div className="bento-item w-[350px] aspect-square relative group reveal -mt-10" style={{ transform: 'rotate(-1deg)' }}>
                             <span className="lando-label">TEAM BUILDING, 2024</span>
                             <div className="lando-img-container h-full">
-                                <img loading="lazy" src="/981be86df3b3b8e32f8377f37faed65c_compressed.jpg" alt="团建活动" />
+                                <img loading="lazy" src={img981b} alt="团建活动" />
                             </div>
                             <div className="mt-4">
                                 <div className="text-base font-black tracking-tight">团建活动</div>
@@ -2668,7 +2684,7 @@ function App() {
                             <div className="social-icon-wrapper">
                                 <a href="#"><i className="fab fa-weixin"></i></a>
                                 <div className="qrcode-popup">
-                                    <img src="/wechat-qr.png" alt="WeChat" />
+                                <img src={wechatQr} alt="WeChat" />
                                     <p>{t[lang].footer_wechat}</p>
                                 </div>
                             </div>
@@ -2726,7 +2742,7 @@ function App() {
                         {/* Large Logo Image */}
                         <div className="footer-logo">
                             <img 
-                                src="/logo-xh.jpg" 
+                                src={logoXh} 
                                 alt="XH科技创新协会" 
                                 className="footer-logo-img"
                             />
