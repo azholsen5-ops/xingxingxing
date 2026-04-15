@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Version: 1.0.5 - Assets in src/assets with refined vercel rewrites
 import React, { Component, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { animate, svg, stagger } from 'animejs';
@@ -21,10 +22,10 @@ import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 
-import logoXh from './assets/logo-xh.jpg';
-import wechatQr from './assets/wechat-qr.png';
-import backLogo from './assets/back-logo.png';
-import clubName from './assets/club-name.png';
+import logoXh from './assets/logo.jpg';
+import wechatQr from './assets/qr.png';
+import backLogo from './assets/bg.png';
+import clubName from './assets/name.png';
 import logoMain from './assets/logo-main.png';
 
 import img2317 from './assets/2317d6156558f4618fe9ac7194fc9201_compressed.jpg';
