@@ -1480,9 +1480,11 @@ function App() {
                         src={logoXh} 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
+                        crossOrigin="anonymous"
+                        onError={(e) => console.error('Splash logo failed to load. This might be a path or permission issue.', e)}
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.0.6</div>
             </div>
 
             {/* Header */}
