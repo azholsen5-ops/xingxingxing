@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Version: 1.0.5 - Assets in src/assets with refined vercel rewrites
+// Version: 1.0.7 - Assets in public/images with absolute paths
 import React, { Component, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { animate, svg, stagger } from 'animejs';
@@ -22,21 +22,21 @@ import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 
-import logoXh from './assets/logo.jpg';
-import wechatQr from './assets/qr.png';
-import backLogo from './assets/bg.png';
-import clubName from './assets/name.png';
-import logoMain from './assets/logo-main.png';
+const logoXh = '/images/logo.jpg';
+const wechatQr = '/images/qr.png';
+const backLogo = '/images/bg.png';
+const clubName = '/images/name.png';
+const logoMain = '/images/logo-main.png';
 
-import img2317 from './assets/2317d6156558f4618fe9ac7194fc9201_compressed.jpg';
-import img2904 from './assets/29044dda435a3be2c5277128760a6dd8_compressed.jpg';
-import img34d0 from './assets/34d0f06b7f10dec793580b9936f4b52b_compressed.jpg';
-import img67ed from './assets/67edb5010ee8485a1e8ea860b5951aa2_compressed.jpg';
-import img981b from './assets/981be86df3b3b8e32f8377f37faed65c_compressed.jpg';
-import imga571 from './assets/a571e63fdca829ed428888e19430a731_compressed.jpg';
-import imgd342 from './assets/d342fcca3547b5792307ef9d7bd04970_compressed.jpg';
-import imgdcff from './assets/dcffe5bc5e73c69661b19eb8b339aed3_compressed.jpg';
-import imgfeef from './assets/feef282aac5b430d855639ed69c6fc1d_compressed.jpg';
+const img2317 = '/images/img2317.jpg';
+const img2904 = '/images/img2904.jpg';
+const img34d0 = '/images/img34d0.jpg';
+const img67ed = '/images/img67ed.jpg';
+const img981b = '/images/img981b.jpg';
+const imga571 = '/images/imga571.jpg';
+const imgd342 = '/images/imgd342.jpg';
+const imgdcff = '/images/imgdcff.jpg';
+const imgfeef = '/images/imgfeef.jpg';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -1480,11 +1480,9 @@ function App() {
                         src={logoXh} 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
-                        crossOrigin="anonymous"
-                        onError={(e) => console.error('Splash logo failed to load. This might be a path or permission issue.', e)}
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.0.6</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.0.7</div>
             </div>
 
             {/* Header */}
