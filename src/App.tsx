@@ -329,6 +329,7 @@ function App() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const mainCanvasRef = useRef<HTMLCanvasElement>(null);
     const badgeGroupRef = useRef<THREE.Group | null>(null);
+    const floatingGroupRef = useRef<THREE.Group | null>(null);
     const loadingOverlayRef = useRef<HTMLDivElement>(null);
     const hallOfFameRef = useRef<HTMLDivElement>(null);
     const horizontalScrollRef = useRef<HTMLDivElement>(null);
@@ -1018,12 +1019,15 @@ function App() {
                 });
 
                 const badgeMesh = new THREE.Mesh(geometry, [metalMat, frontMat, backMat]);
-            badgeMesh.rotation.x = Math.PI / 2;
-            badgeMesh.rotation.y = Math.PI / 2; 
+                badgeMesh.rotation.x = Math.PI / 2;
+                badgeMesh.rotation.y = Math.PI / 2; 
 
-
-            badgeGroup.add(badgeMesh);
-            scene.add(badgeGroup);
+                const floatingGroup = new THREE.Group();
+                floatingGroup.add(badgeMesh);
+                floatingGroupRef.current = floatingGroup;
+                
+                badgeGroup.add(floatingGroup);
+                scene.add(badgeGroup);
 
             badgeGroup.position.set(2.2, 0, 0);
             badgeGroup.rotation.set(0, Math.PI * 2, 0); // Start facing forward (Logo side)
@@ -1143,14 +1147,11 @@ function App() {
             
             const elapsedTime = clock.getElapsedTime();
             
-            if (badgeGroupRef.current) {
+            if (floatingGroupRef.current) {
                 // 1. Idle Floating (Breathing)
                 // Subtle Y movement and very slow base rotation
-                badgeGroupRef.current.position.y = Math.sin(elapsedTime * 0.8) * 0.15;
-                
-                // 2. Mouse Parallax (Disabled per user request)
-                // badgeGroupRef.current.rotation.x += (0 - badgeGroupRef.current.rotation.x) * 0.05;
-                // badgeGroupRef.current.rotation.z += (0 - badgeGroupRef.current.rotation.z) * 0.05;
+                // Using a separate group to avoid conflict with GSAP position animations
+                floatingGroupRef.current.position.y = Math.sin(elapsedTime * 0.8) * 0.15;
             }
 
             // 3. Enhanced Particles Animation
@@ -1482,7 +1483,7 @@ function App() {
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.2.5</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.2.7</div>
             </div>
 
             {/* Header */}
