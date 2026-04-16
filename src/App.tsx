@@ -1482,7 +1482,7 @@ function App() {
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.2.4</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.2.5</div>
             </div>
 
             {/* Header */}
@@ -2144,11 +2144,11 @@ function App() {
                         <h2 className="lando-big-text" dangerouslySetInnerHTML={{ __html: t[lang].style_big_text }}></h2>
                     </div>
 
-                    {/* Block 2: Image 1 (Qatar) */}
+                    {/* Block 2: Image 1 */}
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.3">
                         <span className="lando-label">NATIONAL AWARD, 2024</span>
                         <div className="lando-img-container w-[600px] aspect-video">
-                            <img src="https://s41.ax1x.com/2026/03/12/peAptG4.jpg" alt="Award 1" />
+                            <img src={img2317} alt="Award 1" />
                         </div>
                     </div>
 
@@ -2163,27 +2163,27 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Block 4: Image 2 (Miami) */}
+                    {/* Block 4: Image 2 */}
                     <div className="lando-item lando-item-center parallax-layer" data-speed="-0.15">
                         <span className="lando-label">PROVINCIAL FIRST PRIZE, 2024</span>
                         <div className="lando-img-container w-[720px] aspect-video">
-                            <img src="https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200" alt="Award 2" />
+                            <img src={imga571} alt="Award 2" />
                         </div>
                     </div>
 
-                    {/* Block 5: Image 3 (Monaco) */}
+                    {/* Block 5: Image 3 */}
                     <div className="lando-item lando-item-up parallax-layer" data-speed="0.5">
                         <span className="lando-label">INNOVATION EXCELLENCE, 2024</span>
                         <div className="lando-img-container w-[500px] aspect-[16/9]">
-                            <img src="https://s41.ax1x.com/2026/03/12/peApuxs.jpg" alt="Award 3" />
+                            <img src={img34d0} alt="Award 3" />
                         </div>
                     </div>
 
-                    {/* Block 6: Image 4 (Britain) */}
+                    {/* Block 6: Image 4 */}
                     <div className="lando-item lando-item-down parallax-layer" data-speed="0.2">
                         <span className="lando-label">OUTSTANDING TEAM, 2025</span>
                         <div className="lando-img-container w-[650px] aspect-video">
-                            <img src="https://s41.ax1x.com/2026/03/12/peApMMn.jpg" alt="Award 4" />
+                            <img src={img981b} alt="Award 4" />
                         </div>
                     </div>
 
