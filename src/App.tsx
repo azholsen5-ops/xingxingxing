@@ -22,18 +22,18 @@ import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 
-const logoXh = '/images/logo.jpg';
+const logoXh = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/logo-main.png'; // Using logo-main as fallback for logoXh
 const wechatQr = '/images/qr.png';
-const backLogo = '/images/bg.png';
-const clubName = '/images/name.png';
-const logoMain = '/images/logo-main.png';
+const backLogo = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/bg.png';
+const clubName = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260414163900_3668_2.png';
+const logoMain = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/logo-main.png';
 
-const img2317 = '/images/img2317.jpg';
-const img2904 = '/images/img2904.jpg';
-const img34d0 = '/images/img34d0.jpg';
-const img67ed = '/images/img67ed.jpg';
-const img981b = '/images/img981b.jpg';
-const imga571 = '/images/imga571.jpg';
+const img2317 = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/2317d6156558f4618fe9ac7194fc9201_compressed.jpg';
+const img2904 = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/29044dda435a3be2c5277128760a6dd8_compressed.jpg';
+const img34d0 = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/34d0f06b7f10dec793580b9936f4b52b_compressed.jpg';
+const img67ed = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/67edb5010ee8485a1e8ea860b5951aa2_compressed.jpg';
+const img981b = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/981be86df3b3b8e32f8377f37faed65c_compressed.jpg';
+const imga571 = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/a571e63fdca829ed428888e19430a731_compressed.jpg';
 const imgd342 = '/images/imgd342.jpg';
 const imgdcff = '/images/imgdcff.jpg';
 const imgfeef = '/images/imgfeef.jpg';
@@ -1480,27 +1480,19 @@ function App() {
                         src={logoXh} 
                         alt="星河科技创新协会" 
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
-                        crossOrigin="anonymous"
-                        onError={(e) => {
-                            console.error('Image failed to load:', logoXh);
-                            const target = e.target as HTMLImageElement;
-                            if (!target.src.includes('fallback')) {
-                                target.src = 'https://picsum.photos/seed/xinghe/200/200';
-                            }
-                        }}
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.1.0</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.2.4</div>
             </div>
 
             {/* Header */}
             <header className={scrolled ? 'scrolled' : ''}>
                 <div className="header-content">
-                    <div className="logo h-14 flex items-center">
+                    <div className="logo h-16 flex items-center">
                         <img 
-                            src={logoXh} 
-                            alt="星河科技创新协会" 
-                            className="h-full w-auto object-contain scale-125 origin-left nav-logo-img" 
+                            src={clubName} 
+                            alt="星河科技创新协会名称" 
+                            className="h-11 md:h-14 w-auto object-contain nav-club-name brightness-0 invert transition-all duration-300 hover:scale-105" 
                         />
                     </div>
                     <div className="menu-btn" onClick={toggleMenu}>
