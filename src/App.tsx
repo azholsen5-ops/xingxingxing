@@ -620,69 +620,64 @@ function App() {
 
                     const scrollDistance = Math.max(0, scrollWidth - windowWidth);
                     
-                    // Pin the Achievements section
-                    ScrollTrigger.create({
-                        trigger: hallOfFameRef.current,
-                        start: "top top",
-                        end: () => `+=${scrollDistance}`,
-                        pin: true,
-                        pinSpacing: true,
-                        invalidateOnRefresh: true,
-                        id: "achievements-pin",
-                        onRefresh: (self) => {
-                            if (self.progress === 0) {
-                                gsap.set(horizontalScrollRef.current, { x: 0 });
-                            }
-                        }
-                    });
+            // Use MatchMedia for responsive animations
+            const mm = gsap.matchMedia();
 
-                    // Timeline for horizontal scroll
-                    const tl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: hallOfFameRef.current,
-                            start: "top top",
-                            end: () => `+=${scrollDistance}`,
-                            scrub: 1,
-                            invalidateOnRefresh: true,
-                        }
-                    });
+    mm.add("all", () => {
+        // Universal animations (Horizontal Scroll for all devices)
+        const scrollWidth = horizontalScrollRef.current!.scrollWidth;
+        const windowWidth = window.innerWidth;
+        const scrollDistance = Math.max(0, scrollWidth - windowWidth);
 
-                    tl.to(horizontalScrollRef.current, {
-                        x: -scrollDistance,
-                        ease: "none",
-                        onUpdate: function() {
-                            const progress = this.progress();
-                            const counter = document.querySelector('.lando-counter span');
-                            const progressBar = document.querySelector('.lando-progress-fill') as HTMLElement;
-                            
-                            if (counter) {
-                                const slideNum = Math.min(8, Math.max(1, Math.ceil(progress * 8)));
-                                counter.textContent = slideNum.toString();
-                            }
-                            
-                            if (progressBar) {
-                                progressBar.style.width = `${progress * 100}%`;
-                            }
-                        }
-                    });
+        ScrollTrigger.create({
+            trigger: hallOfFameRef.current,
+            start: "top top",
+            end: () => `+=${scrollDistance}`,
+            pin: true,
+            pinSpacing: true,
+            invalidateOnRefresh: true,
+            id: "achievements-pin"
+        });
 
-                    // Parallax for individual items
-                    const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
-                    layers.forEach((layer) => {
-                        const speed = parseFloat(layer.dataset.speed || '0');
-                        gsap.to(layer, {
-                            x: () => -200 * speed,
-                            y: () => 120 * speed,
-                            ease: "none",
-                            scrollTrigger: {
-                                trigger: hallOfFameRef.current,
-                                start: "top top",
-                                end: () => `+=${scrollDistance}`,
-                                scrub: true,
-                                invalidateOnRefresh: true,
-                            }
-                        });
-                    });
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: hallOfFameRef.current,
+                start: "top top",
+                end: () => `+=${scrollDistance}`,
+                scrub: 1,
+                invalidateOnRefresh: true,
+            }
+        });
+
+        tl.to(horizontalScrollRef.current, {
+            x: -scrollDistance,
+            ease: "none",
+            onUpdate: function() {
+                const progress = this.progress();
+                const counter = document.querySelector('.lando-counter span');
+                const progressBar = document.querySelector('.lando-progress-fill') as HTMLElement;
+                if (counter) counter.textContent = Math.min(8, Math.max(1, Math.ceil(progress * 8))).toString();
+                if (progressBar) progressBar.style.width = `${progress * 100}%`;
+            }
+        });
+
+        // Parallax for individual items
+        const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
+        layers.forEach((layer) => {
+            const speed = parseFloat(layer.dataset.speed || '0');
+            gsap.to(layer, {
+                x: () => -200 * speed,
+                y: () => 120 * speed,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: hallOfFameRef.current,
+                    start: "top top",
+                    end: () => `+=${scrollDistance}`,
+                    scrub: true,
+                }
+            });
+        });
+    });
 
                     // Animate all scribbles with scroll
                     const scribbles = document.querySelectorAll('.scribble-animate');
@@ -1029,8 +1024,12 @@ function App() {
                 badgeGroup.add(floatingGroup);
                 scene.add(badgeGroup);
 
-            badgeGroup.position.set(2.2, 0, 0);
+            const isMobile = window.innerWidth < 768;
+            badgeGroup.position.set(isMobile ? 0 : 2.2, isMobile ? -1 : 0, 0);
             badgeGroup.rotation.set(0, Math.PI * 2, 0); // Start facing forward (Logo side)
+            if (isMobile) {
+                badgeGroup.scale.set(0.35, 0.35, 0.35);
+            }
 
             // GSAP Animations for 3D
             // Initial state: Hidden
@@ -1483,7 +1482,7 @@ function App() {
                         className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
                     />
                 </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.2.7</div>
+                <div className="splash-loader-text">星河科技创新协会 v1.3.0</div>
             </div>
 
             {/* Header */}
@@ -1500,16 +1499,33 @@ function App() {
                         {isMenuOpen ? <X /> : <Menu />}
                     </div>
                     <ul className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
-                        <li><a href="#intro" className={`nav-item ${activeSection === 'intro' ? 'active' : ''}`}>{t[lang].nav_intro}</a></li>
-                        <li><a href="#history" className={`nav-item ${activeSection === 'history' ? 'active' : ''}`}>{t[lang].nav_history}</a></li>
-                        <li><a href="#advisor" className={`nav-item ${activeSection === 'advisor' ? 'active' : ''}`}>{t[lang].nav_advisor}</a></li>
-                        <li><a href="#style" className={`nav-item ${activeSection === 'style' ? 'active' : ''}`}>{t[lang].nav_style}</a></li>
-                        <li><a href="#experience" className={`nav-item ${activeSection === 'experience' ? 'active' : ''}`}>{t[lang].nav_experience}</a></li>
-                        <li><a href="#achievements" className={`nav-item ${activeSection === 'achievements' ? 'active' : ''}`}>{t[lang].nav_achieve}</a></li>
-                        <li><a href="#news" className={`nav-item ${activeSection === 'news' ? 'active' : ''}`}>动态资讯</a></li>
-                        <li><a href="#members" className={`nav-item ${activeSection === 'members' ? 'active' : ''}`}>{t[lang].nav_members}</a></li>
-                        <li><a href="#join" className={`nav-item text-red-600 font-bold ${activeSection === 'join' ? 'active' : ''}`}>{t[lang].nav_join}</a></li>
-                        <li><a href="#contact" className={`nav-item ${activeSection === 'contact' ? 'active' : ''}`}>{t[lang].nav_contact}</a></li>
+                        <li><a href="#intro" className={`nav-item ${activeSection === 'intro' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_intro}</a></li>
+                        <li><a href="#history" className={`nav-item ${activeSection === 'history' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_history}</a></li>
+                        <li><a href="#advisor" className={`nav-item ${activeSection === 'advisor' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_advisor}</a></li>
+                        <li><a href="#style" className={`nav-item ${activeSection === 'style' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_style}</a></li>
+                        <li><a href="#experience" className={`nav-item ${activeSection === 'experience' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_experience}</a></li>
+                        <li><a href="#achievements" className={`nav-item ${activeSection === 'achievements' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_achieve}</a></li>
+                        <li><a href="#news" className={`nav-item ${activeSection === 'news' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>动态资讯</a></li>
+                        <li><a href="#members" className={`nav-item ${activeSection === 'members' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_members}</a></li>
+                        <li><a href="#join" className={`nav-item text-red-600 font-bold ${activeSection === 'join' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_join}</a></li>
+                        <li><a href="#contact" className={`nav-item ${activeSection === 'contact' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>{t[lang].nav_contact}</a></li>
+                        
+                        {/* Mobile Language & Music Controls */}
+                        <li className="md:hidden mt-10 border-t border-white/10 pt-10 flex flex-col items-center gap-8">
+                            <div className="flex items-center gap-6">
+                                <button 
+                                    className={`music-toggle ${isMusicPlaying ? 'playing' : ''} mobile-nav-btn`} 
+                                    onClick={toggleMusic}
+                                >
+                                    <Music size={24} color="white" />
+                                </button>
+                                <div className="flex items-center gap-4 text-white font-bold text-xl">
+                                    <span className={lang === 'zh' ? 'text-blue-500' : ''} onClick={() => switchLang('zh')}>简</span>
+                                    <span className="opacity-20">/</span>
+                                    <span className={lang === 'en' ? 'text-blue-500' : ''} onClick={() => switchLang('en')}>EN</span>
+                                </div>
+                            </div>
+                        </li>
                     </ul>
                     <div className="lang-switch">
                         <button 
@@ -2146,15 +2162,15 @@ function App() {
                     </div>
 
                     {/* Block 2: Image 1 */}
-                    <div className="lando-item lando-item-up parallax-layer" data-speed="0.3">
+                    <div className="lando-item lando-item-up parallax-layer md:mr-0 mb-20 md:mb-0" data-speed="0.3">
                         <span className="lando-label">NATIONAL AWARD, 2024</span>
-                        <div className="lando-img-container w-[600px] aspect-video">
+                        <div className="lando-img-container w-[85vw] md:w-[600px] aspect-video">
                             <img src={img2317} alt="Award 1" />
                         </div>
                     </div>
 
                     {/* Block 3: Quote 1 */}
-                    <div className="lando-quote-block lando-item-down parallax-layer" data-speed="0.05">
+                    <div className="lando-quote-block lando-item-down parallax-layer md:mr-0 mb-20 md:mb-0" data-speed="0.05">
                         <p className="lando-quote-text">
                             {t[lang].style_quote}
                         </p>
@@ -2165,25 +2181,25 @@ function App() {
                     </div>
 
                     {/* Block 4: Image 2 */}
-                    <div className="lando-item lando-item-center parallax-layer" data-speed="-0.15">
+                    <div className="lando-item lando-item-center parallax-layer md:mr-0 mb-20 md:mb-0" data-speed="-0.15">
                         <span className="lando-label">PROVINCIAL FIRST PRIZE, 2024</span>
-                        <div className="lando-img-container w-[720px] aspect-video">
+                        <div className="lando-img-container w-[85vw] md:w-[720px] aspect-video">
                             <img src={imga571} alt="Award 2" />
                         </div>
                     </div>
 
                     {/* Block 5: Image 3 */}
-                    <div className="lando-item lando-item-up parallax-layer" data-speed="0.5">
+                    <div className="lando-item lando-item-up parallax-layer md:mr-0 mb-20 md:mb-0" data-speed="0.5">
                         <span className="lando-label">INNOVATION EXCELLENCE, 2024</span>
-                        <div className="lando-img-container w-[500px] aspect-[16/9]">
+                        <div className="lando-img-container w-[85vw] md:w-[500px] aspect-[16/9]">
                             <img src={img34d0} alt="Award 3" />
                         </div>
                     </div>
 
                     {/* Block 6: Image 4 */}
-                    <div className="lando-item lando-item-down parallax-layer" data-speed="0.2">
+                    <div className="lando-item lando-item-down parallax-layer md:mr-0 mb-20 md:mb-0" data-speed="0.2">
                         <span className="lando-label">OUTSTANDING TEAM, 2025</span>
-                        <div className="lando-img-container w-[650px] aspect-video">
+                        <div className="lando-img-container w-[85vw] md:w-[650px] aspect-video">
                             <img src={img981b} alt="Award 4" />
                         </div>
                     </div>
@@ -2224,7 +2240,7 @@ function App() {
                             </div>
                         </div>
                         
-                        <div className="grid grid-rows-2 grid-flow-col gap-8 h-[650px] relative">
+                        <div className="grid grid-cols-1 md:grid-rows-2 md:grid-flow-col gap-8 md:h-[650px] relative">
                             {/* Museum Marquee Background */}
                             <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.02] select-none overflow-hidden">
                                 <div className="text-[20vw] font-black whitespace-nowrap animate-marquee-slow">XINGHE ARCHIVE XINGHE ARCHIVE XINGHE ARCHIVE</div>
@@ -2235,15 +2251,15 @@ function App() {
                                 { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2024", category: "National", project: "矿山智能巡检机器人", desc: "该项目在挑战杯全国大学生课外学术科技作品竞赛中荣获国家级奖项。", tech: ["AI视觉", "自主导航", "5G通信"] },
                                 { id: 2, name: "省级一等奖", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Provincial", project: "智慧安全云平台", desc: "基于大数据与云计算的安全监测平台，获得辽宁省科创竞赛一等奖。", tech: ["大数据", "云计算", "实时监测"] },
                                 { id: 3, name: "创新杯金奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Excellence", project: "多功能安全传感器", desc: "自主研发的新型传感器，解决了极端环境下的数据采集难题。", tech: ["硬件开发", "传感器技术", "低功耗设计"] },
-                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg", year: "2025", category: "Team", project: "星河科创团队", desc: "协会团队因在年度科技创新活动中的卓越表现，被评为校级优秀团队。", tech: ["团队协作", "项目管理", "创新思维"] },
+                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2025/03/12/peApMMn.jpg", year: "2025", category: "Team", project: "星河科创团队", desc: "协会团队因在年度科技创新活动中的卓越表现，被评为校级优秀团队。", tech: ["团队协作", "项目管理", "创新思维"] },
                                 { id: 5, name: "技术突破奖", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Tech", project: "动力环技术优化", desc: "在动力环核心算法上取得重大突破，大幅提升了系统响应速度。", tech: ["算法优化", "控制理论", "仿真模拟"] },
                                 { id: 6, name: "专利授权证书", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2025", category: "Patent", project: "一种智能预警装置", desc: "该发明专利已获得国家知识产权局正式授权，具有极高的实用价值。", tech: ["专利申请", "机械设计", "电子电路"] },
                                 { id: 7, name: "社会实践奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Social", project: "安全科普进社区", desc: "团队深入社区开展安全知识普及活动，获得社会各界一致好评。", tech: ["社会实践", "公益科普", "沟通表达"] },
-                                { id: 8, name: "学术论文奖", img: "https://s41.ax1x.com/2026/03/12/peApMMn.jpg", year: "2025", category: "Academic", project: "安全工程前沿研究", desc: "团队成员在核心期刊发表高水平学术论文，展现了深厚的科研功底。", tech: ["学术研究", "论文写作", "数据分析"] }
+                                { id: 8, name: "学术论文奖", img: "https://s41.ax1x.com/2025/03/12/peApMMn.jpg", year: "2025", category: "Academic", project: "安全工程前沿研究", desc: "团队成员在核心期刊发表高水平学术论文，展现了深厚的科研功底。", tech: ["学术研究", "论文写作", "数据分析"] }
                             ].map((award, idx) => (
                                 <div 
                                     key={award.id} 
-                                    className="w-[450px] bg-white rounded-[32px] p-8 border border-black/5 hover:border-blue-600/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 group cursor-pointer relative overflow-hidden"
+                                    className="w-full md:w-[450px] bg-white rounded-[32px] p-8 border border-black/5 hover:border-blue-600/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 group cursor-pointer relative overflow-hidden"
                                     onClick={() => setSelectedAward(award)}
                                 >
                                     <div className="absolute top-8 right-8 text-[40px] font-black text-black/5 group-hover:text-blue-600/10 transition-colors">
@@ -2519,6 +2535,7 @@ function App() {
                         speed={1}
                         enableShadows
                         enableOnHover={false}
+                        color="#000000"
                         className="text-4xl md:text-5xl font-black mb-8 tracking-tight"
                     >
                         准备好开启你的科技之旅了吗？

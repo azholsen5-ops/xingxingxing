@@ -1,5 +1,5 @@
 .glitch {
-  color: #fff;
+  color: inherit;
   white-space: nowrap;
   font-weight: 900;
   position: relative;
@@ -16,8 +16,8 @@
   content: attr(data-text);
   position: absolute;
   top: 0;
-  color: #fff;
-  background-color: transparent; /* Changed from #060010 to transparent for better integration */
+  color: inherit;
+  background-color: transparent;
   overflow: hidden;
   clip-path: inset(0 0 0 0);
   width: 100%;

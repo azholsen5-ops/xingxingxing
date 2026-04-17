@@ -7,6 +7,7 @@ interface GlitchTextProps {
   enableShadows?: boolean;
   enableOnHover?: boolean;
   className?: string;
+  color?: string;
 }
 
 const GlitchText: React.FC<GlitchTextProps> = ({ 
@@ -14,14 +15,16 @@ const GlitchText: React.FC<GlitchTextProps> = ({
   speed = 1, 
   enableShadows = true, 
   enableOnHover = true, 
-  className = '' 
+  className = '',
+  color
 }) => {
   const inlineStyles: React.CSSProperties = {
     // @ts-ignore
     '--after-duration': `${speed * 3}s`,
     '--before-duration': `${speed * 2}s`,
     '--after-shadow': enableShadows ? '-5px 0 red' : 'none',
-    '--before-shadow': enableShadows ? '5px 0 cyan' : 'none'
+    '--before-shadow': enableShadows ? '5px 0 cyan' : 'none',
+    ...(color ? { color } : {})
   };
 
   const hoverClass = enableOnHover ? 'enable-on-hover' : '';
