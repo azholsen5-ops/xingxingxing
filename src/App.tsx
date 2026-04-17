@@ -21,6 +21,9 @@ import ProfileCard from './components/ProfileCard';
 import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
+import MemberAuthModal from './components/MemberAuthModal';
+import { authService, User as AuthUser } from './services/authService';
+import { socketService } from './services/socketService';
 
 const logoXh = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/logo-main.png'; // Using logo-main as fallback for logoXh
 const wechatQr = '/images/qr.png';
@@ -102,8 +105,8 @@ interface Member {
     className: string;
     avatar: string;
     intro: string;
-    awards: string[];
-    category?: 'student' | 'teacher' | 'service';
+    awards?: string[];
+    category?: 'core' | 'teacher' | 'service' | 'student';
 }
 
 const memberData: Record<string, Member> = {
@@ -260,6 +263,7 @@ const memberData: Record<string, Member> = {
 function App() {
     const [lang, setLang] = useState<'zh' | 'en'>('zh');
     const [isLoading, setIsLoading] = useState(true);
+    const [loadingProgress, setLoadingProgress] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('intro');
     const [scrolled, setScrolled] = useState(false);
@@ -284,11 +288,15 @@ function App() {
     const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState(false);
     const [signatureData, setSignatureData] = useState<string | null>(null);
 
+    const [currentUser, setCurrentUser] = useState<AuthUser | null>(authService.getCurrentUser());
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
+    const [dbMembers, setDbMembers] = useState<Member[]>([]);
+
     const [achieveIndex, setAchieveIndex] = useState(0);
     const [memberSearchTerm, setMemberSearchTerm] = useState('');
     const [shareToast, setShareToast] = useState<string | null>(null);
     const [is3DLoading, setIs3DLoading] = useState(true);
-    const [loadingProgress, setLoadingProgress] = useState(0);
     const [isPageLoaded, setIsPageLoaded] = useState(false);
 
     useEffect(() => {
@@ -339,10 +347,23 @@ function App() {
     const styleTransitionScribbleRef = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            setLoadingProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(interval);
+                    return 100;
+                }
+                return prev + (100 / (2500 / 50)); // Sync with 2.5s timer
+            });
+        }, 50);
+
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2500);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+        };
     }, []);
 
     // --- Translations ---
@@ -381,6 +402,8 @@ function App() {
             modal_awards: "获奖情况",
             members_core: "核心成员",
             members_service: "服务人员",
+            online_status: "在线",
+            contact_btn: "联系",
             style_big_text: "星河璀璨，创新无界。<br/>在科技的征途中，<br/>书写属于我们的辉煌篇章。",
             style_quote: "创新是引领发展的第一动力，星河人永远在路上。",
             style_final_text: "自协会成立以来，我们怀揣着对科技的热爱，<br/>不懈努力，只为将每一个创新的梦想变为现实。",
@@ -421,6 +444,8 @@ function App() {
             modal_awards: "Awards",
             members_core: "Core Members",
             members_service: "Service Personnel",
+            online_status: "Online",
+            contact_btn: "Contact",
             style_big_text: "STARRY RIVER, BOUNDLESS INNOVATION. <br/>ON THE JOURNEY OF TECHNOLOGY, <br/>WRITING OUR OWN <span class='text-blue-400'>GLORIOUS CHAPTER</span>.",
             style_quote: "Innovation is the primary driver of development; Xinghe people are always on the road.",
             style_final_text: "SINCE THE ASSOCIATION WAS FOUNDED, WE HAVE CARRIED A LOVE FOR TECHNOLOGY, <br/>WORKING TIRELESSLY TO MAKE EVERY INNOVATIVE DREAM COME TRUE.",
@@ -563,6 +588,58 @@ function App() {
             clearTimeout(timer);
         };
     }, []);
+
+    useEffect(() => {
+        // Initialize Auth & Presence
+        const user = authService.getCurrentUser();
+        if (user) {
+            socketService.connect(user.id);
+        }
+
+        const unsubscribe = socketService.onPresenceUpdate((ids) => {
+            setOnlineUserIds(ids);
+        });
+
+        // Initial fetch of presence
+        fetch('/api/presence').then(res => res.json()).then(setOnlineUserIds).catch(console.error);
+        fetchMembers();
+
+        return () => {
+            unsubscribe();
+            socketService.disconnect();
+        };
+    }, []);
+
+    const handleLoginSuccess = (user: AuthUser) => {
+        setCurrentUser(user);
+        socketService.connect(user.id);
+        fetchMembers(); // Refresh members list on login
+    };
+
+    const fetchMembers = async () => {
+        try {
+            const res = await fetch('/api/members');
+            const data = await res.json();
+            setDbMembers(data.map((m: any) => ({
+                id: m.id,
+                name: m.name,
+                className: m.className,
+                avatar: m.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=random&color=fff`,
+                intro: m.intro,
+                category: m.category,
+                awards: []
+            })));
+        } catch (err) {
+            console.error('Failed to fetch members:', err);
+        }
+    };
+
+    const handleLogout = () => {
+        authService.logout();
+        setCurrentUser(null);
+        socketService.disconnect();
+        setOnlineUserIds(prev => prev.filter(id => id !== currentUser?.id));
+    };
 
     // Slider Timer
     useEffect(() => {
@@ -1453,12 +1530,23 @@ function App() {
         setAchieveIndex((prev) => (prev + d + total) % total);
     };
 
-    const showMemberModal = (id: string) => setSelectedMember(memberData[id]);
+    const showMemberModal = (id: string) => {
+        const staticMember = memberData[id];
+        if (staticMember) {
+            setSelectedMember(staticMember);
+        } else {
+            const dbMember = dbMembers.find(m => m.id === id);
+            if (dbMember) setSelectedMember(dbMember);
+        }
+    };
     const closeMemberModal = () => setSelectedMember(null);
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    const allMembers = [...Object.values(memberData), ...dbMembers];
+
     return (
-        <div className="relative">
+        <>
+            <div className="relative">
             {/* Scroll Progress Bar (Idea 7) */}
             <div ref={progressBarRef} className="scroll-progress-bar"></div>
 
@@ -1474,16 +1562,88 @@ function App() {
                 </div>
             </div>
             {/* Splash Screen */}
-            <div className={`splash-screen ${!isLoading ? 'hidden' : ''}`}>
-                <div className="splash-logo mb-8">
-                    <img 
-                        src={logoXh} 
-                        alt="星河科技创新协会" 
-                        className="h-24 md:h-32 w-auto object-contain splash-logo-img" 
-                    />
-                </div>
-                <div className="splash-loader-text">星河科技创新协会 v1.3.0</div>
-            </div>
+            <AnimatePresence>
+                {isLoading && (
+                    <motion.div 
+                        initial={{ opacity: 1 }}
+                        exit={{ 
+                            opacity: 0,
+                            scale: 1.1,
+                            filter: "brightness(2) blur(20px)",
+                            transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] }
+                        }}
+                        className="splash-screen"
+                    >
+                        <div className="splash-grid"></div>
+                        <div className="splash-scan-line"></div>
+                        <div className="splash-ambient-glow"></div>
+                        
+                        {/* Corner Accents */}
+                        <div className="splash-corner splash-corner-tl"></div>
+                        <div className="splash-corner splash-corner-tr"></div>
+                        <div className="splash-corner splash-corner-bl"></div>
+                        <div className="splash-corner splash-corner-br"></div>
+
+                        {/* HUD Elements */}
+                        <div className="splash-hud-data hidden md:flex">
+                            <span>COORD_LAT: 41.8781</span>
+                            <span>COORD_LNG: -87.6298</span>
+                            <span>VER: ALPHA_2.0.4</span>
+                            <span>REF: XH_CORE_ENG</span>
+                        </div>
+
+                        <div className="splash-loading-percent hidden md:block">
+                            <motion.span
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.5 }}
+                            >
+                                SCANNING: {Math.round(loadingProgress || 0)}%
+                            </motion.span>
+                        </div>
+
+                        <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 1.2, ease: "easeOut" }}
+                            className="splash-logo mb-12 relative"
+                        >
+                            <img 
+                                src={logoXh} 
+                                alt="星河科技创新协会" 
+                                className="h-32 md:h-48 w-auto object-contain splash-logo-img relative z-10" 
+                            />
+                            <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                        </motion.div>
+                        
+                        <div className="splash-loader-container">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: "100%" }}
+                                transition={{ duration: 2.5, ease: "easeInOut" }}
+                                className="splash-loader-bar"
+                            />
+                        </div>
+                        
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 1 }}
+                            className="splash-loader-text"
+                        >
+                            System Initializing...
+                        </motion.div>
+
+                        {/* Status Logs (Refined elements) */}
+                        <div className="splash-status hidden md:flex">
+                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>{">"} UPLOADING ASSETS...</motion.span>
+                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>{">"} INITIALIZING 3D CORE...</motion.span>
+                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}>{">"} ESTABLISHING SYNC...</motion.span>
+                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>{">"} DONE.</motion.span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Header */}
             <header className={scrolled ? 'scrolled' : ''}>
@@ -1540,6 +1700,31 @@ function App() {
                             </div>
                         </button>
                         <span className={lang === 'zh' ? 'active' : ''} onClick={() => switchLang('zh')}>简</span> / <span className={lang === 'en' ? 'active' : ''} onClick={() => switchLang('en')}>EN</span>
+                    </div>
+
+                    <div className="ml-4 flex items-center gap-3">
+                        {currentUser ? (
+                            <div className="group relative flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer">
+                                    {currentUser.name.charAt(0)}
+                                </div>
+                                <div className="absolute top-full right-0 mt-2 w-32 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="w-full py-3 px-4 text-xs text-red-500 hover:bg-red-500/10 text-left"
+                                    >
+                                        退出 / Logout
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={() => setIsAuthModalOpen(true)}
+                                className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white transition-all"
+                            >
+                                <User size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
                 <audio 
@@ -1885,8 +2070,8 @@ function App() {
                                 name={memberData[id].name}
                                 title={memberData[id].className}
                                 handle={id}
-                                status="Online"
-                                contactText="VIEW PROFILE"
+                                status={t[lang].online_status}
+                                contactText={t[lang].contact_btn}
                                 avatarUrl={memberData[id].avatar}
                                 showUserInfo
                                 enableTilt={true}
@@ -1910,7 +2095,7 @@ function App() {
                 ref={styleTransitionRef} 
                 className="style-transition-section"
             >
-                <div className="topo-bg opacity-20"></div>
+                <div className="topo-bg white opacity-20"></div>
                 <div className="style-transition-container">
                     <div className="style-transition-text style-transition-text-left">TEAM</div>
                     <div className="style-transition-image-wrapper">
@@ -1958,7 +2143,7 @@ function App() {
 
             {/* 5. Style */}
             <section id="style" className="relative overflow-hidden">
-                <div className="topo-bg opacity-20"></div>
+                <div className="topo-bg white opacity-20"></div>
                 <div className="style-bg-text">TEAM STYLE</div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header">
@@ -2016,7 +2201,7 @@ function App() {
 
             {/* 6. Experience */}
             <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
-                <div className="topo-bg opacity-20"></div>
+                <div className="topo-bg white opacity-20"></div>
                 <div className="container relative z-10 reveal">
                     <div className="section-header mb-20">
                         <h2 className="text-3xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
@@ -2402,7 +2587,7 @@ function App() {
             <div className="subsequent-content-wrapper relative bg-black">
                 {/* 7.5 News & Events */}
                 <section id="news" className="relative overflow-hidden min-h-screen text-white">
-                    <div className="topo-bg opacity-20"></div>
+                    <div className="topo-bg white opacity-20"></div>
                     <div className="container relative z-10">
                     <div className="section-header">
                         <h2 className="text-white">动态资讯</h2>
@@ -2464,7 +2649,7 @@ function App() {
                     <div className="member-search-container mb-12 max-w-md mx-auto relative">
                         <input 
                             type="text"
-                            placeholder={lang === 'zh' ? "搜索成员..." : "Search members..."}
+                            placeholder={t[lang].search_placeholder}
                             value={memberSearchTerm}
                             onChange={(e) => setMemberSearchTerm(e.target.value)}
                             className="w-full px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
@@ -2480,9 +2665,9 @@ function App() {
                                 {t[lang].members_core}
                             </h3>
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {Object.values(memberData)
+                                {allMembers
                                     .filter(m => !['qijiayi', 'wanganquan', 'lichuangxin', 'zhaozhinen', 'sunshijian', 'zhouyanjiu', 'wulilun', 'zhengshijian', 'qianchuangxin', 'wangzhinen'].includes(m.id))
-                                    .filter(m => m.category !== 'service')
+                                    .filter(m => m.category !== 'service' && m.category !== 'teacher')
                                     .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
                                     .map((member) => (
                                         <ProfileCard 
@@ -2491,6 +2676,8 @@ function App() {
                                             title={member.className}
                                             handle={member.id}
                                             avatarUrl={member.avatar}
+                                            status={onlineUserIds.includes(member.id) ? t[lang].online_status : (lang === 'zh' ? '离线' : 'Offline')}
+                                            contactText={t[lang].contact_btn}
                                             variant="light"
                                             onContactClick={() => showMemberModal(member.id)}
                                             className="reveal"
@@ -2506,7 +2693,7 @@ function App() {
                                 {t[lang].members_service}
                             </h3>
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {Object.values(memberData)
+                                {allMembers
                                     .filter(m => m.category === 'service')
                                     .filter(m => m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) || m.className.toLowerCase().includes(memberSearchTerm.toLowerCase()))
                                     .map((member) => (
@@ -2516,6 +2703,8 @@ function App() {
                                             title={member.className}
                                             handle={member.id}
                                             avatarUrl={member.avatar}
+                                            status={onlineUserIds.includes(member.id) ? t[lang].online_status : (lang === 'zh' ? '离线' : 'Offline')}
+                                            contactText={t[lang].contact_btn}
                                             variant="light"
                                             onContactClick={() => showMemberModal(member.id)}
                                             className="reveal"
@@ -2529,7 +2718,7 @@ function App() {
 
             {/* 9. Join Us */}
             <section id="join" className="page-section overflow-hidden relative">
-                <div className="topo-bg opacity-20"></div>
+                <div className="topo-bg white opacity-20"></div>
                 <div className="container mx-auto reveal flex flex-col items-center text-center relative z-10">
                     <GlitchText
                         speed={1}
@@ -3066,6 +3255,14 @@ function App() {
                 </div>
             )}
         </div>
+        
+        <MemberAuthModal 
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+            onSuccess={handleLoginSuccess}
+            lang={lang}
+        />
+        </>
     );
 }
 
