@@ -22,6 +22,7 @@ import GlitchText from './components/GlitchText';
 import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 import MemberAuthModal from './components/MemberAuthModal';
+import UserProfileEditModal from './components/UserProfileEditModal';
 import { authService, User as AuthUser } from './services/authService';
 import { socketService } from './services/socketService';
 
@@ -290,6 +291,7 @@ function App() {
 
     const [currentUser, setCurrentUser] = useState<AuthUser | null>(authService.getCurrentUser());
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
     const [dbMembers, setDbMembers] = useState<Member[]>([]);
 
@@ -1708,7 +1710,13 @@ function App() {
                                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer">
                                     {currentUser.name.charAt(0)}
                                 </div>
-                                <div className="absolute top-full right-0 mt-2 w-32 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                                <div className="absolute top-full right-0 mt-2 w-32 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50">
+                                    <button 
+                                        onClick={() => setIsProfileModalOpen(true)}
+                                        className="w-full py-3 px-4 text-xs text-white hover:bg-white/10 text-left border-b border-white/5"
+                                    >
+                                        {lang === 'zh' ? '修改资料' : 'Edit Profile'}
+                                    </button>
                                     <button 
                                         onClick={handleLogout}
                                         className="w-full py-3 px-4 text-xs text-red-500 hover:bg-red-500/10 text-left"
@@ -3260,6 +3268,16 @@ function App() {
             isOpen={isAuthModalOpen}
             onClose={() => setIsAuthModalOpen(false)}
             onSuccess={handleLoginSuccess}
+            lang={lang}
+        />
+
+        <UserProfileEditModal
+            isOpen={isProfileModalOpen}
+            onClose={() => setIsProfileModalOpen(false)}
+            onSuccess={(user) => {
+                setCurrentUser(user);
+                fetchMembers();
+            }}
             lang={lang}
         />
         </>

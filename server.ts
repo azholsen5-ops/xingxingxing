@@ -90,6 +90,27 @@ async function startServer() {
     }
   });
 
+  app.put('/api/auth/profile', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const { name, className, category, intro, avatar } = req.body;
+      const update = db.prepare('UPDATE users SET name = ?, className = ?, category = ?, intro = ?, avatar = ? WHERE id = ?');
+      update.run(name, className, category, intro, avatar, decoded.id);
+
+      // Get updated user
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro FROM users WHERE id = ?').get(decoded.id) as any;
+      res.json({ success: true, user });
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({ success: false, error: 'Invalid token or update failed' });
+    }
+  });
+
   // --- Socket.io Presence Logic ---
   const activeUsers = new Map<string, string>(); // socketId -> userId
 

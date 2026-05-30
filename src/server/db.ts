@@ -26,4 +26,17 @@ db.exec(`
   );
 `);
 
+// Migration for existing tables
+try {
+  db.exec("ALTER TABLE users ADD COLUMN category TEXT DEFAULT 'core'");
+} catch (e) {
+  // column may already exist
+}
+
+try {
+  db.exec("ALTER TABLE users ADD COLUMN intro TEXT");
+} catch (e) {
+  // column may already exist
+}
+
 export default db;

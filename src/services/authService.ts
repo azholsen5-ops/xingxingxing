@@ -4,6 +4,8 @@ export interface User {
     name: string;
     className?: string;
     avatar?: string;
+    category?: 'core' | 'service';
+    intro?: string;
 }
 
 class AuthService {
@@ -17,6 +19,24 @@ class AuthService {
             this.token = storedToken;
             this.currentUser = JSON.parse(storedUser);
         }
+    }
+
+    async updateProfile(data: Partial<User>) {
+        if (!this.token) throw new Error('Not authenticated');
+        const res = await fetch('/api/auth/profile', {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+            this.currentUser = result.user;
+            localStorage.setItem('xh_user', JSON.stringify(result.user));
+        }
+        return result;
     }
 
     async register(data: any) {
