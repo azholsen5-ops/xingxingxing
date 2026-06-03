@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
     X, User, Lock, ArrowRight, Loader2, Eye, EyeOff, Check, 
     Sparkles, QrCode, ArrowLeft, CheckCircle2, RefreshCw, 
-    Smartphone, Phone, FileText, ShieldAlert
+    Smartphone, Phone, FileText, ShieldAlert, Mail
 } from 'lucide-react';
 import { authService, User as AuthUser } from '../services/authService';
 import { socketService } from '../services/socketService';
@@ -16,7 +16,7 @@ interface MemberAuthModalProps {
     lang: 'zh' | 'en';
 }
 
-type AuthMethod = 'password' | 'qrcode' | 'sms';
+type AuthMethod = 'password' | 'email' | 'sms' | 'mp';
 
 const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSuccess, lang }) => {
     // Basic control states
@@ -25,6 +25,15 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successUser, setSuccessUser] = useState<any | null>(null);
+
+    // Mini Program states
+    const [mpUuid, setMpUuid] = useState<string | null>(null);
+    const [isMpLoading, setIsMpLoading] = useState(false);
+    const [mpStatus, setMpStatus] = useState<'pending' | 'confirmed' | 'expired'>('pending');
+    const [mockMpClientOpen, setMockMpClientOpen] = useState(false);
+    const [simulatedNickname, setSimulatedNickname] = useState('星河探针_A5');
+    const [simulatedOpenid, setSimulatedOpenid] = useState('mp_user_99a8');
+    const [simulatedEmail, setSimulatedEmail] = useState('');
 
     // Form inputs state
     const [formData, setFormData] = useState({
@@ -36,7 +45,9 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         memberCode: '',
         intro: '',
         phone: '',
-        smsCode: ''
+        smsCode: '',
+        email: '',
+        emailCode: ''
     });
 
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -57,53 +68,69 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [puzzleError, setPuzzleError] = useState(false);
     const [puzzleSuccess, setPuzzleSuccess] = useState(false);
     const [startX, setStartX] = useState(0);
-    const [pendingAction, setPendingAction] = useState<'login' | 'register' | 'sms' | 'quick'>('login');
+    const [pendingAction, setPendingAction] = useState<'login' | 'register' | 'sms' | 'quick' | 'email'>('login');
 
     // SMS states
     const [smsTimer, setSmsTimer] = useState(0);
     const [mockSmsBanner, setMockSmsBanner] = useState<{ code: string; message: string } | null>(null);
 
-    // WeChat QR Code states & real-time connection logic
-    const [qrUuid, setQrUuid] = useState<string | null>(null);
-    const [isQrLoading, setIsQrLoading] = useState(false);
+    // Email states
+    const [emailTimer, setEmailTimer] = useState(0);
+    const [mockEmailBanner, setMockEmailBanner] = useState<{ code: string; message: string } | null>(null);
 
+    // WeChat Mini Program Session lifecycle hook
     useEffect(() => {
-        if (!isOpen || authMethod !== 'qrcode') return;
+        if (!isOpen) return;
+        if (authMethod !== 'mp' || mode !== 'login') return;
 
-        let active = true;
-        let cleanupSync: (() => void) | null = null;
+        let unsubscribe: (() => void) | null = null;
+        let isCurrent = true;
 
-        const initQrSession = async () => {
-            setIsQrLoading(true);
+        const startMpSession = async () => {
+            setIsMpLoading(true);
+            setError(null);
             try {
-                const uuid = await wechatService.initQrSession();
-                if (active) {
-                    setQrUuid(uuid);
-                    setIsQrLoading(false);
+                const session = await wechatService.initMpSession();
+                if (!isCurrent) return;
+                setMpUuid(session.uuid);
+                setMpStatus('pending');
 
-                    // Subscribe via unified service!
-                    cleanupSync = wechatService.subscribeToSessionSync(uuid, (user) => {
-                        if (active) {
-                            saveToHistoryList(user);
-                            triggerSuccessFlow(user);
-                        }
-                    });
+                // Subscribe to socket/status polling updates
+                unsubscribe = wechatService.subscribeToMpSync(
+                    session.uuid,
+                    (payload: { token: string; user: any }) => {
+                        if (!isCurrent) return;
+                        setMpStatus('confirmed');
+                        localStorage.setItem('xh_token', payload.token);
+                        localStorage.setItem('xh_user', JSON.stringify(payload.user));
+                        saveToHistoryList(payload.user);
+                        onSuccess(payload.user);
+                        onClose();
+                    },
+                    (err) => {
+                        console.error('WeChat MP Sync error:', err);
+                    }
+                );
+            } catch (err: any) {
+                if (isCurrent) {
+                    setError(err.message || '初始化微信小程序统一安全网关失败');
                 }
-            } catch (err) {
-                console.error('Failed to init QR session', err);
-                if (active) setIsQrLoading(false);
+            } finally {
+                if (isCurrent) {
+                    setIsMpLoading(false);
+                }
             }
         };
 
-        initQrSession();
+        startMpSession();
 
         return () => {
-            active = false;
-            if (cleanupSync) {
-                cleanupSync();
+            isCurrent = false;
+            if (unsubscribe) {
+                unsubscribe();
             }
         };
-    }, [isOpen, authMethod]);
+    }, [isOpen, authMethod, mode]);
 
     // Load stored accounts and pre-populate defaults for live play!
     useEffect(() => {
@@ -189,7 +216,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     }, [isDraggingPuzzle, startX, puzzleX, targetPuzzleX]);
 
     // Action Triggering with Captcha
-    const triggerSubmitWithCaptcha = (action: 'login' | 'register' | 'sms' | 'quick') => {
+    const triggerSubmitWithCaptcha = (action: 'login' | 'register' | 'sms' | 'quick' | 'email') => {
         if (!isAgreementChecked) {
             setShakeAgreement(true);
             setTimeout(() => setShakeAgreement(false), 600);
@@ -208,6 +235,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         else if (pendingAction === 'register') submitPasswordRegister();
         else if (pendingAction === 'sms') submitSMSLogin();
         else if (pendingAction === 'quick') submitQuickLogin();
+        else if (pendingAction === 'email') submitEmailLogin();
     };
 
     // Submits credentials to SQLite backend database
@@ -326,6 +354,95 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         }
     };
 
+    // Email Code Authenticator Logic
+    const triggerSendEmail = async () => {
+        if (!formData.email) {
+            setError(lang === 'zh' ? '请输入电子邮箱' : 'Please enter your email');
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError(lang === 'zh' ? '请输入有效的邮箱地址' : 'Invalid email address');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await fetch('/api/auth/email-send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEmailTimer(60);
+                const interval = setInterval(() => {
+                    setEmailTimer(prev => {
+                        if (prev <= 1) {
+                            clearInterval(interval);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+
+                if (data.simulated) {
+                    setMockEmailBanner({
+                        code: data.code,
+                        message: lang === 'zh'
+                            ? `【星河盾·安全邮箱】验证码为: ${data.code}，用于邮箱快捷核验登录。可在控制台查看实体信道细节。`
+                            : `[StarRiver Secure Mail] Code ${data.code} generated. View details in console.`
+                    });
+                } else {
+                    setError(lang === 'zh' ? '验证码已发送至您的邮箱，请注意查收！' : 'Code sent, please check your inbox!');
+                }
+            } else {
+                setError(data.error || 'Failed to send verification code');
+            }
+        } catch (err) {
+            setError(lang === 'zh' ? '网络连接失败，请检查网关' : 'Network error, please try again');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const submitEmailLogin = async () => {
+        if (!formData.email || !formData.emailCode) {
+            setError(lang === 'zh' ? '邮箱和验证码不能为空' : 'Email and code are required');
+            return;
+        }
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await fetch('/api/auth/email-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    code: formData.emailCode,
+                    name: formData.name,
+                    className: formData.className
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                localStorage.setItem('xh_token', result.token);
+                localStorage.setItem('xh_user', JSON.stringify(result.user));
+                authService['currentUser'] = result.user;
+                authService['token'] = result.token;
+                saveToHistoryList(result.user);
+                triggerSuccessFlow(result.user);
+            } else {
+                setError(result.error || (lang === 'zh' ? '验证码校验失败或已过期' : 'Verification failed'));
+            }
+        } catch (err) {
+            setError(lang === 'zh' ? '网络通信失败，请检查安全盾' : 'Network communication failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Appending profile to history users array
     const saveToHistoryList = (user: AuthUser) => {
         const saved = localStorage.getItem('xh_history_users');
@@ -366,7 +483,9 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
             memberCode: '',
             intro: '',
             phone: '',
-            smsCode: ''
+            smsCode: '',
+            email: '',
+            emailCode: ''
         });
         setMode('login');
         setAuthMethod('password');
@@ -447,23 +566,23 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                         {/* ==================== RIGHT PANEL ==================== */}
                         <div className="flex-1 flex flex-col justify-between p-7 md:p-10 bg-[#070912]/95 relative text-white">
                             
-                            {/* QQ client diagonal style ribbon toggler */}
+                            {/* diagonal style ribbon toggler: toggles to email verification login */}
                             <div 
                                 onClick={() => {
-                                    if (authMethod === 'qrcode') {
+                                    if (authMethod === 'email') {
                                         setAuthMethod('password');
                                     } else {
-                                        setAuthMethod('qrcode');
+                                        setAuthMethod('email');
                                         setError(null);
                                     }
                                 }}
                                 className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-600/30 hover:from-blue-600/50 to-transparent flex items-center justify-center cursor-pointer group z-40 transition-all rounded-bl-3xl border-l border-b border-white/5"
-                                title={authMethod === 'qrcode' ? '密码登录' : '扫码登录'}
+                                title={authMethod === 'email' ? '密码登录' : '邮箱验证码登录'}
                             >
-                                {authMethod === 'qrcode' ? (
+                                {authMethod === 'email' ? (
                                     <Lock size={14} className="text-blue-400 group-hover:scale-110 transition-transform absolute top-3.5 right-3.5" />
                                 ) : (
-                                    <QrCode size={14} className="text-emerald-400 group-hover:scale-110 transition-transform absolute top-3.5 right-3.5" />
+                                    <Mail size={14} className="text-amber-400 group-hover:scale-110 transition-transform absolute top-3.5 right-3.5" />
                                 )}
                             </div>
 
@@ -498,19 +617,35 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                 </p>
 
                                 {/* Method options */}
-                                {mode === 'login' && authMethod !== 'qrcode' && (
+                                {mode === 'login' && (
                                     <div className="flex gap-4 mt-5 border-b border-white/5 pb-2">
                                         <button 
+                                            type="button"
                                             onClick={() => setAuthMethod('password')}
                                             className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'password' ? 'text-blue-400 border-b-2 border-blue-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
                                         >
                                             {lang === 'zh' ? '密码登录' : 'Password Mode'}
                                         </button>
                                         <button 
+                                            type="button"
+                                            onClick={() => setAuthMethod('email')}
+                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'email' ? 'text-amber-400 border-b-2 border-amber-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
+                                        >
+                                            {lang === 'zh' ? '邮箱验证码' : 'Email Security'}
+                                        </button>
+                                        <button 
+                                            type="button"
                                             onClick={() => setAuthMethod('sms')}
                                             className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'sms' ? 'text-blue-400 border-b-2 border-blue-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
                                         >
-                                            {lang === 'zh' ? '手机验证码登录' : 'Mobile SMS Key'}
+                                            {lang === 'zh' ? '手机验证码' : 'Mobile SMS Key'}
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setAuthMethod('mp')}
+                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'mp' ? 'text-emerald-400 border-b-2 border-emerald-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
+                                        >
+                                            {lang === 'zh' ? '小程序扫码' : 'WeChat MP'}
                                         </button>
                                     </div>
                                 )}
@@ -684,6 +819,17 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                                         </div>
 
                                                         <div>
+                                                            <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">电子邮箱 (QQ/163/Gmail)</label>
+                                                            <input 
+                                                                type="email" required
+                                                                value={formData.email}
+                                                                onChange={e => setFormData({...formData, email: e.target.value})}
+                                                                placeholder="yourname@domain.com"
+                                                                className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-2.5 px-3 text-xs outline-none focus:border-blue-500/50"
+                                                            />
+                                                        </div>
+
+                                                        <div>
                                                             <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">一句话简介</label>
                                                             <input 
                                                                 type="text"
@@ -813,61 +959,244 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                     </form>
                                 )}
 
-                                {/* --- 4. WECHAT SCAN MODE (QQ STYLE SCAN) --- */}
-                                {mode === 'login' && authMethod === 'qrcode' && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="py-1 flex flex-col items-center justify-center text-center space-y-4"
-                                    >
-                                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                                            <QrCode size={16} className="text-emerald-400" />
-                                            <span>企业微信安全扫码</span>
-                                        </h3>
-                                        <p className="text-[11px] text-white/45 max-w-xs leading-relaxed font-light">
-                                            请使用微信或普通安全相机扫描下方由星河盾生成的动态授权二维码。
-                                        </p>
+                                {/* --- 4. EMAIL MODULE --- */}
+                                {mode === 'login' && authMethod === 'email' && (
+                                    <form onSubmit={(e) => { e.preventDefault(); triggerSubmitWithCaptcha('email'); }} className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
+                                                验证码接收邮箱 (QQ/163/Gmail etc.)
+                                            </label>
+                                            <div className="relative">
+                                                <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+                                                <input 
+                                                    type="email" required
+                                                    value={formData.email}
+                                                    onChange={e => setFormData({...formData, email: e.target.value})}
+                                                    placeholder="yourname@domain.com"
+                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 pr-26 text-xs outline-none focus:border-amber-500/50 focus:bg-white/[0.04] transition-all"
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    disabled={emailTimer > 0 || isLoading}
+                                                    onClick={triggerSendEmail}
+                                                    className="absolute right-2 top-1.5 bottom-1.5 px-3 rounded-lg text-[10px] max-w-[125px] font-bold bg-amber-500 text-black disabled:bg-white/10 disabled:text-white/30 transition-all select-none hover:bg-amber-400 cursor-pointer"
+                                                >
+                                                    {emailTimer > 0 ? `${emailTimer}s` : '获取验证码'}
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                        {/* Dual scanner target image */}
-                                        <div 
-                                            className="w-40 h-40 bg-white p-2.5 rounded-2xl relative shadow-2xl hover:scale-105 transition-all outline outline-emerald-500/40 overflow-hidden group flex items-center justify-center"
+                                        {/* Verification Code */}
+                                        <div>
+                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
+                                                邮箱安全验证码
+                                            </label>
+                                            <div className="relative">
+                                                <Lock size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+                                                <input 
+                                                    type="text" required
+                                                    value={formData.emailCode}
+                                                    onChange={e => setFormData({...formData, emailCode: e.target.value})}
+                                                    placeholder="输入6位数字动态密码验证码"
+                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 text-xs outline-none focus:border-amber-500/50 focus:bg-white/[0.04] transition-all"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                                         >
-                                            {isQrLoading || !qrUuid ? (
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <Loader2 className="animate-spin text-emerald-500" size={24} />
-                                                    <span className="text-[8px] text-emerald-600 font-mono">GENERATING KEY...</span>
+                                            {isLoading ? <Loader2 className="animate-spin text-black" size={14} /> : (
+                                                <>
+                                                    <span>邮箱安全验证登录</span>
+                                                    <ArrowRight size={13} />
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {/* --- 5. WECHAT MINI PROGRAM (MP) SCAN BRIDGE SECTION --- */}
+                                {mode === 'login' && authMethod === 'mp' && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-4 flex flex-col items-center justify-center text-center py-2 text-white"
+                                    >
+                                        <div className="relative p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center w-56 h-56 group overflow-hidden">
+                                            {/* Accent rotating glows */}
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-blue-500/10 opacity-30 animate-spin-slow pointer-events-none" />
+                                            
+                                            {isMpLoading ? (
+                                                <div className="space-y-2">
+                                                    <Loader2 className="animate-spin text-emerald-400 mx-auto" size={32} />
+                                                    <p className="text-[10px] text-white/40">正在建立星河安全网关通道...</p>
+                                                </div>
+                                            ) : mpUuid ? (
+                                                <div className="relative z-10 flex flex-col items-center justify-center">
+                                                     {/* Stylized CSS QR Code / WeChat Applet Code */}
+                                                     <div className="w-36 h-36 border border-dashed border-emerald-500/30 rounded-full p-2 flex items-center justify-center bg-black/60 relative group-hover:scale-105 transition-transform duration-300">
+                                                         {/* Stylized QR patterns */}
+                                                         <div className="absolute inset-2 border-2 border-emerald-500/20 rounded-full animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+                                                         
+                                                         <div className="w-28 h-28 border border-emerald-500/50 rounded-full p-1.5 flex items-center justify-center relative">
+                                                             {/* Concentric circles or radial patterns like WeChat Mini Program Code! */}
+                                                             <div className="w-full h-full rounded-full border-4 border-emerald-500/15 border-t-emerald-500 animate-spin flex items-center justify-center" style={{ animationDuration: '12s' }}>
+                                                                 <div className="w-14 h-14 rounded-full border border-dashed border-emerald-400/40" />
+                                                             </div>
+                                                             {/* Tiny WeChat WeChat code core logo */}
+                                                             <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                                                                 <QrCode size={18} className="text-black font-bold" />
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                     
+                                                     {/* Session countdown timer */}
+                                                     <div className="mt-3 flex items-center gap-1.5 justify-center">
+                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                         <p className="text-[10px] font-mono text-emerald-400 font-bold tracking-wider">SECURE SHIELD LINK ACTIVE</p>
+                                                     </div>
+                                                     <p className="text-[9px] text-white/40 mt-1 uppercase font-mono tracking-widest">{mpUuid}</p>
                                                 </div>
                                             ) : (
-                                                <>
-                                                    <img 
-                                                        src={wechatService.getQrImageUrl(qrUuid)} 
-                                                        className="w-full h-full object-contain filter brightness-95" 
-                                                        alt="WeChat Scan" 
-                                                    />
-                                                    {/* Dynamic scan line laser */}
-                                                    <motion.div 
-                                                        animate={{ top: ['4%', '96%', '4%'] }}
-                                                        transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                                                        className="absolute left-0 right-0 h-0.5 bg-green-500/80 shadow-[0_0_10px_#22c55e]"
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2 text-center pb-3">
-                                                        <p className="text-[9px] text-[#22c55e] font-bold">微信扫码互认</p>
-                                                        <p className="text-[8px] text-white/50 mt-1">请在手机端确认授权</p>
-                                                    </div>
-                                                </>
+                                                <div className="space-y-2">
+                                                    <ShieldAlert size={28} className="text-red-400 mx-auto" />
+                                                    <p className="text-xs text-red-400">会话生成失败</p>
+                                                    <button 
+                                                        onClick={() => setAuthMethod('mp')}
+                                                        className="text-[10px] bg-white/5 border border-white/10 px-3 py-1 rounded text-white text-xs cursor-pointer"
+                                                    >
+                                                        重试连接
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
 
-                                        <p className="text-[10px] text-emerald-400/80 font-mono tracking-wider flex items-center gap-1">
-                                            <RefreshCw size={11} className="animate-spin text-emerald-400" />
-                                            <span>动态终端二维码安全监听中...</span>
-                                        </p>
+                                        <div className="max-w-sm">
+                                            <p className="text-[11px] font-semibold text-white/80">使用微信扫一扫 · 安全免签登录</p>
+                                            <p className="text-[10px] text-white/40 mt-1 leading-relaxed">
+                                                无需关注公众号，无需ICP备案！网页端动态桥接微信小程序，安全确认极速登录授权。
+                                            </p>
+                                        </div>
+
+                                        {/* Simulation console button */}
+                                        {mpUuid && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setMockMpClientOpen(!mockMpClientOpen)}
+                                                className="mt-1 text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                                            >
+                                                <Smartphone size={12} />
+                                                {mockMpClientOpen ? '隐藏模拟微信小程序网关手机' : '打开模拟微信小程序验证授权（极速测试）'}
+                                            </button>
+                                        )}
+
+                                        {/* Mock Floating Cellphone Simulated Applet Interface */}
+                                        <AnimatePresence>
+                                            {mockMpClientOpen && mpUuid && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="w-full max-w-xs bg-[#0b0f19] border border-emerald-500/30 rounded-2xl p-4 text-left space-y-3 relative shadow-[0_20px_50px_rgba(0,0,0,0.8)] mt-3 overflow-hidden text-white"
+                                                >
+                                                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600" />
+                                                    <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                                            <span className="text-[10px] font-mono text-emerald-400 font-bold tracking-tight">星河独立网关 · 微信安全端</span>
+                                                        </div>
+                                                        <span className="text-[9px] font-mono text-white/30">Sandbox 2.1-X</span>
+                                                    </div>
+
+                                                    <div className="space-y-2 text-[11px] text-white/70">
+                                                        <p className="leading-relaxed">
+                                                            模拟微信客户端在手机微信扫码后拉起关联小程序的“一键确认授权”操作场景。
+                                                        </p>
+
+                                                        <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-lg space-y-2.5 text-xs">
+                                                            <div>
+                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
+                                                                    微信唯一标识 ID (OpenID)
+                                                                </label>
+                                                                <input 
+                                                                    type="text"
+                                                                    value={simulatedOpenid}
+                                                                    onChange={e => setSimulatedOpenid(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] font-mono text-emerald-400 outline-none"
+                                                                    placeholder="mp_openid_xyz"
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
+                                                                    微信授权昵称 (Nickname)
+                                                                </label>
+                                                                <input 
+                                                                    type="text"
+                                                                    value={simulatedNickname}
+                                                                    onChange={e => setSimulatedNickname(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] text-white outline-none"
+                                                                    placeholder="微信小助手"
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
+                                                                    绑定/登录主邮箱 (模拟原账户一键桥接)
+                                                                </label>
+                                                                <input 
+                                                                    type="email"
+                                                                    value={simulatedEmail}
+                                                                    onChange={e => setSimulatedEmail(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] text-white outline-none"
+                                                                    placeholder="留空即根据 OpenID 建立新账号"
+                                                                />
+                                                                <p className="text-[8px] text-white/30 mt-0.5 pl-1">若邮箱已存在，此微信扫码登录将直接激活该卡片通道！</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={async () => {
+                                                            try {
+                                                                setIsLoading(true);
+                                                                setError(null);
+                                                                await wechatService.authorizeMp(
+                                                                    mpUuid,
+                                                                    simulatedOpenid,
+                                                                    simulatedNickname,
+                                                                    simulatedEmail || undefined
+                                                                );
+                                                                setMockMpClientOpen(false);
+                                                            } catch (err: any) {
+                                                                setError(err.message || '模拟小程序网关一键授权失效');
+                                                            } finally {
+                                                                setIsLoading(false);
+                                                            }
+                                                        }}
+                                                        disabled={isLoading}
+                                                        className="w-full bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black py-1.5 rounded-xl font-bold text-[11px] flex justify-center items-center gap-1.5 transition-all shadow-md shadow-emerald-500/10 cursor-pointer"
+                                                    >
+                                                        {isLoading ? <Loader2 className="animate-spin text-black" size={13} /> : (
+                                                            <>
+                                                                <CheckCircle2 size={13} />
+                                                                <span>一键确认扫码授权同步登录</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </motion.div>
                                 )}
                             </div>
 
                             {/* ==================== FOOTER AGREEMENTS ==================== */}
-                            {mode === 'login' && authMethod !== 'qrcode' && (
+                            {mode === 'login' && (
                                 <div className="mt-6 pt-4 border-t border-white/5">
                                     {/* Checklist compliance block */}
                                     <motion.div 
@@ -928,12 +1257,53 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                 </div>
                                 <div className="mt-3 flex gap-2 justify-end">
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => {
                                             setFormData(prev => ({ ...prev, smsCode: mockSmsBanner.code }));
                                             setMockSmsBanner(null);
                                         }}
                                         className="bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-bold py-1 px-3 rounded"
+                                    >
+                                        一键自动复制并填充 (Fill Input)
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                        {mockEmailBanner && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -60, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -40 }}
+                                className="fixed top-6 left-1/2 -translate-x-1/2 z-[1100] w-full max-w-md bg-slate-900/95 border border-amber-500/30 text-white rounded-2xl p-4 shadow-2xl backdrop-blur-md"
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="flex gap-2.5">
+                                        <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                                            <Mail size={16} className="text-amber-400" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                                                <span>智能模拟安全邮箱网关</span>
+                                                <span className="text-[8px] bg-amber-500/20 text-amber-500 px-1.5 py-0.2 rounded uppercase">VIRTUAL MAIL</span>
+                                            </h4>
+                                            <p className="text-[11px] text-white/70 leading-relaxed mt-1">{mockEmailBanner.message}</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setMockEmailBanner(null)}
+                                        className="text-white/40 hover:text-white pb-1"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="mt-3 flex gap-2 justify-end">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData(prev => ({ ...prev, emailCode: mockEmailBanner.code }));
+                                            setMockEmailBanner(null);
+                                        }}
+                                        className="bg-amber-500 hover:bg-amber-600 text-black text-[9px] font-black py-1 px-3 rounded transition-all"
                                     >
                                         一键自动复制并填充 (Fill Input)
                                     </button>

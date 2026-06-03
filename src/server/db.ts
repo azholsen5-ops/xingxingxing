@@ -39,4 +39,22 @@ try {
   // column may already exist
 }
 
+try {
+  db.exec("ALTER TABLE users ADD COLUMN email TEXT UNIQUE");
+} catch (e) {
+  // column may already exist
+}
+
+try {
+  db.exec("ALTER TABLE users ADD COLUMN wechat_openid TEXT UNIQUE");
+} catch (e) {
+  // column may already exist
+}
+
+try {
+  db.exec("ALTER TABLE users ADD COLUMN wechat_nickname TEXT");
+} catch (e) {
+  // column may already exist
+}
+
 export default db;

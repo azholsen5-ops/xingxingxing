@@ -29,7 +29,7 @@ async function startServer() {
 
   // --- SQLite Auth Logic ---
   app.post('/api/auth/register', async (req, res) => {
-    const { username, password, name, className, category, intro, memberCode } = req.body;
+    const { username, password, name, className, category, intro, memberCode, email } = req.body;
     
     // Check member registration code from env
     const expectedCode = process.env.MEMBER_REGISTRATION_CODE || 'XINGHE2026';
@@ -40,8 +40,8 @@ async function startServer() {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const id = Date.now().toString();
-      const insert = db.prepare('INSERT INTO users (id, username, password, name, className, category, intro) VALUES (?, ?, ?, ?, ?, ?, ?)');
-      insert.run(id, username, hashedPassword, name, className, category || 'core', intro || '');
+      const insert = db.prepare('INSERT INTO users (id, username, password, name, className, category, intro, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+      insert.run(id, username, hashedPassword, name, className, category || 'core', intro || '', email ? email.toLowerCase() : null);
       
       // Initialize presence
       db.prepare('INSERT INTO presence (userId, status) VALUES (?, ?)').run(id, 'offline');
@@ -49,7 +49,7 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(400).json({ success: false, error: 'Username already exists or invalid data' });
+      res.status(400).json({ success: false, error: 'Username already exists or email already registered' });
     }
   });
 
@@ -80,9 +80,12 @@ async function startServer() {
           username: user.username, 
           name: user.name, 
           className: user.className, 
-          avatar: user.avatar,
+          avatar: user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.email || user.username)}`,
           category: user.category,
-          intro: user.intro
+          intro: user.intro,
+          email: user.email,
+          wechat_openid: user.wechat_openid,
+          wechat_nickname: user.wechat_nickname
         } 
       });
     } catch (error) {
@@ -103,7 +106,7 @@ async function startServer() {
       update.run(name, className, category, intro, avatar, decoded.id);
 
       // Get updated user
-      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro FROM users WHERE id = ?').get(decoded.id) as any;
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
       res.json({ success: true, user });
     } catch (error) {
       console.error(error);
@@ -152,6 +155,11 @@ async function startServer() {
     // WeChat QR websocket subscription
     socket.on('qr:subscribe', (uuid) => {
       socket.join(`qr_room_${uuid}`);
+    });
+
+    // WeChat Mini Program websocket subscription
+    socket.on('mp:subscribe', (uuid) => {
+      socket.join(`mp_room_${uuid}`);
     });
 
     socket.on('auth:init', (userId) => {
@@ -248,6 +256,406 @@ async function startServer() {
     } catch (error) {
       console.error('Failed to send email:', error);
       res.status(500).json({ success: false, error: 'Failed to send email notification' });
+    }
+  });
+
+  // --- Email Authentication Logic ---
+  const emailCodes = new Map<string, { code: string; expiresAt: number }>();
+
+  app.post('/api/auth/email-send', async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email is required' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, error: 'Invalid email address' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // valid for 5 mins
+    emailCodes.set(email.toLowerCase(), { code, expiresAt });
+
+    const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+
+    if (smtpConfigured) {
+      try {
+        await transporter.sendMail({
+          from: `"星河科创网关安全盾" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject: '[星河科创] 登录授权动态验证码',
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; background-color: #0b0f19; color: #ffffff; border-radius: 12px; max-width: 500px; border: 1px solid #1e293b;">
+              <h2 style="color: #ffb000; margin-bottom: 20px; text-align: center;">星河科创网关 · 安全登录盾</h2>
+              <p style="font-size: 14px; line-height: 1.6;">您正在尝试登录星河科创系统。请在登录页面输入以下动态验证码：</p>
+              <div style="background-color: rgba(255,176,0,0.1); border: 1px dashed #ffb000; padding: 15px; border-radius: 8px; text-align: center; margin: 25px 0;">
+                <span style="font-size: 28px; font-weight: bold; color: #ffb000; letter-spacing: 4px;">${code}</span>
+              </div>
+              <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 30px;">本验证码5分钟内有效。若非本人操作，请忽略此邮件。</p>
+            </div>
+          `
+        });
+        return res.json({ success: true, message: 'Verification code sent to email.' });
+      } catch (err) {
+        console.error('Failed to send verification email:', err);
+      }
+    }
+
+    console.log(`=============================`);
+    console.log(`[EMAIL SEND SIMULATION]`);
+    console.log(`Target Email: ${email}`);
+    console.log(`Verification Code: ${code}`);
+    console.log(`=============================`);
+
+    return res.json({ 
+      success: true, 
+      simulated: true, 
+      code, 
+      message: `[模拟验证网关] 验证码已生成: ${code}。正式使用请在环境配置中填入 SMTP_USER 与 SMTP_PASS 变量。` 
+    });
+  });
+
+  app.post('/api/auth/email-login', async (req, res) => {
+    const { email, code, name, className } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ success: false, error: 'Email and verification code are required' });
+    }
+
+    const savedRecord = emailCodes.get(email.toLowerCase());
+    if (!savedRecord || savedRecord.code !== code) {
+      return res.status(400).json({ success: false, error: 'Invalid verification code' });
+    }
+
+    if (Date.now() > savedRecord.expiresAt) {
+      emailCodes.delete(email.toLowerCase());
+      return res.status(400).json({ success: false, error: 'Verification code expired' });
+    }
+
+    emailCodes.delete(email.toLowerCase());
+
+    try {
+      let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase()) as any;
+      
+      if (!user) {
+        const id = Date.now().toString();
+        const username = 'email_' + id.slice(-6);
+        const randomPassword = Math.random().toString(36).substring(2, 10);
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        const displayName = name || `星河居士_${id.slice(-4)}`;
+        const displayClass = className || '星河访客成员';
+        
+        const insert = db.prepare('INSERT INTO users (id, username, password, name, className, category, intro, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        insert.run(id, username, hashedPassword, displayName, displayClass, 'student', '通过统一邮箱安全盾登录', email.toLowerCase());
+        
+        db.prepare('INSERT INTO presence (userId, status) VALUES (?, ?)').run(id, 'offline');
+        
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(id) as any;
+      }
+
+      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+      res.json({ 
+        success: true, 
+        token, 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          name: user.name, 
+          className: user.className, 
+          avatar: user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.email || user.username)}`,
+          category: user.category,
+          intro: user.intro,
+          email: user.email
+        } 
+      });
+    } catch (error) {
+      console.error('Email authentication user login/registration failure:', error);
+      res.status(500).json({ success: false, error: 'Email authentication failed' });
+    }
+  });
+
+  // --- WeChat Mini Program (MP) Bridge Login & Verification ---
+  const mpSessions = new Map<string, { status: string; user?: any }>();
+
+  app.get('/api/auth/mp-init', (req, res) => {
+    const uuid = 'mp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    mpSessions.set(uuid, { status: 'pending' });
+    
+    res.json({
+      success: true,
+      uuid,
+      appletPath: `pages/auth/index?scene=${uuid}`,
+      simulatedCode: uuid,
+      message: '星河科创小程序统一网关安全盾通道已建立。扫描小程序动态码登录。'
+    });
+  });
+
+  app.get('/api/auth/mp-status/:uuid', (req, res) => {
+    const { uuid } = req.params;
+    const session = mpSessions.get(uuid);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session expired or not found' });
+    }
+    res.json({ success: true, status: session.status, user: session.user });
+  });
+
+  // Mimics what WeChat Mini Program webhook or API triggers when the user authorizes on WeChat Mini Program
+  app.post('/api/auth/mp-authorize', async (req, res) => {
+    const { uuid, openid, nickname, avatar, email } = req.body;
+    if (!uuid) {
+      return res.status(400).json({ success: false, error: 'Session UUID is required' });
+    }
+    const session = mpSessions.get(uuid);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session expired or not found' });
+    }
+
+    try {
+      const targetOpenid = openid || 'mp_openid_' + Math.random().toString(36).substring(2, 8);
+      const targetNickname = nickname || '星河小程序成员_' + Math.random().toString(36).substring(2, 6);
+      const targetAvatar = avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(targetOpenid)}`;
+
+      // Try to find user by wechat_openid
+      let user = db.prepare('SELECT * FROM users WHERE wechat_openid = ?').get(targetOpenid) as any;
+
+      if (!user && email) {
+        // If they provided an email, see if a user has this email and isn't bound to wechat yet
+        const emailUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase()) as any;
+        if (emailUser) {
+          // Auto-link email user to this wechat openid!
+          db.prepare('UPDATE users SET wechat_openid = ?, wechat_nickname = ? WHERE id = ?')
+            .run(targetOpenid, targetNickname, emailUser.id);
+          user = db.prepare('SELECT * FROM users WHERE id = ?').get(emailUser.id) as any;
+        }
+      }
+
+      if (!user) {
+        // Create new account
+        const id = Date.now().toString();
+        const username = 'mp_user_' + id.slice(-6);
+        const randomPassword = Math.random().toString(36).substring(2, 10);
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        const displayClass = '星河小程序成员';
+
+        const insert = db.prepare('INSERT INTO users (id, username, password, name, className, category, intro, email, wechat_openid, wechat_nickname, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        insert.run(
+          id, 
+          username, 
+          hashedPassword, 
+          targetNickname, 
+          displayClass, 
+          'student', 
+          '通过微信小程序安全桥接免密安全登录', 
+          email ? email.toLowerCase() : null, 
+          targetOpenid, 
+          targetNickname,
+          targetAvatar
+        );
+
+        db.prepare('INSERT INTO presence (userId, status) VALUES (?, ?)').run(id, 'offline');
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(id) as any;
+      }
+
+      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+      const userPayload = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        className: user.className,
+        avatar: user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.wechat_openid || user.username)}`,
+        category: user.category,
+        intro: user.intro,
+        email: user.email,
+        wechat_openid: user.wechat_openid,
+        wechat_nickname: user.wechat_nickname
+      };
+
+      session.status = 'confirmed';
+      session.user = { token, user: userPayload };
+      mpSessions.set(uuid, session);
+
+      // Emit web socket
+      io.to(`mp_room_${uuid}`).emit('mp:authenticated', { token, user: userPayload });
+
+      res.json({ success: true, message: 'WeChat Mini Program QR authorization confirmed successfully.' });
+    } catch (err) {
+      console.error('WeChat mini program bridge auth error:', err);
+      res.status(500).json({ success: false, error: 'Authorization error' });
+    }
+  });
+
+
+  // --- Unified Account Security Center & Bindings ---
+  app.post('/api/auth/bind-email-send', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ success: false, error: 'Email is required' });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ success: false, error: 'Invalid email address' });
+      }
+
+      // Check if email bound to another user
+      const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), decoded.id);
+      if (existing) {
+        return res.status(400).json({ success: false, error: '该邮箱已被其他账号绑定，请更换其他邮箱' });
+      }
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 5 * 60 * 1000;
+      emailCodes.set(`bind_${email.toLowerCase()}`, { code, expiresAt });
+
+      const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+      if (smtpConfigured) {
+        try {
+          await transporter.sendMail({
+            from: `"星河科创网关" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: '[星河科创] 账号安全中心 · 邮箱绑定动态验证码',
+            html: `
+              <div style="font-family: sans-serif; padding: 20px; background-color: #0b0f19; color: #ffffff; border-radius: 12px; max-width: 500px; border: 1px solid #1e293b;">
+                <h2 style="color: #3b82f6; margin-bottom: 20px; text-align: center;">星河科创安全中心 · 邮箱绑定</h2>
+                <p style="font-size: 14px; line-height: 1.6;">您好！您正在对您的星河系统身份卡片进行邮箱安全绑定。请输入以下动态验证码：</p>
+                <div style="background-color: rgba(59,130,246,0.1); border: 1px dashed #3b82f6; padding: 15px; border-radius: 8px; text-align: center; margin: 25px 0;">
+                  <span style="font-size: 28px; font-weight: bold; color: #3b82f6; letter-spacing: 4px;">${code}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 30px;">验证码5分钟内有效。如非本人操作，请确认登录状态安全。</p>
+              </div>
+            `
+          });
+          return res.json({ success: true, message: 'Verification code sent.' });
+        } catch (mailErr) {
+          console.error('Mail error in bind:', mailErr);
+        }
+      }
+
+      console.log(`=============================`);
+      console.log(`[EMAIL BIND CODE SIMULATION]`);
+      console.log(`Email to bind: ${email}`);
+      console.log(`Verification Code: ${code}`);
+      console.log(`=============================`);
+
+      return res.json({
+        success: true,
+        simulated: true,
+        code,
+        message: `[安全盾模拟通道] 绑定验证码已生成: ${code}。可在控制台查看细节。`
+      });
+    } catch (err) {
+      res.status(401).json({ success: false, error: 'Unauthorized profile access' });
+    }
+  });
+
+  app.post('/api/auth/bind-email-confirm', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const { email, code } = req.body;
+      if (!email || !code) {
+        return res.status(400).json({ success: false, error: 'Email and verification code are required' });
+      }
+
+      const record = emailCodes.get(`bind_${email.toLowerCase()}`);
+      if (!record || record.code !== code) {
+        return res.status(400).json({ success: false, error: '验证码不正确或不存在' });
+      }
+
+      if (Date.now() > record.expiresAt) {
+        emailCodes.delete(`bind_${email.toLowerCase()}`);
+        return res.status(400).json({ success: false, error: '验证码已过期，请重新发送' });
+      }
+
+      emailCodes.delete(`bind_${email.toLowerCase()}`);
+
+      // Confirm not used by other user
+      const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), decoded.id);
+      if (existing) {
+        return res.status(400).json({ success: false, error: '该邮箱已被其他账号绑定，请更换其他邮箱' });
+      }
+
+      db.prepare('UPDATE users SET email = ? WHERE id = ?').run(email.toLowerCase(), decoded.id);
+
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
+      res.json({ success: true, user });
+    } catch (err) {
+      res.status(401).json({ success: false, error: 'Unauthorized profile access or failed update' });
+    }
+  });
+
+  app.post('/api/auth/bind-mp-confirm', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const { openid, nickname } = req.body;
+      if (!openid) {
+        return res.status(400).json({ success: false, error: 'WeChat openid is required' });
+      }
+
+      // Check if openid already bound to someone else
+      const existing = db.prepare('SELECT id FROM users WHERE wechat_openid = ? AND id != ?').get(openid, decoded.id);
+      if (existing) {
+        return res.status(400).json({ success: false, error: '该微信小程序账号已绑定到其他账户，请先将其解绑' });
+      }
+
+      db.prepare('UPDATE users SET wechat_openid = ?, wechat_nickname = ? WHERE id = ?')
+        .run(openid, nickname || '星河小程序成员', decoded.id);
+
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
+      res.json({ success: true, user });
+    } catch (err) {
+      res.status(401).json({ success: false, error: 'Failed to bind WeChat Mini Program' });
+    }
+  });
+
+  app.post('/api/auth/unbind-email', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+      db.prepare('UPDATE users SET email = NULL WHERE id = ?').run(decoded.id);
+
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
+      res.json({ success: true, user });
+    } catch (err) {
+      res.status(500).json({ success: false, error: 'Unbinding failed' });
+    }
+  });
+
+  app.post('/api/auth/unbind-mp', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+      db.prepare('UPDATE users SET wechat_openid = NULL, wechat_nickname = NULL WHERE id = ?').run(decoded.id);
+
+      const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
+      res.json({ success: true, user });
+    } catch (err) {
+      res.status(500).json({ success: false, error: 'Unbinding failed' });
     }
   });
 

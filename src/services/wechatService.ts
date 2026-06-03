@@ -127,6 +127,84 @@ class WechatService {
             }
         };
     }
+
+    /**
+     * Initializes a new WeChat Mini Program authorization session.
+     */
+    async initMpSession(): Promise<{ uuid: string; message: string; appletPath: string }> {
+        const res = await fetch('/api/auth/mp-init');
+        if (!res.ok) {
+            throw new Error('WeChat MP session initialization failed.');
+        }
+        return await res.json();
+    }
+
+    /**
+     * Subscribes to real-time Mini Program session synchronization.
+     */
+    subscribeToMpSync(
+        uuid: string,
+        onAuthenticated: (payload: { token: string; user: User }) => void,
+        onError?: (error: any) => void
+    ): () => void {
+        let active = true;
+        let pollInterval: NodeJS.Timeout | null = null;
+        let socketInstance: any = null;
+
+        try {
+            socketInstance = socketService.getSocket();
+            if (socketInstance) {
+                socketInstance.emit('mp:subscribe', uuid);
+                socketInstance.on('mp:authenticated', (payload: { token: string; user: User }) => {
+                    if (active && payload.user) {
+                        onAuthenticated(payload);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('WebSocket subscription failed for MP. Resorting strictly to HTTP status polling.', e);
+        }
+
+        pollInterval = setInterval(async () => {
+            if (!active) return;
+            try {
+                const res = await fetch(`/api/auth/mp-status/${encodeURIComponent(uuid)}`);
+                if (res.ok) {
+                    const check = await res.json();
+                    if (check.success && check.status === 'confirmed' && check.user && active) {
+                        onAuthenticated(check.user);
+                    }
+                }
+            } catch (err) {
+                console.error('WeChat MP status verification polling failed:', err);
+                if (onError) onError(err);
+            }
+        }, 1500);
+
+        return () => {
+            active = false;
+            if (pollInterval) clearInterval(pollInterval);
+            if (socketInstance) {
+                socketInstance.off('mp:authenticated');
+            }
+        };
+    }
+
+    /**
+     * Simulates client scans / authorizations from Mini Program.
+     */
+    async authorizeMp(uuid: string, openid: string, nickname: string, email?: string): Promise<boolean> {
+        const res = await fetch('/api/auth/mp-authorize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uuid, openid, nickname, email })
+        });
+        if (!res.ok) {
+            throw new Error('Simulation authorization failed.');
+        }
+        const data = await res.json();
+        return !!data.success;
+    }
 }
 
 export const wechatService = new WechatService();

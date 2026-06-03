@@ -6,6 +6,9 @@ export interface User {
     avatar?: string;
     category?: 'core' | 'service';
     intro?: string;
+    email?: string | null;
+    wechat_openid?: string | null;
+    wechat_nickname?: string | null;
 }
 
 class AuthService {
@@ -17,8 +20,17 @@ class AuthService {
         const storedUser = localStorage.getItem('xh_user');
         if (storedToken && storedUser) {
             this.token = storedToken;
-            this.currentUser = JSON.parse(storedUser);
+            try {
+                this.currentUser = JSON.parse(storedUser);
+            } catch (e) {
+                this.currentUser = null;
+            }
         }
+    }
+
+    updateCurrentUserObject(user: User) {
+        this.currentUser = user;
+        localStorage.setItem('xh_user', JSON.stringify(user));
     }
 
     async updateProfile(data: Partial<User>) {
