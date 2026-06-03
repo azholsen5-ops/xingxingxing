@@ -6,6 +6,8 @@ import {
     Smartphone, Phone, FileText, ShieldAlert
 } from 'lucide-react';
 import { authService, User as AuthUser } from '../services/authService';
+import { socketService } from '../services/socketService';
+import { wechatService } from '../services/wechatService';
 
 interface MemberAuthModalProps {
     isOpen: boolean;
@@ -60,6 +62,48 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     // SMS states
     const [smsTimer, setSmsTimer] = useState(0);
     const [mockSmsBanner, setMockSmsBanner] = useState<{ code: string; message: string } | null>(null);
+
+    // WeChat QR Code states & real-time connection logic
+    const [qrUuid, setQrUuid] = useState<string | null>(null);
+    const [isQrLoading, setIsQrLoading] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen || authMethod !== 'qrcode') return;
+
+        let active = true;
+        let cleanupSync: (() => void) | null = null;
+
+        const initQrSession = async () => {
+            setIsQrLoading(true);
+            try {
+                const uuid = await wechatService.initQrSession();
+                if (active) {
+                    setQrUuid(uuid);
+                    setIsQrLoading(false);
+
+                    // Subscribe via unified service!
+                    cleanupSync = wechatService.subscribeToSessionSync(uuid, (user) => {
+                        if (active) {
+                            saveToHistoryList(user);
+                            triggerSuccessFlow(user);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to init QR session', err);
+                if (active) setIsQrLoading(false);
+            }
+        };
+
+        initQrSession();
+
+        return () => {
+            active = false;
+            if (cleanupSync) {
+                cleanupSync();
+            }
+        };
+    }, [isOpen, authMethod]);
 
     // Load stored accounts and pre-populate defaults for live play!
     useEffect(() => {
@@ -781,37 +825,37 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                             <span>企业微信安全扫码</span>
                                         </h3>
                                         <p className="text-[11px] text-white/45 max-w-xs leading-relaxed font-light">
-                                            请使用企业微信扫一扫扫描下方由星河盾生成的一次性动态安全令牌
+                                            请使用微信或普通安全相机扫描下方由星河盾生成的动态授权二维码。
                                         </p>
 
                                         {/* Dual scanner target image */}
                                         <div 
-                                            onClick={() => triggerSuccessFlow({
-                                                id: 'wechat_scan',
-                                                username: 'wechat_member',
-                                                name: '扫码达人 (微信接入)',
-                                                className: '安全23-2班',
-                                                category: 'core',
-                                                avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=scan_auth',
-                                                intro: '通过统一终端扫码互认鉴权成功'
-                                            })}
-                                            className="w-40 h-40 bg-white p-2.5 rounded-2xl relative shadow-2xl hover:scale-105 transition-all outline outline-emerald-500/40 overflow-hidden group cursor-pointer"
+                                            className="w-40 h-40 bg-white p-2.5 rounded-2xl relative shadow-2xl hover:scale-105 transition-all outline outline-emerald-500/40 overflow-hidden group flex items-center justify-center"
                                         >
-                                            <img 
-                                                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=StarRiverSecureScan" 
-                                                className="w-full h-full object-contain filter brightness-95" 
-                                                alt="QR scanner" 
-                                            />
-                                            {/* Dynamic scan line laser */}
-                                            <motion.div 
-                                                animate={{ top: ['4%', '96%', '4%'] }}
-                                                transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                                                className="absolute left-0 right-0 h-0.5 bg-green-500/80 shadow-[0_0_10px_#22c55e]"
-                                            />
-                                            <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2">
-                                                <p className="text-[9px] text-[#22c55e] font-bold">模拟环境手机扫码</p>
-                                                <p className="text-[8px] text-white/50 mt-1">点击直接登录</p>
-                                            </div>
+                                            {isQrLoading || !qrUuid ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-emerald-500" size={24} />
+                                                    <span className="text-[8px] text-emerald-600 font-mono">GENERATING KEY...</span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <img 
+                                                        src={wechatService.getQrImageUrl(qrUuid)} 
+                                                        className="w-full h-full object-contain filter brightness-95" 
+                                                        alt="WeChat Scan" 
+                                                    />
+                                                    {/* Dynamic scan line laser */}
+                                                    <motion.div 
+                                                        animate={{ top: ['4%', '96%', '4%'] }}
+                                                        transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+                                                        className="absolute left-0 right-0 h-0.5 bg-green-500/80 shadow-[0_0_10px_#22c55e]"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2 text-center pb-3">
+                                                        <p className="text-[9px] text-[#22c55e] font-bold">微信扫码互认</p>
+                                                        <p className="text-[8px] text-white/50 mt-1">请在手机端确认授权</p>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
 
                                         <p className="text-[10px] text-emerald-400/80 font-mono tracking-wider flex items-center gap-1">

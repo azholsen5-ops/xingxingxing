@@ -19,6 +19,13 @@ class SocketService {
         });
     }
 
+    getSocket(): Socket {
+        if (!this.socket) {
+            this.socket = io(window.location.origin);
+        }
+        return this.socket;
+    }
+
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();

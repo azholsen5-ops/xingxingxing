@@ -36,6 +36,7 @@ interface ProfileCardProps {
   showUserInfo?: boolean;
   onContactClick?: () => void;
   variant?: 'dark' | 'light';
+  isOnline?: boolean;
 }
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
@@ -58,7 +59,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   contactText = 'Contact',
   showUserInfo = true,
   onContactClick,
-  variant = 'dark'
+  variant = 'dark',
+  isOnline = false
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -342,7 +344,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           <div className="pc-inside">
             <div className="pc-content pc-avatar-content">
               <img
-                className="avatar"
+                className={`avatar ${isOnline ? 'border-2 border-emerald-500/45 shadow-[0_0_20px_rgba(16,185,129,0.35)]' : ''}`}
                 src={avatarUrl}
                 alt={`${name || 'User'} avatar`}
                 loading="lazy"
@@ -354,7 +356,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               {showUserInfo && (
                 <div className="pc-user-info">
                   <div className="pc-user-details">
-                    <div className="pc-mini-avatar">
+                    <div className={`pc-mini-avatar ${isOnline ? 'ring-2 ring-emerald-400 border-transparent shadow-[0_0_10px_rgba(16,185,129,0.5)]' : ''}`}>
                       <img
                         src={miniAvatarUrl || avatarUrl}
                         alt={`${name || 'User'} mini avatar`}
@@ -368,7 +370,19 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                     </div>
                     <div className="pc-user-text">
                       <div className="pc-handle">@{handle}</div>
-                      <div className="pc-status">{status}</div>
+                      <div className="pc-status flex items-center gap-1.5 justify-start">
+                        {isOnline ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)] shrink-0" />
+                            <span style={{ color: '#10b981', fontWeight: 600 }}>{status}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                            <span>{status}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button

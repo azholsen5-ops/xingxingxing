@@ -111,10 +111,49 @@ async function startServer() {
     }
   });
 
+  // --- WeChat QR Authorization Sessions ---
+  const qrSessions = new Map<string, { status: string; user?: any }>();
+
+  app.get('/api/auth/qr-init', (req, res) => {
+    const uuid = 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    qrSessions.set(uuid, { status: 'pending' });
+    res.json({ uuid });
+  });
+
+  app.get('/api/auth/qr-status/:uuid', (req, res) => {
+    const { uuid } = req.params;
+    const session = qrSessions.get(uuid);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session expired' });
+    }
+    res.json({ success: true, status: session.status, user: session.user });
+  });
+
+  app.post('/api/auth/qr-confirm', (req, res) => {
+    const { uuid, user } = req.body;
+    const session = qrSessions.get(uuid);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session expired or invalid' });
+    }
+    session.status = 'confirmed';
+    session.user = user;
+    qrSessions.set(uuid, session);
+
+    // Blast websocket event to instantaneous active subscribers
+    io.to(`qr_room_${uuid}`).emit('qr:authenticated', { user });
+
+    res.json({ success: true });
+  });
+
   // --- Socket.io Presence Logic ---
   const activeUsers = new Map<string, string>(); // socketId -> userId
 
   io.on('connection', (socket) => {
+    // WeChat QR websocket subscription
+    socket.on('qr:subscribe', (uuid) => {
+      socket.join(`qr_room_${uuid}`);
+    });
+
     socket.on('auth:init', (userId) => {
       if (!userId) return;
       activeUsers.set(socket.id, userId);

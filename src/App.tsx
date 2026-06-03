@@ -23,6 +23,7 @@ import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 import MemberAuthModal from './components/MemberAuthModal';
 import UserProfileEditModal from './components/UserProfileEditModal';
+import { WechatAuthLanding } from './components/WechatAuthLanding';
 import { authService, User as AuthUser } from './services/authService';
 import { socketService } from './services/socketService';
 
@@ -262,6 +263,11 @@ const memberData: Record<string, Member> = {
 };
 
 function App() {
+    // WeChat OAuth landing route intercept
+    if (window.location.pathname === '/wechat-auth' || window.location.search.includes('uuid=')) {
+        return <WechatAuthLanding />;
+    }
+
     const [lang, setLang] = useState<'zh' | 'en'>('zh');
     const [isLoading, setIsLoading] = useState(true);
     const [loadingProgress, setLoadingProgress] = useState(0);
@@ -2078,7 +2084,8 @@ function App() {
                                 name={memberData[id].name}
                                 title={memberData[id].className}
                                 handle={id}
-                                status={t[lang].online_status}
+                                isOnline={onlineUserIds.includes(id)}
+                                status={onlineUserIds.includes(id) ? t[lang].online_status : (lang === 'zh' ? '离线' : 'Offline')}
                                 contactText={t[lang].contact_btn}
                                 avatarUrl={memberData[id].avatar}
                                 showUserInfo
@@ -2684,6 +2691,7 @@ function App() {
                                             title={member.className}
                                             handle={member.id}
                                             avatarUrl={member.avatar}
+                                            isOnline={onlineUserIds.includes(member.id)}
                                             status={onlineUserIds.includes(member.id) ? t[lang].online_status : (lang === 'zh' ? '离线' : 'Offline')}
                                             contactText={t[lang].contact_btn}
                                             variant="light"
@@ -2711,6 +2719,7 @@ function App() {
                                             title={member.className}
                                             handle={member.id}
                                             avatarUrl={member.avatar}
+                                            isOnline={onlineUserIds.includes(member.id)}
                                             status={onlineUserIds.includes(member.id) ? t[lang].online_status : (lang === 'zh' ? '离线' : 'Offline')}
                                             contactText={t[lang].contact_btn}
                                             variant="light"
