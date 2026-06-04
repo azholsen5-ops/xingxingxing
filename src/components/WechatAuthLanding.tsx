@@ -17,7 +17,7 @@ export const WechatAuthLanding: React.FC = () => {
         name: '陆鹏',
         className: '安全23-2班',
         category: 'core',
-        avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=lupeng',
+        avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=lupeng&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584',
         intro: '星河科创核心组长 · 移动端终端授权'
     });
 
@@ -32,7 +32,7 @@ export const WechatAuthLanding: React.FC = () => {
             name: '陆鹏',
             className: '安全23-2班',
             category: 'core',
-            avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=lupeng',
+            avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=lupeng&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584',
             intro: '星河科创核心组长 · 移动端终端授权'
         },
         {
@@ -41,14 +41,14 @@ export const WechatAuthLanding: React.FC = () => {
             name: '王傲星',
             className: '信安24-1班',
             category: 'core',
-            avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=wangax',
+            avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=wangax&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584',
             intro: '星河网络防御中心讲师 · 移动端终端授权'
         }
     ];
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('uuid');
+        const code = params.get('uuid') || params.get('scene');
         if (code) {
             setUuid(code);
         } else {
@@ -77,7 +77,7 @@ export const WechatAuthLanding: React.FC = () => {
                 name: customName + ' (扫码访客)',
                 className: '微信扫码接入',
                 category: 'student',
-                avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(customName)}`,
+                avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(customName)}&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584`,
                 intro: '通过统一终端微信安全扫码进入系统'
             };
         }

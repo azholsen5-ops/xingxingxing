@@ -116,15 +116,15 @@ const memberData: Record<string, Member> = {
         id: 'liqin',
         name: "李溱", 
         className: "安全23-2", 
-        avatar: "https://picsum.photos/150/150?member1", 
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=liqin&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "研究方向为矿山安全监测技术，具备扎实数据处理能力。", 
         awards:["2025年挑战杯省级特等奖", "安全专业一等奖学金"] 
     },
     niedongyang: { 
         id: 'niedongyang',
-        name: "聂冬样", 
+        name: "聂冬祥", 
         className: "安全24-1", 
-        avatar: "https://s41.ax1x.com/2026/03/12/peA9kl9.jpg", 
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=niedongyang&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "主攻机器人视觉算法，负责视觉方案设计与落地。", 
         awards:["2024年辽宁省科创一等奖", "机器人高级职业证书"] 
     },
@@ -132,7 +132,7 @@ const memberData: Record<string, Member> = {
         id: 'heshiyu',
         name: "贺诗雨", 
         className: "安全23-5", 
-        avatar: "https://picsum.photos/150/150?member3", 
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=heshiyu&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "主攻安全风险管理与应急技术，参与省级科研项目。", 
         awards:["2024年安全创新一等奖", "优秀学生干部"] 
     },
@@ -140,7 +140,7 @@ const memberData: Record<string, Member> = {
         id: 'lupeng',
         name: "路鹏",
         className: "安全23-2",
-        avatar: img2317,
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=lupeng&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "擅长安全系统工程与风险评估。",
         awards: ["2024年校级优秀学生"]
     },
@@ -148,7 +148,7 @@ const memberData: Record<string, Member> = {
         id: 'lihua',
         name: "李华",
         className: "机器人24-1",
-        avatar: "https://picsum.photos/150/150?member5",
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=lihua&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "专注于自动化控制与机器人结构设计。",
         awards: ["2024年机器人大赛二等奖"]
     },
@@ -237,7 +237,7 @@ const memberData: Record<string, Member> = {
         id: 'zhangxiaoming',
         name: "张晓明",
         className: "宣传部部长",
-        avatar: "https://picsum.photos/150/150?service1",
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=zhangxiaoming&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会品牌宣传与活动推广，擅长视觉设计与新媒体运营。",
         awards: ["优秀学生干部", "校园媒体大赛二等奖"],
         category: 'service'
@@ -246,7 +246,7 @@ const memberData: Record<string, Member> = {
         id: 'wangfang',
         name: "王芳",
         className: "秘书处秘书长",
-        avatar: "https://picsum.photos/150/150?service2",
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=wangfang&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会日常行政事务与财务管理，工作细致严谨。",
         awards: ["社会实践先进个人", "校级奖学金"],
         category: 'service'
@@ -255,7 +255,7 @@ const memberData: Record<string, Member> = {
         id: 'liwei',
         name: "李伟",
         className: "组织部部长",
-        avatar: "https://picsum.photos/150/150?service3",
+        avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=liwei&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会成员考核与团队建设，具有极强的组织协调能力。",
         awards: ["优秀志愿者", "团队协作奖"],
         category: 'service'
@@ -1416,21 +1416,41 @@ function App() {
             tl.set(".style-transition-text-left", { xPercent: -300, yPercent: -50 });
             tl.set(".style-transition-text-right", { xPercent: 300, yPercent: -50 });
 
-            // 1. Initial state: Image is full screen, text is outside
-            // 2. Animation: Image shrinks to card, text flies in
-            tl.to(".style-transition-image-wrapper", {
-                width: "400px",
-                height: "550px",
-                borderRadius: "24px",
-                rotation: -5,
-                boxShadow: "0 40px 100px rgba(0,0,0,0.5)",
-                ease: "none"
-            }, 0);
+            const isMobile = window.innerWidth < 768;
+            const targetWidth = isMobile ? "290px" : "400px";
+            const targetHeight = isMobile ? "420px" : "550px";
 
-            tl.to(".style-transition-image", {
-                scale: 1,
-                ease: "none"
-            }, 0);
+            // 1. Initial state: Image is full screen (100vw, 100vh), text is outside
+            // 2. Animation: Image shrinks to card, text flies in
+            tl.fromTo(".style-transition-image-wrapper", 
+                {
+                    width: "100vw",
+                    height: "100vh",
+                    borderRadius: "0px",
+                    rotation: 0,
+                    boxShadow: "0px 0px 0px rgba(0,0,0,0)"
+                },
+                {
+                    width: targetWidth,
+                    height: targetHeight,
+                    borderRadius: "24px",
+                    rotation: -5,
+                    boxShadow: "0 40px 100px rgba(0,0,0,0.5)",
+                    ease: "none"
+                }, 
+                0
+            );
+
+            tl.fromTo(".style-transition-image", 
+                {
+                    scale: 1.35
+                },
+                {
+                    scale: 1,
+                    ease: "none"
+                }, 
+                0
+            );
 
             tl.to(".style-transition-text-left", {
                 xPercent: -150,

@@ -13,6 +13,136 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const JWT_SECRET = process.env.JWT_SECRET || 'xinghe_default_secret_key_2026';
 
+function extractSessionUuid(input: string): string {
+  if (!input) return '';
+  let finalUuid = input;
+
+  // 1. Double-decode to handle any URL-encoding issues immediately
+  try {
+    let decoded = input;
+    let prev = '';
+    while (decoded !== prev) {
+      prev = decoded;
+      decoded = decodeURIComponent(decoded);
+    }
+    finalUuid = decoded;
+  } catch (e) {
+    // Fall back to direct string on error
+  }
+
+  // 2. Extract UUID from standard URL structure if applicable
+  if (finalUuid.includes('http://') || finalUuid.includes('https://') || finalUuid.includes('?')) {
+    try {
+      let urlObj: URL;
+      if (finalUuid.startsWith('http://') || finalUuid.startsWith('https://')) {
+        urlObj = new URL(finalUuid);
+      } else {
+        urlObj = new URL(finalUuid, 'https://dummy.domain');
+      }
+      finalUuid = urlObj.searchParams.get('uuid') || urlObj.searchParams.get('scene') || finalUuid;
+    } catch (e) {
+      const match = finalUuid.match(/[?&](uuid|scene)=([^&]+)/);
+      if (match) {
+        finalUuid = match[2];
+      }
+    }
+  }
+  
+  if (finalUuid.includes('uuid=') || finalUuid.includes('uuid%3D')) {
+    try {
+      const decodedSub = decodeURIComponent(finalUuid);
+      const matchSub = decodedSub.match(/[?&]?uuid=([^&]+)/) || decodedSub.match(/^uuid=([^&]+)/);
+      if (matchSub) {
+        finalUuid = matchSub[1];
+      }
+    } catch (e) {}
+  }
+
+  if (finalUuid.startsWith('uuid=')) {
+    finalUuid = finalUuid.substring(5);
+  } else if (finalUuid.startsWith('scene=')) {
+    finalUuid = finalUuid.substring(6);
+  }
+
+  finalUuid = finalUuid.split('#')[0].split('?')[0];
+  return finalUuid.trim();
+}
+
+class DbSessionsMap {
+  constructor(private prefix: string) {
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS scan_sessions (
+          uuid TEXT PRIMARY KEY,
+          status TEXT NOT NULL,
+          user_data TEXT,
+          expiresAt INTEGER NOT NULL
+        );
+      `);
+    } catch (e) {
+      console.error('Error creating scan_sessions table:', e);
+    }
+  }
+
+  get(uuid: string): { status: string; user?: any } | undefined {
+    try {
+      if (Math.random() < 0.05) {
+        db.prepare('DELETE FROM scan_sessions WHERE expiresAt < ?').run(Date.now());
+      }
+      const cleanUuid = extractSessionUuid(uuid);
+      // Clean exact match
+      let row = db.prepare('SELECT * FROM scan_sessions WHERE uuid = ?').get(cleanUuid) as any;
+      
+      // Fuzzy/Partial Match Fallback:
+      // If no exact match is found, pull the raw alphanumeric segment (removing prefix like mp_ or qr_).
+      // Check if that segment is contained within the DB's UUID, or vice versa.
+      if (!row && cleanUuid && cleanUuid.length >= 6) {
+        const rawSegment = cleanUuid.replace(/^(mp_|qr_)/, '');
+        if (rawSegment.length >= 5) {
+          row = db.prepare('SELECT * FROM scan_sessions WHERE uuid LIKE ? OR ? LIKE "%" || uuid || "%"').get(`%${rawSegment}%`, cleanUuid) as any;
+        }
+      }
+
+      if (!row) return undefined;
+      
+      if (row.expiresAt < Date.now()) {
+        try {
+          db.prepare('DELETE FROM scan_sessions WHERE uuid = ?').run(row.uuid);
+        } catch (delErr) {}
+        return undefined;
+      }
+      return {
+        status: row.status,
+        user: row.user_data ? JSON.parse(row.user_data) : undefined
+      };
+    } catch (e) {
+      console.error('Error reading session from DB for UUID ' + uuid + ':', e);
+      return undefined;
+    }
+  }
+
+  set(uuid: string, data: { status: string; user?: any }) {
+    try {
+      const expiresAt = Date.now() + 30 * 60 * 1000;
+      const cleanUuid = extractSessionUuid(uuid);
+      const user_data = data.user ? JSON.stringify(data.user) : null;
+      db.prepare('INSERT OR REPLACE INTO scan_sessions (uuid, status, user_data, expiresAt) VALUES (?, ?, ?, ?)')
+        .run(cleanUuid, data.status, user_data, expiresAt);
+    } catch (e) {
+      console.error('Error writing session to DB for UUID ' + uuid + ':', e);
+    }
+  }
+
+  delete(uuid: string) {
+    try {
+      const cleanUuid = extractSessionUuid(uuid);
+      db.prepare('DELETE FROM scan_sessions WHERE uuid = ?').run(cleanUuid);
+    } catch (e) {
+      console.error('Error deleting session from DB:', e);
+    }
+  }
+}
+
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
@@ -23,7 +153,7 @@ async function startServer() {
     }
   });
 
-  const PORT = parseInt(process.env.PORT || '3000', 10);
+  const PORT = 3000;
 
   app.use(express.json());
 
@@ -115,7 +245,7 @@ async function startServer() {
   });
 
   // --- WeChat QR Authorization Sessions ---
-  const qrSessions = new Map<string, { status: string; user?: any }>();
+  const qrSessions = new DbSessionsMap('qr');
 
   app.get('/api/auth/qr-init', (req, res) => {
     const uuid = 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -125,7 +255,8 @@ async function startServer() {
 
   app.get('/api/auth/qr-status/:uuid', (req, res) => {
     const { uuid } = req.params;
-    const session = qrSessions.get(uuid);
+    const cleanUuid = extractSessionUuid(uuid);
+    const session = qrSessions.get(cleanUuid);
     if (!session) {
       return res.status(404).json({ success: false, error: 'Session expired' });
     }
@@ -134,16 +265,48 @@ async function startServer() {
 
   app.post('/api/auth/qr-confirm', (req, res) => {
     const { uuid, user } = req.body;
-    const session = qrSessions.get(uuid);
+    const finalUuid = extractSessionUuid(uuid);
+    let session = qrSessions.get(finalUuid);
+    if (!session) {
+      console.warn(`[QR Confirm Fallback] Active session not found for finalUuid: "${finalUuid}". Creating dynamic session.`);
+      qrSessions.set(finalUuid, { status: 'pending' });
+      session = qrSessions.get(finalUuid);
+    }
     if (!session) {
       return res.status(404).json({ success: false, error: 'Session expired or invalid' });
     }
-    session.status = 'confirmed';
-    session.user = user;
-    qrSessions.set(uuid, session);
 
-    // Blast websocket event to instantaneous active subscribers
-    io.to(`qr_room_${uuid}`).emit('qr:authenticated', { user });
+    const isMp = finalUuid.startsWith('mp_');
+    if (isMp) {
+      // Create user payload and sign JWT token if it's an MP session
+      const userPayload = {
+        id: user.id || 'visit_' + Date.now().toString().slice(-4),
+        username: user.username || `mp_user_${user.id}`,
+        name: user.name,
+        className: user.className || '星河小程序成员',
+        avatar: user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.name)}`,
+        category: user.category || 'student',
+        intro: user.intro || '通过微信小程序扫码同步登录',
+        email: user.email || null
+      };
+      
+      const token = jwt.sign({ id: userPayload.id, username: userPayload.username }, JWT_SECRET, { expiresIn: '24h' });
+      session.status = 'confirmed';
+      session.user = { token, user: userPayload };
+      
+      // Update DB
+      qrSessions.set(finalUuid, session);
+      
+      // Emit websocket events to both rooms to ensure instant synchronization
+      io.to(`mp_room_${finalUuid}`).emit('mp:authenticated', { token, user: userPayload });
+      io.to(`qr_room_${finalUuid}`).emit('qr:authenticated', { user: userPayload });
+    } else {
+      // Standard local QR session
+      session.status = 'confirmed';
+      session.user = user;
+      qrSessions.set(finalUuid, session);
+      io.to(`qr_room_${finalUuid}`).emit('qr:authenticated', { user });
+    }
 
     res.json({ success: true });
   });
@@ -154,12 +317,14 @@ async function startServer() {
   io.on('connection', (socket) => {
     // WeChat QR websocket subscription
     socket.on('qr:subscribe', (uuid) => {
-      socket.join(`qr_room_${uuid}`);
+      const cleanUuid = extractSessionUuid(uuid);
+      socket.join(`qr_room_${cleanUuid}`);
     });
 
     // WeChat Mini Program websocket subscription
     socket.on('mp:subscribe', (uuid) => {
-      socket.join(`mp_room_${uuid}`);
+      const cleanUuid = extractSessionUuid(uuid);
+      socket.join(`mp_room_${cleanUuid}`);
     });
 
     socket.on('auth:init', (userId) => {
@@ -374,7 +539,7 @@ async function startServer() {
   });
 
   // --- WeChat Mini Program (MP) Bridge Login & Verification ---
-  const mpSessions = new Map<string, { status: string; user?: any }>();
+  const mpSessions = new DbSessionsMap('mp');
 
   app.get('/api/auth/mp-init', (req, res) => {
     const uuid = 'mp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -391,10 +556,14 @@ async function startServer() {
 
   app.get('/api/auth/mp-status/:uuid', (req, res) => {
     const { uuid } = req.params;
-    const session = mpSessions.get(uuid);
+    const cleanUuid = extractSessionUuid(uuid);
+    console.log(`[MP Status Polling] Input: "${uuid}", Parsed cleanUuid: "${cleanUuid}"`);
+    const session = mpSessions.get(cleanUuid);
     if (!session) {
+      console.warn(`[MP Status Polling FAIL] No session found in DB for cleanUuid: "${cleanUuid}"`);
       return res.status(404).json({ success: false, error: 'Session expired or not found' });
     }
+    console.log(`[MP Status Polling SUCCESS] Found session for cleanUuid: "${cleanUuid}", Status: "${session.status}"`);
     res.json({ success: true, status: session.status, user: session.user });
   });
 
@@ -404,7 +573,14 @@ async function startServer() {
     if (!uuid) {
       return res.status(400).json({ success: false, error: 'Session UUID is required' });
     }
-    const session = mpSessions.get(uuid);
+    const finalUuid = extractSessionUuid(uuid);
+    console.log(`[MP Authorize] Received Request. Input uuid: "${uuid}", Parsed finalUuid: "${finalUuid}"`);
+    let session = mpSessions.get(finalUuid);
+    if (!session) {
+      console.warn(`[MP Authorize Fallback] Session does not exist in DB for finalUuid: "${finalUuid}". Creating dynamic session.`);
+      mpSessions.set(finalUuid, { status: 'pending' });
+      session = mpSessions.get(finalUuid);
+    }
     if (!session) {
       return res.status(404).json({ success: false, error: 'Session expired or not found' });
     }
@@ -506,10 +682,11 @@ async function startServer() {
 
       session.status = 'confirmed';
       session.user = { token, user: userPayload };
-      mpSessions.set(uuid, session);
+      mpSessions.set(finalUuid, session);
 
-      // Emit web socket
-      io.to(`mp_room_${uuid}`).emit('mp:authenticated', { token, user: userPayload });
+      // Emit web socket - notify both rooms to ensure seamless synchronization
+      io.to(`mp_room_${finalUuid}`).emit('mp:authenticated', { token, user: userPayload });
+      io.to(`qr_room_${finalUuid}`).emit('qr:authenticated', { user: userPayload });
 
       res.json({ success: true, message: 'WeChat Mini Program QR authorization confirmed successfully.' });
     } catch (err) {

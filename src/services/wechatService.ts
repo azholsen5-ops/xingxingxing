@@ -32,7 +32,7 @@ class WechatService {
      * Computes the scan landing URL target for scanning clients.
      */
     getScanUrl(uuid: string): string {
-        return `${window.location.origin}/wechat-auth?uuid=${encodeURIComponent(uuid)}`;
+        return `${window.location.origin}/wechat-auth?uuid=${encodeURIComponent(uuid)}&scene=${encodeURIComponent(uuid)}`;
     }
 
     /**

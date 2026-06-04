@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     X, User, Lock, ArrowRight, Loader2, Eye, EyeOff, Check, 
-    Sparkles, QrCode, ArrowLeft, CheckCircle2, RefreshCw, 
+    Sparkles, ArrowLeft, CheckCircle2, RefreshCw, 
     Smartphone, Phone, FileText, ShieldAlert, Mail
 } from 'lucide-react';
 import { authService, User as AuthUser } from '../services/authService';
-import { socketService } from '../services/socketService';
 import { wechatService } from '../services/wechatService';
 
 interface MemberAuthModalProps {
@@ -18,7 +17,41 @@ interface MemberAuthModalProps {
 
 type AuthMethod = 'password' | 'email' | 'sms' | 'mp';
 
+const SHOWCASE_PHOTOS = [
+    {
+        src: '/images/img2317.jpg',
+        titleZh: '安全工程专业',
+        titleEn: 'Safety Engineering Major',
+        descZh: '深耕工业系统安全风险分析、灾害防控及智慧检测，夯实安全生产技术根基。'
+    },
+    {
+        src: '/images/img2904.jpg',
+        titleZh: '能源化学专业',
+        titleEn: 'Energy & Chemistry Major',
+        descZh: '主攻新型清洁能源转化、先进化学工程材料以及工业生产过程中的安全环保化学技术。'
+    },
+    {
+        src: '/images/img34d0.jpg',
+        titleZh: '应急技术与管理专业',
+        titleEn: 'Emergency Technology & Management Major',
+        descZh: '研究并整合多物理场灾害预警、全过程应急管理信息化与智能协同指挥决策。'
+    }
+];
+
 const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSuccess, lang }) => {
+    // OS Browser Simulator Integration State
+    const [browserView, setBrowserView] = useState<'portal' | 'authgate'>('authgate');
+    const [browserActiveTab, setBrowserActiveTab] = useState<'jwzx' | 'xinghe' | 'webvpn'>('webvpn');
+    const [browserLoading, setBrowserLoading] = useState(false);
+    const [browserLoadingProgress, setBrowserLoadingProgress] = useState(0);
+    const [browserUrlField, setBrowserUrlField] = useState('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+
+    // Simulated SSO CAS Redirect States
+    const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
+    const [portalUser, setPortalUser] = useState<any | null>(null);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+    const [redirectStatusText, setRedirectStatusText] = useState('');
+
     // Basic control states
     const [mode, setMode] = useState<'login' | 'register'>('login');
     const [authMethod, setAuthMethod] = useState<AuthMethod>('password');
@@ -26,17 +59,17 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [error, setError] = useState<string | null>(null);
     const [successUser, setSuccessUser] = useState<any | null>(null);
 
-    // Mini Program states
+    // Mini Program WeChat QR states
     const [mpUuid, setMpUuid] = useState<string | null>(null);
     const [isMpLoading, setIsMpLoading] = useState(false);
     const [mpStatus, setMpStatus] = useState<'pending' | 'confirmed' | 'expired'>('pending');
     const [mockMpClientOpen, setMockMpClientOpen] = useState(false);
-    const [simulatedNickname, setSimulatedNickname] = useState('星河探针_A5');
+    const [simulatedNickname, setSimulatedNickname] = useState('星河学术探针');
     const [simulatedOpenid, setSimulatedOpenid] = useState('mp_user_99a8');
     const [simulatedEmail, setSimulatedEmail] = useState('');
     const [qrMode, setQrMode] = useState<'standard' | 'raw'>('standard');
 
-    // Form inputs state
+    // Forms
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -54,12 +87,12 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [showTermsOverlay, setShowTermsOverlay] = useState<'none' | 'service' | 'privacy'>('none');
     
-    // QQ-Style Quick Login & Stored Accounts
+    // Quick Account Swappers
     const [historyUsers, setHistoryUsers] = useState<AuthUser[]>([]);
     const [selectedUser, setSelectedUser] = useState<AuthUser | null>(null);
     const [useAnotherAccount, setUseAnotherAccount] = useState(false);
 
-    // High fidelity Captcha states
+    // Captcha States
     const [isAgreementChecked, setIsAgreementChecked] = useState(true);
     const [shakeAgreement, setShakeAgreement] = useState(false);
     const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
@@ -71,18 +104,46 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [startX, setStartX] = useState(0);
     const [pendingAction, setPendingAction] = useState<'login' | 'register' | 'sms' | 'quick' | 'email'>('login');
 
-    // SMS states
+    // Virtual Notification Toasts
     const [smsTimer, setSmsTimer] = useState(0);
     const [mockSmsBanner, setMockSmsBanner] = useState<{ code: string; message: string } | null>(null);
-
-    // Email states
     const [emailTimer, setEmailTimer] = useState(0);
     const [mockEmailBanner, setMockEmailBanner] = useState<{ code: string; message: string } | null>(null);
 
-    // WeChat Mini Program Session lifecycle hook
+    // Browser Simulator redirect timeline
+    const triggerRedirectToCas = () => {
+        setBrowserLoading(true);
+        setBrowserLoadingProgress(15);
+        let progress = 15;
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 20) + 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                setBrowserActiveTab('webvpn');
+                setBrowserView('authgate');
+                setBrowserUrlField('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+                setBrowserLoading(false);
+            }
+            setBrowserLoadingProgress(progress);
+        }, 100);
+    };
+
+    // Auto states reset
     useEffect(() => {
-        if (!isOpen) return;
-        if (authMethod !== 'mp' || mode !== 'login') return;
+        if (isOpen) {
+            setBrowserView('authgate');
+            setBrowserActiveTab('webvpn');
+            setBrowserLoading(false);
+            setBrowserLoadingProgress(0);
+            setBrowserUrlField('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+            resetStates();
+        }
+    }, [isOpen]);
+
+    // Live sync wechat MP connection rules
+    useEffect(() => {
+        if (!isOpen || authMethod !== 'mp' || mode !== 'login') return;
 
         let unsubscribe: (() => void) | null = null;
         let isCurrent = true;
@@ -96,7 +157,6 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                 setMpUuid(session.uuid);
                 setMpStatus('pending');
 
-                // Subscribe to socket/status polling updates
                 unsubscribe = wechatService.subscribeToMpSync(
                     session.uuid,
                     (payload: { token: string; user: any }) => {
@@ -108,32 +168,23 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                         onSuccess(payload.user);
                         onClose();
                     },
-                    (err) => {
-                        console.error('WeChat MP Sync error:', err);
-                    }
+                    (err) => console.error('WeChat Sync fail:', err)
                 );
             } catch (err: any) {
-                if (isCurrent) {
-                    setError(err.message || '初始化微信小程序统一安全网关失败');
-                }
+                if (isCurrent) setError('初始化微信小程序网关服务失败');
             } finally {
-                if (isCurrent) {
-                    setIsMpLoading(false);
-                }
+                if (isCurrent) setIsMpLoading(false);
             }
         };
 
         startMpSession();
-
         return () => {
             isCurrent = false;
-            if (unsubscribe) {
-                unsubscribe();
-            }
+            if (unsubscribe) unsubscribe();
         };
     }, [isOpen, authMethod, mode]);
 
-    // Load stored accounts and pre-populate defaults for live play!
+    // History login cache config
     useEffect(() => {
         if (!isOpen) return;
         const saved = localStorage.getItem('xh_history_users');
@@ -149,7 +200,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                     name: '陆鹏 (协会研习主管)',
                     className: '安全23-2班',
                     category: 'core',
-                    avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=lupeng',
+                    avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=lupeng&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584',
                     intro: '星河科创核心组长 · 快捷终端一键授权'
                 },
                 {
@@ -158,7 +209,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                     name: '王傲星 (安全运维)',
                     className: '信安24-1班',
                     category: 'core',
-                    avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=wangax',
+                    avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=wangax&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584',
                     intro: '星河网络防御中心讲师 · 本地快捷登录'
                 }
             ];
@@ -168,21 +219,33 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         }
     }, [isOpen]);
 
-    // Handle background dragging calculations for sliding puzzle block
+    // Timers
+    useEffect(() => {
+        if (smsTimer > 0) {
+            const t = setTimeout(() => setSmsTimer(smsTimer - 1), 1000);
+            return () => clearTimeout(t);
+        }
+    }, [smsTimer]);
+
+    useEffect(() => {
+        if (emailTimer > 0) {
+            const t = setTimeout(() => setEmailTimer(emailTimer - 1), 1000);
+            return () => clearTimeout(t);
+        }
+    }, [emailTimer]);
+
+    // Move sliding puzzle
     useEffect(() => {
         const handleMove = (e: MouseEvent | TouchEvent) => {
             if (!isDraggingPuzzle) return;
             const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
             const deltaX = clientX - startX;
-            const newX = Math.max(0, Math.min(220, deltaX)); // clamp within bounding slider slot
-            setPuzzleX(newX);
+            setPuzzleX(Math.max(0, Math.min(220, deltaX)));
         };
 
         const handleUp = () => {
             if (!isDraggingPuzzle) return;
             setIsDraggingPuzzle(false);
-            
-            // Validate snap alignments
             if (Math.abs(puzzleX - targetPuzzleX) <= 6) {
                 setPuzzleSuccess(true);
                 setPuzzleError(false);
@@ -190,15 +253,14 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                     setIsPuzzleOpen(false);
                     setPuzzleSuccess(false);
                     setPuzzleX(0);
-                    // Run actual credentials verify method
                     executePendingSubmit();
-                }, 900);
+                }, 800);
             } else {
                 setPuzzleError(true);
                 setTimeout(() => {
                     setPuzzleX(0);
                     setPuzzleError(false);
-                }, 700);
+                }, 600);
             }
         };
 
@@ -216,21 +278,24 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         };
     }, [isDraggingPuzzle, startX, puzzleX, targetPuzzleX]);
 
-    // Action Triggering with Captcha
+    const saveToHistoryList = (user: AuthUser) => {
+        const updated = [user, ...historyUsers.filter(u => u.username !== user.username)].slice(0, 4);
+        setHistoryUsers(updated);
+        localStorage.setItem('xh_history_users', JSON.stringify(updated));
+    };
+
     const triggerSubmitWithCaptcha = (action: 'login' | 'register' | 'sms' | 'quick' | 'email') => {
         if (!isAgreementChecked) {
             setShakeAgreement(true);
             setTimeout(() => setShakeAgreement(false), 600);
             return;
         }
-        // Randomize target offset for captcha block
         setTargetPuzzleX(Math.floor(Math.random() * 100) + 110);
         setPuzzleX(0);
         setPendingAction(action);
         setIsPuzzleOpen(true);
     };
 
-    // Callback executing verified submits
     const executePendingSubmit = () => {
         if (pendingAction === 'login') submitPasswordLogin();
         else if (pendingAction === 'register') submitPasswordRegister();
@@ -239,7 +304,6 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
         else if (pendingAction === 'email') submitEmailLogin();
     };
 
-    // Submits credentials to SQLite backend database
     const submitPasswordLogin = async () => {
         setIsLoading(true);
         setError(null);
@@ -249,10 +313,10 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                 saveToHistoryList(res.user);
                 triggerSuccessFlow(res.user);
             } else {
-                setError(res.error || (lang === 'zh' ? '登录鉴权失败，请检查用户名或密码' : 'Sign in failed'));
+                setError(res.error || '登录鉴权失败，请检查用户名或密码');
             }
-        } catch (err) {
-            setError(lang === 'zh' ? '请求网关错误，请重试' : 'Node error, retry later.');
+        } catch (_) {
+            setError('物理通道网关异常');
         } finally {
             setIsLoading(false);
         }
@@ -265,1233 +329,984 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
             const res = await authService.register(formData);
             if (res.success) {
                 setMode('login');
-                setError(lang === 'zh' ? '注册成功！已切换至登录窗口，请登录' : 'Registration completed. Sign in now.');
+                setError('注册成功！已切换至统一CAS密码登入通道');
             } else {
-                setError(res.error || 'Registration failed');
+                setError(res.error || '注册失败');
             }
-        } catch (err) {
-            setError('System registration error');
+        } catch (_) {
+            setError('档案递交失败，请检查参数或邀请码。');
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // Quick Login using stored cookie/credentials bypass
-    const submitQuickLogin = async () => {
-        if (!selectedUser) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            await new Promise(r => setTimeout(r, 1000));
-            // Simulate direct token validation
-            localStorage.setItem('xh_token', 'mock_quick_token_' + selectedUser.id);
-            localStorage.setItem('xh_user', JSON.stringify(selectedUser));
-            authService['currentUser'] = selectedUser;
-            authService['token'] = 'mock_quick_token_' + selectedUser.id;
-            triggerSuccessFlow(selectedUser);
-        } catch (err) {
-            setError('Quick login failed');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // SMS Code Authenticator Logic
-    const triggerSendSMS = () => {
-        if (!formData.phone || formData.phone.length < 10) {
-            setError(lang === 'zh' ? '请输入完整的手机号码' : 'Enter standard phone number');
-            return;
-        }
-        setSmsTimer(60);
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Timer countdown
-        const interval = setInterval(() => {
-            setSmsTimer(prev => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        setMockSmsBanner({
-            code,
-            message: lang === 'zh' 
-                ? `【星河科创】您的短信验证码为: ${code}，用于快捷授权终端登录。请勿泄露给他人。` 
-                : `[StarRiver Secure] Code ${code} for Terminal Access. Do not reveal.`
-        });
     };
 
     const submitSMSLogin = async () => {
-        if (!mockSmsBanner || formData.smsCode !== mockSmsBanner.code) {
-            setError(lang === 'zh' ? '手机验证码输入错误或失效' : 'Invalid verification code');
-            return;
-        }
         setIsLoading(true);
         setError(null);
         try {
-            await new Promise(r => setTimeout(r, 1000));
-            const mockUser: AuthUser = {
-                id: 'phone_' + formData.phone.slice(-4),
-                username: 'phone_' + formData.phone.slice(-4),
-                name: `手机用户_${formData.phone.slice(-4)}`,
-                className: '可信无线终端',
-                category: 'service',
-                avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${formData.phone}`,
-                intro: '通过可信手机SIM硬件校验登录'
-            };
-            localStorage.setItem('xh_token', 'mock_jwt_phone_auth');
-            localStorage.setItem('xh_user', JSON.stringify(mockUser));
-            authService['currentUser'] = mockUser;
-            authService['token'] = 'mock_jwt_phone_auth';
-            saveToHistoryList(mockUser);
-            triggerSuccessFlow(mockUser);
-        } catch (e) {
-            setError('Auth system fault');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Email Code Authenticator Logic
-    const triggerSendEmail = async () => {
-        if (!formData.email) {
-            setError(lang === 'zh' ? '请输入电子邮箱' : 'Please enter your email');
-            return;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setError(lang === 'zh' ? '请输入有效的邮箱地址' : 'Invalid email address');
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch('/api/auth/email-send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: formData.email })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setEmailTimer(60);
-                const interval = setInterval(() => {
-                    setEmailTimer(prev => {
-                        if (prev <= 1) {
-                            clearInterval(interval);
-                            return 0;
-                        }
-                        return prev - 1;
-                    });
-                }, 1000);
-
-                if (data.simulated) {
-                    setMockEmailBanner({
-                        code: data.code,
-                        message: lang === 'zh'
-                            ? `【星河盾·安全邮箱】验证码为: ${data.code}，用于邮箱快捷核验登录。可在控制台查看实体信道细节。`
-                            : `[StarRiver Secure Mail] Code ${data.code} generated. View details in console.`
-                    });
-                } else {
-                    setError(lang === 'zh' ? '验证码已发送至您的邮箱，请注意查收！' : 'Code sent, please check your inbox!');
-                }
+            const res = await authService.loginWithSms(formData.phone, formData.smsCode);
+            if (res.success) {
+                saveToHistoryList(res.user);
+                triggerSuccessFlow(res.user);
             } else {
-                setError(data.error || 'Failed to send verification code');
+                setError(res.error || '短信校验密钥无效');
             }
-        } catch (err) {
-            setError(lang === 'zh' ? '网络连接失败，请检查网关' : 'Network error, please try again');
+        } catch (_) {
+            setError('验证短报文鉴权阻断');
         } finally {
             setIsLoading(false);
         }
     };
 
     const submitEmailLogin = async () => {
-        if (!formData.email || !formData.emailCode) {
-            setError(lang === 'zh' ? '邮箱和验证码不能为空' : 'Email and code are required');
-            return;
-        }
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch('/api/auth/email-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: formData.email,
-                    code: formData.emailCode,
-                    name: formData.name,
-                    className: formData.className
-                })
-            });
-            const result = await res.json();
-            if (result.success) {
-                localStorage.setItem('xh_token', result.token);
-                localStorage.setItem('xh_user', JSON.stringify(result.user));
-                authService['currentUser'] = result.user;
-                authService['token'] = result.token;
-                saveToHistoryList(result.user);
-                triggerSuccessFlow(result.user);
+            const res = await authService.loginWithEmail(formData.email, formData.emailCode);
+            if (res.success) {
+                saveToHistoryList(res.user);
+                triggerSuccessFlow(res.user);
             } else {
-                setError(result.error || (lang === 'zh' ? '验证码校验失败或已过期' : 'Verification failed'));
+                setError(res.error || '邮箱安全验证密码不匹配');
             }
-        } catch (err) {
-            setError(lang === 'zh' ? '网络通信失败，请检查安全盾' : 'Network communication failed');
+        } catch (_) {
+            setError('安全邮件隧道传输错误');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Appending profile to history users array
-    const saveToHistoryList = (user: AuthUser) => {
-        const saved = localStorage.getItem('xh_history_users');
-        let list: AuthUser[] = saved ? JSON.parse(saved) : [];
-        list = list.filter(u => u.username !== user.username);
-        list.unshift(user);
-        localStorage.setItem('xh_history_users', JSON.stringify(list));
-        setHistoryUsers(list);
-        setSelectedUser(user);
-    };
-
-    const deleteHistoryUser = (e: React.MouseEvent, username: string) => {
-        e.stopPropagation();
-        const updated = historyUsers.filter(u => u.username !== username);
-        setHistoryUsers(updated);
-        localStorage.setItem('xh_history_users', JSON.stringify(updated));
-        if (selectedUser?.username === username) {
-            setSelectedUser(updated.length > 0 ? updated[0] : null);
+    const submitQuickLogin = async () => {
+        if (!selectedUser) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await authService.loginQuick(selectedUser.username);
+            if (res.success) {
+                triggerSuccessFlow(res.user);
+            } else {
+                setError(res.error || '快速登录密钥会话已过期');
+            }
+        } catch (_) {
+            setError('缓存快速登录读取阻断');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const triggerSuccessFlow = (user: any) => {
         setSuccessUser(user);
+        setIsRedirecting(true);
+        setRedirectStatusText('CAS 统一身份网关授权成功！已生成服务票据 ST-Ticket...');
+        
+        // Step 1 of SSO Redirection
         setTimeout(() => {
-            onSuccess(user);
-            onClose();
-            resetStates();
-        }, 1800);
+            setRedirectStatusText('正在对页面「jwzx.lntu.edu.cn/」回调票据 ST-92841-KAS...');
+            setBrowserLoading(true);
+            setBrowserLoadingProgress(45);
+        }, 700);
+
+        // Step 2 of SSO Redirection
+        setTimeout(() => {
+            setRedirectStatusText('教务在线服务器校验身份票据中 (Ticket validation)...');
+            setBrowserLoadingProgress(80);
+        }, 1400);
+
+        // Step 3: Landing back at Portal as Logged-In
+        setTimeout(() => {
+            setBrowserLoadingProgress(100);
+            setBrowserLoading(false);
+            setIsRedirecting(false);
+            setBrowserView('portal');
+            setBrowserUrlField('jwzx.lntu.edu.cn/?ticket=ST-92841-KAS&service=https%3A%2F%2Fjwzx.lntu.edu.cn%2F');
+            setIsPortalAuthenticated(true);
+            setPortalUser(user);
+        }, 2200);
+    };
+
+    const sendSmsCode = async () => {
+        if (!formData.phone) {
+            setError('请输入手机号码以分发验证短信');
+            return;
+        }
+        setSmsTimer(60);
+        setError(null);
+        try {
+            const res = await authService.sendSmsVerify(formData.phone);
+            if (res.success && res.code) {
+                setMockSmsBanner({
+                    code: res.code,
+                    message: `【星河盾科创网关】尊敬的成员您好，您的统一验证登录验证码为：${res.code}。验证码3分钟内有效，请勿泄露。`
+                });
+            } else {
+                setError(res.error || '下发短信令牌受限');
+            }
+        } catch (_) {
+            setError('网关信令分发异常');
+        }
+    };
+
+    const sendEmailCode = async () => {
+        if (!formData.email) {
+            setError('请输入认证电子邮箱');
+            return;
+        }
+        setEmailTimer(60);
+        setError(null);
+        try {
+            const res = await authService.sendEmailVerify(formData.email);
+            if (res.success && res.code) {
+                setMockEmailBanner({
+                    code: res.code,
+                    message: `【星河身份网关】统一验证密令分发，您的邮箱校验码为 ${res.code}。请在当前虚拟浏览器表单中提交校验，星河防泄密保卫部提醒。`
+                });
+            } else {
+                setError(res.error || '该邮箱未能在组织档案网内检索到匹配项，请点击注册');
+            }
+        } catch (_) {
+            setError('分发认证邮件时网内断开');
+        }
     };
 
     const resetStates = () => {
         setFormData({
-            username: '',
-            password: '',
-            name: '',
-            className: '',
-            category: 'core',
-            memberCode: '',
-            intro: '',
-            phone: '',
-            smsCode: '',
-            email: '',
-            emailCode: ''
+            username: '', password: '', name: '', className: '',
+            category: 'core', memberCode: '', intro: '',
+            phone: '', smsCode: '', email: '', emailCode: ''
         });
         setMode('login');
         setAuthMethod('password');
         setError(null);
         setSuccessUser(null);
         setMockSmsBanner(null);
+        setMockEmailBanner(null);
         setUseAnotherAccount(false);
+        setIsPortalAuthenticated(false);
+        setPortalUser(null);
+        setIsRedirecting(false);
+        setRedirectStatusText('');
     };
 
-    // Puzzle UI Dragging helpers
     const handlePuzzleStart = (e: React.MouseEvent | React.TouchEvent) => {
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         setIsDraggingPuzzle(true);
         setStartX(clientX - puzzleX);
     };
 
+    if (!isOpen) return null;
+
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6 select-none overflow-hidden">
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => { resetStates(); onClose(); }}
-                        className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                    />
-
-                    {/* Authenticator shell panel */}
-                    <motion.div 
-                        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                        className="relative w-full max-w-4xl bg-[#090b14] border border-white/10 rounded-[30px] shadow-[0_24px_80px_rgba(0,0,0,0.85)] flex flex-col md:flex-row h-auto md:h-[600px] overflow-hidden"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Close key */}
+        <div className="fixed inset-0 z-[1000] w-screen h-screen bg-[#04060f] flex flex-col overflow-hidden text-slate-100 select-none font-sans">
+            {/* Top Browser Applet Bar Chrome (Safari/Chrome Simulator Style) */}
+            <div className="bg-[#111424] border-b border-white/5 py-2 px-4 flex flex-col gap-1.5 shrink-0 z-20 relative select-none">
+                <div className="flex items-center justify-between">
+                    {/* Operating System Dot Actions (macOS style decoration) */}
+                    <div className="flex items-center gap-1.5">
                         <button 
-                            onClick={() => { resetStates(); onClose(); }}
-                            className="absolute top-5 right-5 z-55 text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all"
+                            onClick={onClose}
+                            className="w-3 h-3 rounded-full bg-[#ff5f56] hover:scale-105 active:scale-95 transition-transform cursor-pointer flex items-center justify-center text-[7px] text-red-950 font-bold"
                         >
-                            <X size={18} />
+                            ✕
                         </button>
+                        <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                        <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                        <span className="font-mono text-[9px] text-slate-500 hidden sm:inline ml-1.5 uppercase tracking-widest">Gateway Engine v5.1</span>
+                    </div>
 
-                        {/* ==================== LEFT SHOWCASE ==================== */}
-                        <div className="w-full md:w-[350px] bg-gradient-to-br from-slate-950 to-[#0c0f20] relative hidden md:flex flex-col justify-between p-8 border-r border-white/5 overflow-hidden">
-                            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full filter blur-[100px]" />
-                            <div className="relative z-10 flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                                    <Sparkles size={18} className="text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold tracking-widest text-white uppercase font-sans">星河科创 ID</h3>
-                                    <p className="text-[9px] text-white/30 tracking-wider">STAR RIVER SECURE GATE</p>
-                                </div>
-                            </div>
+                    {/* Window Name Label */}
+                    <div className="text-[10.5px] text-white/50 font-mono tracking-wider truncate bg-black/20 border border-white/5 px-4.5 py-0.5 rounded-full select-all">
+                        {browserView === 'portal' ? 'LNTU Educational Online System' : 'LNTU CAS Unified Identity Gateway'}
+                    </div>
 
-                            <div className="relative z-10 my-auto py-4">
-                                <span className="px-2 py-0.5 text-[8px] font-bold rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
-                                    {lang === 'zh' ? '内部鉴权系统' : 'CORE SECURITY'}
-                                </span>
-                                <h2 className="text-xl font-black text-white mt-3 leading-snug tracking-tight">
-                                    {lang === 'zh' ? '引领前沿发展 · 守护系统安全' : 'Advancing Frontiers, Guarding Networks'}
-                                </h2>
-                                <p className="text-[11px] text-white/45 leading-relaxed mt-2 font-light">
-                                    {lang === 'zh' 
-                                        ? '深度融合校内统一身份认证与星河自主滑动防御算法，提供毫秒级高吞吐量的高速鉴权连接。' 
-                                        : 'Seamless integration with campus directory catalogs and active drag security puzzle guards.'}
-                                </p>
-                            </div>
+                    {/* End Indicator */}
+                    <div className="flex items-center gap-1.5 text-[9px] text-[#4ade80] font-mono leading-none select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                        <span>SSL ENCRYPTED</span>
+                    </div>
+                </div>
 
-                            <div className="relative z-10 pt-4 border-t border-white/5 flex items-center gap-2.5 text-[10px] text-white/30 font-mono">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <span>SERVER ONLINE (3000)</span>
-                            </div>
+                {/* Simulated Tabs (matches user screenshot 3) */}
+                <div className="flex items-end gap-1 -mb-2 pt-1 scrollbar-none overflow-x-auto select-none">
+                    <button 
+                        onClick={() => { resetStates(); onClose(); }}
+                        className="px-3.5 py-1 rounded-t-lg text-[10.5px] font-semibold flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-black/10 hover:bg-[#15192c] transition-colors cursor-pointer"
+                    >
+                        <Sparkles size={11} className="text-blue-400" />
+                        <span>星河科技创新协会 HP</span>
+                    </button>
+                    <button 
+                        onClick={() => {
+                            setBrowserView('portal');
+                            setBrowserActiveTab('jwzx');
+                            setBrowserUrlField('jwzx.lntu.edu.cn/');
+                        }}
+                        className={`px-4 py-1.5 rounded-t-lg text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border-t border-x border-white/5 ${browserView === 'portal' ? 'bg-[#161a35] text-blue-300' : 'bg-black/20 text-slate-400 hover:text-white'}`}
+                    >
+                        <RefreshCw size={10} className="text-blue-400 rotate-45" />
+                        <span>辽宁工程技术大学教务在线</span>
+                    </button>
+                    {browserView === 'authgate' && (
+                        <div className="px-4 py-1.5 rounded-t-lg text-[10.5px] font-extrabold flex items-center gap-1.5 bg-[#161a35] text-red-300 border-t border-x border-white/5 select-none animate-fade-in animate-pulse">
+                            <Lock size={10} className="text-red-400" />
+                            <span>辽宁工大 - 统一身份验证</span>
                         </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* ==================== RIGHT PANEL ==================== */}
-                        <div className="flex-1 flex flex-col justify-between p-7 md:p-10 bg-[#070912]/95 relative text-white">
-                            
-                            {/* diagonal style ribbon toggler: toggles to email verification login */}
-                            <div 
-                                onClick={() => {
-                                    if (authMethod === 'email') {
-                                        setAuthMethod('password');
-                                    } else {
-                                        setAuthMethod('email');
-                                        setError(null);
-                                    }
-                                }}
-                                className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-600/30 hover:from-blue-600/50 to-transparent flex items-center justify-center cursor-pointer group z-40 transition-all rounded-bl-3xl border-l border-b border-white/5"
-                                title={authMethod === 'email' ? '密码登录' : '邮箱验证码登录'}
-                            >
-                                {authMethod === 'email' ? (
-                                    <Lock size={14} className="text-blue-400 group-hover:scale-110 transition-transform absolute top-3.5 right-3.5" />
+            {/* Browser Navigation URL controls Bar (matches screenshot 3) */}
+            <div className="bg-[#161a35] border-b border-white/5 px-4 py-2 flex items-center gap-3 shrink-0 z-10 select-none">
+                <div className="flex items-center gap-2 text-slate-400 shrink-0">
+                    <button 
+                        disabled={browserView === 'portal'} 
+                        onClick={() => { setBrowserView('portal'); setBrowserUrlField('jwzx.lntu.edu.cn/'); }}
+                        className="p-1 px-1.5 rounded bg-black/20 hover:bg-black/40 disabled:opacity-30 cursor-pointer text-xs"
+                    >
+                        🗙
+                    </button>
+                    <button 
+                        onClick={() => {
+                            setBrowserLoading(true);
+                            setBrowserLoadingProgress(100);
+                            setTimeout(() => setBrowserLoading(false), 300);
+                        }}
+                        className="p-1 px-1.5 rounded bg-black/20 hover:bg-black/40 cursor-pointer text-xs"
+                    >
+                        ↺
+                    </button>
+                </div>
+
+                {/* Fully Editable Address Input Field */}
+                <div className="flex-1 bg-black/45 border border-white/15 rounded-lg py-1 px-3.5 text-xs text-white/90 font-mono flex items-center gap-1.5 shadow-inner overflow-hidden select-all">
+                    <Lock size={11} className="text-[#10b981]" />
+                    <span className="text-[#10b981] font-bold select-none text-[11px]">https://</span>
+                    <span className="flex-1 truncate">{browserUrlField}</span>
+                </div>
+            </div>
+
+            {/* Thin network progress banner */}
+            <div className="w-full h-[2.5px] bg-slate-900 shrink-0 relative overflow-hidden">
+                <AnimatePresence>
+                    {browserLoading && (
+                        <motion.div 
+                            initial={{ width: '0%' }}
+                            animate={{ width: `${browserLoadingProgress}%` }}
+                            exit={{ opacity: 0 }}
+                            className="absolute left-0 h-full bg-gradient-to-r from-blue-500 via-indigo-400 to-red-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                        />
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Core Display Web Portals Viewport */}
+            <div className="flex-1 relative overflow-y-auto bg-[#080a18] flex flex-col">
+                <AnimatePresence mode="wait">
+                    
+                    {/* VIEW 1: LNTU JWZX PORTAL HOMEPAGE (Screenshot 3 style) */}
+                    {browserView === 'portal' && (
+                        <motion.div 
+                            key="portal_view"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex-1 flex flex-col bg-slate-50 text-slate-800 font-sans select-text scrollbar-thin"
+                        >
+                            {/* Academic Portal Top Royal Blue Header */}
+                            <header className="bg-[#193c72] px-6 py-4 flex flex-col sm:flex-row items-center justify-between select-none shadow-md text-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center p-1 font-black text-[#193c72] border-2 border-orange-400">
+                                        LNTU
+                                    </div>
+                                    <div>
+                                        <h1 className="text-base font-extrabold tracking-wider leading-none">辽宁工程技术大学</h1>
+                                        <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">教务在线 PORTAL ACCESS GATE</p>
+                                    </div>
+                                </div>
+                                {isPortalAuthenticated && portalUser ? (
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                            <span>SSO 会话联结已建立</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-lg border border-white/10 select-none">
+                                            <img 
+                                                src={portalUser.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${portalUser.username}&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584`} 
+                                                className="w-5 h-5 rounded-full border border-white/20 bg-slate-800"  
+                                                alt="User"
+                                                referrerPolicy="no-referrer"
+                                            />
+                                            <span className="text-xs font-bold">{portalUser.name}</span>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <Mail size={14} className="text-amber-400 group-hover:scale-110 transition-transform absolute top-3.5 right-3.5" />
+                                    <div className="flex flex-wrap items-center gap-4 mt-3 sm:mt-0 text-[11px] font-medium opacity-95">
+                                        <span className="hover:underline hover:text-blue-300 cursor-not-allowed">智慧树</span>
+                                        <span className="hover:underline hover:text-blue-300 cursor-not-allowed">雨课堂</span>
+                                        <span className="hover:underline hover:text-blue-300 cursor-not-allowed">超星泛雅</span>
+                                        <button 
+                                            onClick={triggerRedirectToCas}
+                                            className="bg-orange-500 hover:bg-orange-600 hover:scale-102 transition-all px-4 py-1.5 rounded-md text-white font-extrabold shadow-md cursor-pointer flex items-center gap-1 text-[11.5px]"
+                                        >
+                                            <User size={12} />
+                                            <span>学生/教师统一登录中心</span>
+                                        </button>
+                                    </div>
                                 )}
-                            </div>
+                            </header>
 
-                            {/* SUCCESS AUTHORIZATION LANDING COVER */}
+                            {/* Academic Secondary Navigation tabs */}
+                            <nav className="bg-[#122e5a] text-white/90 text-xs py-2 px-6 flex items-center justify-center gap-6 overflow-x-auto whitespace-nowrap shadow-inner select-none">
+                                <span className="border-b-2 border-orange-400 font-bold pb-1 text-orange-400 cursor-pointer">首页</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">部门概况</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">教学运行</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">课程建设</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">实践教学</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">考务管理</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">美育劳育</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">安全科创入口</span>
+                            </nav>
+
+                            {/* Campus Banner and notification body / SSO Logged In view */}
+                            {isPortalAuthenticated && portalUser ? (
+                                <div className="flex-1 flex flex-col justify-center items-center py-10 px-6 max-w-4xl mx-auto text-center">
+                                    <motion.div 
+                                        initial={{ scale: 0.95, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-8 shadow-xl text-slate-800 font-sans space-y-6"
+                                    >
+                                        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-sm">
+                                            <CheckCircle2 size={32} className="text-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-emerald-800 leading-tight">学校 CAS 凭证授权建立成功</h3>
+                                            <p className="text-xs text-slate-400 uppercase tracking-widest font-mono mt-1">LNTU UNIFIED SSO SECURITY HANDSHAKE COMPLETED</p>
+                                        </div>
+
+                                        <div className="bg-[#f0f9f4] border-l-4 border-emerald-500 rounded-r-xl p-4.5 text-left text-xs text-slate-700 leading-relaxed font-sans space-y-2.5 shadow-inner">
+                                            <p className="font-bold text-emerald-800 flex items-center gap-1 select-none">
+                                                <span>🛡️ 辽宁工程技术大学教务在线门户：</span>
+                                                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold px-1.5 py-0.2 rounded">安全互信状态已激活</span>
+                                            </p>
+                                            <p>尊敬的 <strong>{portalUser.name}</strong> 成员，您已通过辽宁工程技术大学统一身份中心。当前登录客户端已经成功校验单点登录令牌 (SSO Ticket)，并顺利授权您进入 <strong>星河安全科技创新协会</strong> 的后台系统空间。</p>
+                                            
+                                            <div className="border-t border-emerald-100/60 pt-2.5 mt-2 text-[11px] font-mono grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-slate-600 select-all">
+                                                <div>学籍账号：<span className="font-bold text-slate-800">{portalUser.username}</span></div>
+                                                <div>归属专业：<span className="font-bold text-slate-800">{portalUser.className || '安全科学组'}</span></div>
+                                                <div>系统角色：<span className="font-bold text-slate-800">{portalUser.category === 'core' ? '星河核心研习专家' : '注册学术成员'}</span></div>
+                                                <div>加密算法：<span className="font-bold text-slate-800">ECDSA / SHA256 RSA-4096</span></div>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => {
+                                                onSuccess(portalUser);
+                                                onClose();
+                                                resetStates();
+                                            }}
+                                            className="mt-4 bg-gradient-to-r from-[#193c72] to-[#122e5a] hover:from-[#112950] hover:to-[#0a1b37] hover:scale-[1.03] active:scale-[0.98] text-white font-extrabold tracking-wider py-4 px-12 rounded-xl shadow-lg shadow-blue-900/20 transition-all cursor-pointer text-xs flex items-center gap-2 mx-auto"
+                                        >
+                                            <Sparkles size={14} className="text-orange-400" />
+                                            <span>🪐 登入星河安全学术科研舱</span>
+                                            <ArrowRight size={12} />
+                                        </button>
+                                    </motion.div>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col justify-center items-center py-12 px-6 max-w-4xl mx-auto text-center">
+                                    <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-8 shadow-xl text-slate-800 font-sans space-y-5">
+                                        {/* Scenic Emblem Banner background fallback */}
+                                        <div className="w-16 h-16 bg-[#193c72]/5 text-[#193c72] rounded-full flex items-center justify-center mx-auto mb-2 border border-[#193c72]/10 shadow-inner">
+                                            🏫
+                                        </div>
+                                        <h3 className="text-xl font-black text-[#193c72] leading-tight">辽宁工程技术大学 - 安全科学与工程学院</h3>
+                                        <p className="text-xs text-slate-500 uppercase tracking-widest font-mono">SCHOOL OF SAFETY SCIENCE AND ENGINEERING</p>
+
+                                        <div className="bg-[#f0f4f9] border-l-4 border-orange-500 rounded-r-xl p-4 text-left text-xs text-slate-700 leading-relaxed font-sans mt-4">
+                                            <p className="font-bold text-[#193c72] mb-1">📢 星河科创防泄漏统一身份验证通告 :</p>
+                                            请安全科学与工程学院（安全工程专业、能源化学专业、应急技术与管理专业）技术研习新晋成员，前往 <strong>统一身份认证网关(CAS / WebVPN)</strong> 登录账号以下发安全证书。首次入库成员可切换申请注册成员选项进行提报建档。
+                                        </div>
+
+                                        <button 
+                                            onClick={triggerRedirectToCas}
+                                            className="mt-6 bg-[#193c72] hover:bg-[#112950] hover:scale-[1.03] active:scale-[0.98] text-white font-extrabold tracking-wider py-4 px-10 rounded-xl shadow-lg shadow-blue-900/10 transition-all cursor-pointer text-xs flex items-center gap-1.5 mx-auto"
+                                        >
+                                            <Lock size={12} className="animate-pulse text-orange-400" />
+                                            <span>登入统一身份认证认证网关 (CAS / WebVPN Central)</span>
+                                            <ArrowRight size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* VIEW 2: REAL LNTU CAS WEBVPN UNIFIED AUTH SYSTEM (Screenshots 1 & 2 style) */}
+                    {browserView === 'authgate' && (
+                        <motion.div 
+                            key="authgate_view"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex-1 relative w-full h-full"
+                        >
+                            {/* SUCCESS ANIMATION COVER */}
                             <AnimatePresence>
                                 {successUser && (
                                     <motion.div 
-                                        initial={{ opacity: 0, scale: 1.05 }}
-                                        animate={{ opacity: 1, scale: 1 }}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="absolute inset-0 z-50 bg-[#090b14] flex flex-col items-center justify-center p-8 text-center"
+                                        className="absolute inset-0 z-55 bg-[#030610] flex flex-col items-center justify-center p-8 text-center text-white"
                                     >
                                         <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
                                             <CheckCircle2 size={32} className="text-emerald-400 animate-pulse" />
                                         </div>
-                                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest font-mono">SESSION AUTHENTICATED</p>
-                                        <h2 className="text-2xl font-black mt-2 tracking-tight">
-                                            {lang === 'zh' ? `欢迎回归, ${successUser.name}` : `Welcome Back, ${successUser.name}`}
+                                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest font-mono">CAS GATEWAY AUTHORIZED</p>
+                                        <h2 className="text-2xl font-black mt-2 tracking-tight text-white">
+                                            欢迎回归, {successUser.name}
                                         </h2>
-                                        <p className="text-xs text-white/40 mt-1 max-w-xs truncate">{successUser.intro || 'Star River Innovation hub member'}</p>
+                                        <p className="text-xs text-white/40 mt-1 max-w-xs truncate">{successUser.className} · {successUser.intro || '星河科创核心研习员'}</p>
+
+                                        {isRedirecting && (
+                                            <div className="mt-8 space-y-4 w-full max-w-xs mx-auto animate-fade-in">
+                                                <div className="flex justify-between text-[10.5px] font-mono text-emerald-400/90 tracking-wide select-none">
+                                                    <span className="animate-pulse">🔄 Returning to Portal...</span>
+                                                    <span>SSO Handshake</span>
+                                                </div>
+                                                <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-emerald-400 transition-all duration-300" 
+                                                        style={{ width: `${browserLoadingProgress}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-[11px] font-mono text-cyan-300/80 leading-relaxed font-bold animate-pulse">
+                                                    {redirectStatusText}
+                                                </p>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            {/* HEADER */}
-                            <div>
-                                <h2 className="text-xl font-extrabold tracking-tight">
-                                    {mode === 'login' ? (lang === 'zh' ? '星河身份网关认证' : 'Member Gate Authenticate') : (lang === 'zh' ? '加入星河科技创新' : 'Request Registry Seats')}
-                                </h2>
-                                <p className="text-[10px] text-white/30 tracking-widest uppercase mt-0.5">
-                                    {mode === 'login' ? 'SECURE CONSOLE LOGIN PORTAL' : 'STUDENT MEMBERSHIP FORM'}
-                                </p>
-
-                                {/* Method options */}
-                                {mode === 'login' && (
-                                    <div className="flex gap-4 mt-5 border-b border-white/5 pb-2">
-                                        <button 
-                                            type="button"
-                                            onClick={() => setAuthMethod('password')}
-                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'password' ? 'text-blue-400 border-b-2 border-blue-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
-                                        >
-                                            {lang === 'zh' ? '密码登录' : 'Password Mode'}
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setAuthMethod('email')}
-                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'email' ? 'text-amber-400 border-b-2 border-amber-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
-                                        >
-                                            {lang === 'zh' ? '邮箱验证码' : 'Email Security'}
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setAuthMethod('sms')}
-                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'sms' ? 'text-blue-400 border-b-2 border-blue-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
-                                        >
-                                            {lang === 'zh' ? '手机验证码' : 'Mobile SMS Key'}
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setAuthMethod('mp')}
-                                            className={`text-xs pb-1 transition-all font-semibold ${authMethod === 'mp' ? 'text-emerald-400 border-b-2 border-emerald-500 font-bold' : 'text-white/40 hover:text-white/70'}`}
-                                        >
-                                            {lang === 'zh' ? '小程序扫码' : 'WeChat MP'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* FORM INTERFACES MODULE SWITCHER */}
-                            <div className="my-auto space-y-4 pt-4">
-                                {error && (
-                                    <div className={`p-3 rounded-xl text-xs flex gap-2 ${error.includes('成功') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/10'}`}>
-                                        <ShieldAlert size={14} className="shrink-0 mt-0.5" />
-                                        <p>{error}</p>
-                                    </div>
-                                )}
-
-                                {/* --- 1. MOCK HISTORICAL QUICK ACCOUNT SWAPPER (QQ STYLE) --- */}
-                                {mode === 'login' && authMethod === 'password' && historyUsers.length > 0 && selectedUser && !useAnotherAccount ? (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="space-y-5 text-center flex flex-col items-center"
-                                    >
-                                        <div className="relative group">
-                                            <div className="absolute inset-x-0 -top-1 bottom-1 bg-blue-500/20 rounded-full filter blur animate-pulse" />
-                                            <img 
-                                                src={selectedUser.avatar} 
-                                                className="w-20 h-20 rounded-full border-2 border-blue-500/50 p-1 bg-slate-950 relative z-10" 
-                                                alt="avatar" 
-                                            />
-                                            <span className="absolute bottom-0 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 z-20 animate-pulse" />
-                                        </div>
+                            {/* RESPONSIVE LAYOUT DESKTOP GATE (Sunset Background) */}
+                            <div className="hidden md:flex relative w-full h-full bg-slate-950 items-center justify-center p-6 bg-cover bg-center select-none" style={{ backgroundImage: `linear-gradient(rgba(10, 5, 2, 0.62), rgba(2, 4, 15, 0.88)), url('https://s41.ax1x.com/2026/03/31/peGSu0x.jpg')` }}>
+                                {/* Center Glassmorphic CAS Portal Card */}
+                                <div className="w-full max-w-[940px] min-h-[480px] bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_30px_80px_rgba(0,0,0,0.9)] flex overflow-hidden">
+                                    
+                                    {/* Left login form area */}
+                                    <div className="w-[58%] p-8 flex flex-col justify-between text-white border-r border-white/5 relative">
                                         <div>
-                                            <h3 className="text-sm font-semibold">{selectedUser.name}</h3>
-                                            <p className="text-[10px] text-white/30 font-mono mt-0.5 flex justify-center items-center gap-1">
-                                                <span>{selectedUser.className || '内部席位'}</span>
-                                                <span>·</span>
-                                                <span className="text-blue-400 uppercase">{selectedUser.category} Member</span>
-                                            </p>
-                                        </div>
-
-                                        {/* Trigger action button */}
-                                        <div className="w-full max-w-sm space-y-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => triggerSubmitWithCaptcha('quick')}
-                                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                                            >
-                                                <span>{lang === 'zh' ? '一键快捷安全登录' : 'Quick Secure Access'}</span>
-                                                <ArrowRight size={14} />
-                                            </button>
-
-                                            <div className="flex justify-between items-center text-[10px] text-white/35 px-1">
-                                                <button 
-                                                    onClick={() => setUseAnotherAccount(true)}
-                                                    className="hover:text-white hover:underline transition-all"
-                                                >
-                                                    {lang === 'zh' ? '使用其他用户名登录' : 'Use password login'}
-                                                </button>
-                                                <span>|</span>
-                                                <button 
-                                                    onClick={() => setMode('register')}
-                                                    className="hover:text-white hover:underline transition-all"
-                                                >
-                                                    {lang === 'zh' ? '新成员资料注册' : 'Create new seat'}
-                                                </button>
+                                            {/* LNTU CAS Standard Header */}
+                                            <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-white/10 select-none">
+                                                <div className="w-9 h-9 rounded-full bg-white text-[#b22222] font-black flex items-center justify-center shadow-lg text-sm">L</div>
+                                                <div className="leading-tight">
+                                                    <h3 className="text-[13px] font-extrabold tracking-wider">辽宁工程技术大学 LNTU</h3>
+                                                    <p className="text-[9.5px] text-[#ff8080] font-bold tracking-widest uppercase mt-0.5">CAS 统一身份认证系统</p>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Dropdown list of secondary accounts */}
-                                        {historyUsers.length > 1 && (
-                                            <div className="w-full max-w-sm pt-4 border-t border-white/5 space-y-2">
-                                                <p className="text-[9px] text-white/35 uppercase text-left tracking-wider pl-1 font-mono">切换其他历史已存账户</p>
-                                                <div className="flex gap-2 justify-start overflow-x-auto pb-1 max-w-full">
-                                                    {historyUsers.map((u) => (
-                                                        <div 
-                                                            key={u.username}
-                                                            onClick={() => setSelectedUser(u)}
-                                                            className={`flex items-center gap-2 p-1.5 rounded-lg border cursor-pointer shrink-0 transition-all ${selectedUser.username === u.username ? 'bg-blue-600/15 border-blue-500 text-white' : 'bg-white/[0.01] border-white/5 text-white/50 hover:text-white/80'}`}
+                                            {/* Internal selector links inside left card */}
+                                            <div className="flex gap-4.5 mb-5 border-b border-white/5 pb-2 text-[11px] font-semibold">
+                                                <button onClick={() => { setMode('login'); setAuthMethod('password'); }} className={`pb-1 ${authMethod === 'password' && mode === 'login' ? 'text-red-400 border-b-2 border-red-500 font-black' : 'text-white/40 hover:text-white/75'}`}>账号登录</button>
+                                                <button onClick={() => { setMode('login'); setAuthMethod('email'); }} className={`pb-1 ${authMethod === 'email' && mode === 'login' ? 'text-red-400 border-b-2 border-red-500 font-black' : 'text-white/40 hover:text-white/75'}`}>邮箱密令</button>
+                                                <button onClick={() => { setMode('login'); setAuthMethod('sms'); }} className={`pb-1 ${authMethod === 'sms' && mode === 'login' ? 'text-red-400 border-b-2 border-red-500 font-black' : 'text-white/40 hover:text-white/75'}`}>短信验证</button>
+                                                <button onClick={() => { setMode('register'); setAuthMethod('password'); }} className={`pb-1 ${mode === 'register' ? 'text-red-400 border-b-2 border-red-500 font-black' : 'text-white/40 hover:text-white/75'}`}>成员档案提报</button>
+                                            </div>
+
+                                            {/* Forms views switch inside primary block */}
+                                            {error && (
+                                                <div className="p-3 bg-red-500/10 text-red-300 border border-red-500/15 rounded-xl text-xs mb-4 flex gap-1.5 items-start">
+                                                    <ShieldAlert size={13} className="shrink-0 mt-0.5" />
+                                                    <p className="leading-relaxed">{error}</p>
+                                                </div>
+                                            )}
+
+                                            {/* PASSWORD LOGIN FORM */}
+                                            {mode === 'login' && authMethod === 'password' && (
+                                                <div className="space-y-3.5">
+                                                    <div className="relative">
+                                                        <User size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                        <input 
+                                                            type="text"
+                                                            value={formData.username}
+                                                            onChange={e => setFormData({...formData, username: e.target.value})}
+                                                            placeholder="请输入学号 / 工号"
+                                                            className="w-full bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 pl-11 text-xs focus:bg-white focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/50"
+                                                        />
+                                                    </div>
+                                                    <div className="relative">
+                                                        <Lock size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                        <input 
+                                                            type={isPasswordVisible ? "text" : "password"}
+                                                            value={formData.password}
+                                                            onChange={e => setFormData({...formData, password: e.target.value})}
+                                                            placeholder="请输入登录密码"
+                                                            className="w-full bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 pl-11 text-xs focus:bg-white focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/50"
+                                                        />
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                                         >
-                                                            <img src={u.avatar} className="w-5 h-5 rounded-full" alt="avatar" />
-                                                            <span className="text-[10px] font-medium max-w-[80px] truncate">{u.name.split(' ')[0]}</span>
+                                                            {isPasswordVisible ? <EyeOff size={13} /> : <Eye size={13} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* EMAIL SECURITY FORM */}
+                                            {mode === 'login' && authMethod === 'email' && (
+                                                <div className="space-y-3">
+                                                    <div className="flex gap-2">
+                                                        <input 
+                                                            type="email"
+                                                            value={formData.email}
+                                                            onChange={e => setFormData({...formData, email: e.target.value})}
+                                                            placeholder="注册绑定的电子邮箱 (yourname@domain.com)"
+                                                            className="flex-1 bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 text-xs focus:bg-white focus:outline-none focus:border-red-600"
+                                                        />
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={sendEmailCode}
+                                                            disabled={emailTimer > 0}
+                                                            className="bg-[#1e293b] hover:bg-[#334155] border border-white/5 rounded-lg px-3.5 py-3 text-[11px] font-bold text-white transition-all disabled:opacity-45"
+                                                        >
+                                                            {emailTimer > 0 ? `${emailTimer}s` : '分发验证码'}
+                                                        </button>
+                                                    </div>
+                                                    <input 
+                                                        type="text"
+                                                        value={formData.emailCode}
+                                                        onChange={e => setFormData({...formData, emailCode: e.target.value})}
+                                                        placeholder="验证码 (在顶部模拟邮箱收件箱获取)"
+                                                        className="w-full bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 text-xs focus:bg-white focus:outline-none focus:border-red-600"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* SMS KEY FORM */}
+                                            {mode === 'login' && authMethod === 'sms' && (
+                                                <div className="space-y-3">
+                                                    <div className="flex gap-2">
+                                                        <input 
+                                                            type="text"
+                                                            value={formData.phone}
+                                                            onChange={e => setFormData({...formData, phone: e.target.value})}
+                                                            placeholder="入档备案的手机号码"
+                                                            className="flex-1 bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 text-xs focus:bg-white focus:outline-none focus:border-red-600"
+                                                        />
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={sendSmsCode}
+                                                            disabled={smsTimer > 0}
+                                                            className="bg-[#1e293b] hover:bg-[#334155] border border-white/5 rounded-lg px-3.5 py-3 text-[11px] font-bold text-white transition-all disabled:opacity-45"
+                                                        >
+                                                            {smsTimer > 0 ? `${smsTimer}s` : '发送下发密文'}
+                                                        </button>
+                                                    </div>
+                                                    <input 
+                                                        type="text"
+                                                        value={formData.smsCode}
+                                                        onChange={e => setFormData({...formData, smsCode: e.target.value})}
+                                                        placeholder="请输入收到的手机验证短密文"
+                                                        className="w-full bg-[#ebf1f5] text-slate-900 border border-slate-300 rounded-lg py-3 px-4 text-xs focus:bg-white focus:outline-none focus:border-red-600"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* WECHAT MP QR SCAN COMPONENT */}
+                                            {mode === 'login' && authMethod === 'mp' && (
+                                                <div className="bg-slate-950/45 border border-white/5 p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-3">
+                                                    {isMpLoading ? (
+                                                        <div className="py-6 space-y-2">
+                                                            <Loader2 className="animate-spin text-emerald-400" size={24} />
+                                                            <p className="text-[10px] text-white/40">正在构建加密信道...</p>
+                                                        </div>
+                                                    ) : mpUuid ? (
+                                                        <div className="flex flex-col items-center justify-center space-y-3">
+                                                            <div className="w-32 h-32 bg-white rounded-xl p-1.5 flex items-center justify-center relative overflow-hidden group shadow-lg">
+                                                                <img 
+                                                                    src={qrMode === 'standard' ? wechatService.getQrImageUrl(mpUuid) : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(mpUuid)}`} 
+                                                                    className="w-full h-full object-contain"
+                                                                    alt="WeChat QR Code"
+                                                                    referrerPolicy="no-referrer"
+                                                                />
+                                                                <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-400 opacity-60 animate-bounce pointer-events-none" />
+                                                            </div>
+                                                            <p className="text-[10.5px] font-bold text-emerald-400">微信扫一扫 · 安全极速扫码</p>
                                                             <button 
-                                                                type="button" 
-                                                                onClick={(e) => deleteHistoryUser(e, u.username)}
-                                                                className="text-white/20 hover:text-red-400 p-0.5 rounded transition-colors ml-1"
+                                                                onClick={() => setMockMpClientOpen(!mockMpClientOpen)}
+                                                                className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1"
                                                             >
-                                                                ✕
+                                                                <Smartphone size={11} />
+                                                                <span>{mockMpClientOpen ? '收起微信模拟扫描仪' : '打开虚拟微信客户端(快捷测试)'}</span>
                                                             </button>
                                                         </div>
-                                                    ))}
+                                                    ) : (
+                                                        <div className="py-4">信息信令断开</div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                ) : (
-                                    /* --- 2. PASSWORD LOGIN FORM / APPLICATION SUBMISSIONS --- */
-                                    authMethod === 'password' && (
-                                        <form onSubmit={(e) => { e.preventDefault(); triggerSubmitWithCaptcha(mode === 'login' ? 'login' : 'register'); }} className="space-y-3.5">
-                                            
-                                            {/* Username field */}
-                                            <div>
-                                                <label className="block text-[10px] text-white/40 uppercase tracking-widest pl-1 font-semibold mb-1">
-                                                    {lang === 'zh' ? '账号用户名 (拼音/数字码)' : 'Username credentials'}
-                                                </label>
-                                                <div className="relative">
-                                                    <User size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                    <input 
-                                                        type="text" 
-                                                        required
-                                                        value={formData.username}
-                                                        onChange={e => setFormData({...formData, username: e.target.value})}
-                                                        placeholder={lang === 'zh' ? "如: wangxiaoming" : "E.g. wangxiaoming"}
-                                                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs font-normal outline-none focus:border-blue-500/50 focus:bg-white/[0.04] transition-all"
-                                                    />
+                                            )}
+
+                                            {/* REGISTER MEMBERSHIP FORM */}
+                                            {mode === 'register' && (
+                                                <div className="space-y-2.5 max-h-[200px] overflow-y-auto pr-1">
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input type="text" placeholder="学号/工号 (账号)" value={formData.username} onChange={e=>setFormData({...formData, username:e.target.value})} className="bg-[#ebf1f5] text-slate-900 rounded-lg p-2.5 text-xs focus:bg-white" />
+                                                        <input type="password" placeholder="档案访问密码" value={formData.password} onChange={e=>setFormData({...formData, password:e.target.value})} className="bg-[#ebf1f5] text-slate-900 rounded-lg p-2.5 text-xs focus:bg-white" />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input type="text" placeholder="入伙姓名" value={formData.name} onChange={e=>setFormData({...formData, name:e.target.value})} className="bg-[#ebf1f5] text-slate-900 rounded-lg p-2.5 text-xs focus:bg-white" />
+                                                        <input type="text" placeholder="专业（能源化学、安全、应急）" value={formData.className} onChange={e=>setFormData({...formData, className:e.target.value})} className="bg-[#ebf1f5] text-slate-900 rounded-lg p-2.5 text-xs focus:bg-white" />
+                                                    </div>
+                                                    <input type="email" placeholder="个人注册电子邮箱" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full bg-[#ebf1f5] text-slate-900 rounded-lg p-2.5 text-xs focus:bg-white" />
+                                                    <input type="text" placeholder="科创组加入注册邀请码: XINGHE2026" value={formData.memberCode} onChange={e=>setFormData({...formData, memberCode:e.target.value})} className="w-full bg-[#ebf1f5] border border-orange-300 text-slate-900 rounded-lg p-2.5 text-xs font-bold focus:bg-white" />
                                                 </div>
+                                            )}
+
+                                            {/* Standard CAS Sign In triggering Button config */}
+                                            {authMethod !== 'mp' && (
+                                                <button 
+                                                    onClick={() => triggerSubmitWithCaptcha(mode === 'login' ? 'login' : 'register')}
+                                                    disabled={isLoading}
+                                                    className="w-full bg-[#b22222] hover:bg-[#8e1b1b] disabled:opacity-40 text-white font-extrabold py-3.5 px-6 rounded-lg text-xs mt-4 tracking-[6px] transition-all flex items-center justify-center cursor-pointer shadow-md select-none"
+                                                >
+                                                    {isLoading ? <Loader2 className="animate-spin" size={13} /> : (mode === 'login' ? '登  录' : '提交星河档案并认证')}
+                                                </button>
+                                            )}
+
+                                            <div className="text-[10px] text-white/30 text-center mt-3 select-none">
+                                                登录即代表您已自动阅读并接受星河协会教务验证保密守则条令
                                             </div>
+                                        </div>
 
-                                            {/* Password Field */}
-                                            <div>
-                                                <label className="block text-[10px] text-white/40 uppercase tracking-widest pl-1 font-semibold mb-1">
-                                                    {lang === 'zh' ? '系统访问鉴权密码' : 'Secret password key'}
-                                                </label>
-                                                <div className="relative">
-                                                    <Lock size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                    <input 
-                                                        type={isPasswordVisible ? "text" : "password"} 
-                                                        required
-                                                        value={formData.password}
-                                                        onChange={e => setFormData({...formData, password: e.target.value})}
-                                                        placeholder="••••••••"
-                                                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 pr-10 text-xs outline-none focus:border-blue-500/50 transition-all"
-                                                    />
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60"
-                                                    >
-                                                        {isPasswordVisible ? <EyeOff size={13} /> : <Eye size={13} />}
-                                                    </button>
-                                                </div>
-                                            </div>
+                                        {/* Footer copyright */}
+                                        <div className="text-[10px] text-white/20 text-center mt-4">
+                                            中国·阜新·辽宁工程技术大学 © 统一身份认证
+                                        </div>
+                                    </div>
 
-                                            {/* Extra register profile configuration fields */}
-                                            <AnimatePresence>
-                                                {mode === 'register' && (
-                                                    <motion.div 
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="space-y-3 pt-1 overflow-hidden"
-                                                    >
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">真实姓名</label>
-                                                                <input 
-                                                                    type="text" required
-                                                                    value={formData.name}
-                                                                    onChange={e => setFormData({...formData, name: e.target.value})}
-                                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-2.5 px-3 text-xs outline-none focus:border-blue-500/50"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">专业班级</label>
-                                                                <input 
-                                                                    type="text" required
-                                                                    value={formData.className}
-                                                                    onChange={e => setFormData({...formData, className: e.target.value})}
-                                                                    placeholder="安全23-2"
-                                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-2.5 px-3 text-xs outline-none focus:border-blue-500/50"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">电子邮箱 (QQ/163/Gmail)</label>
-                                                            <input 
-                                                                type="email" required
-                                                                value={formData.email}
-                                                                onChange={e => setFormData({...formData, email: e.target.value})}
-                                                                placeholder="yourname@domain.com"
-                                                                className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-2.5 px-3 text-xs outline-none focus:border-blue-500/50"
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="block text-[9px] text-white/40 uppercase tracking-wider mb-1 pl-1">一句话简介</label>
-                                                            <input 
-                                                                type="text"
-                                                                value={formData.intro}
-                                                                onChange={e => setFormData({...formData, intro: e.target.value})}
-                                                                placeholder="日常科创分工或负责模块"
-                                                                className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-2.5 px-3 text-xs outline-none focus:border-blue-500/50"
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <div className="flex justify-between items-center pl-1 mb-1">
-                                                                <label className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">内部加入邀请码 (Secure Token)</label>
-                                                                <button 
-                                                                    type="button" 
-                                                                    onClick={() => setFormData({...formData, memberCode: 'XINGHE2026'})}
-                                                                    className="text-[8px] text-blue-400 hover:underline"
-                                                                >
-                                                                    点此自动填入默认测试码
-                                                                </button>
-                                                            </div>
-                                                            <input 
-                                                                type="text" required
-                                                                value={formData.memberCode}
-                                                                onChange={e => setFormData({...formData, memberCode: e.target.value})}
-                                                                placeholder="XINGHE2026"
-                                                                className="w-full bg-[#faaf00]/[0.02] border border-amber-500/20 text-[#ffb000] rounded-xl py-2.5 px-3 text-xs outline-none font-bold placeholder:text-white/10 placeholder:font-normal focus:border-amber-500"
-                                                            />
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-
-                                            {/* Form Button */}
+                                    {/* Right vertical other authentication selector Column */}
+                                    <div className="w-[42%] bg-white/5 p-8 flex flex-col justify-center items-center text-center space-y-6 relative border-l border-white/5 select-none text-white">
+                                        <div className="text-[11px] font-bold tracking-widest text-[#a5b4fc] uppercase opacity-75">
+                                            其他认证授权通道
+                                        </div>
+                                        
+                                        <div className="flex flex-col items-center gap-2">
                                             <button 
-                                                type="submit"
-                                                disabled={isLoading}
-                                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-xs font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all outline-none mt-4 cursor-pointer"
+                                                onClick={() => { setMode('login'); setAuthMethod('mp'); }}
+                                                className="w-16 h-16 rounded-full bg-[#07c160] hover:scale-105 active:scale-95 cursor-pointer transition-transform flex items-center justify-center shadow-lg shadow-emerald-500/15"
+                                                title="WeChat Scan Authentication"
                                             >
-                                                {isLoading ? <Loader2 className="animate-spin text-white" size={14} /> : (
-                                                    <>
-                                                        <span>{mode === 'login' ? '安全鉴权登录' : '提交星河档案并注册'}</span>
-                                                        <ArrowRight size={13} />
-                                                    </>
-                                                )}
+                                                <Check className="text-white shrink-0 font-bold" size={24} />
                                             </button>
-
-                                            {/* Link switcher links */}
-                                            <div className="flex gap-2 justify-between items-center text-[10px] text-white/35 pt-1 px-1">
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); }}
-                                                    className="hover:text-white hover:underline transition-all"
-                                                >
-                                                    {mode === 'login' ? '没有账户？即刻申请新席位加入 ✨' : '已有星河活跃席位？立即直接登录 🔑'}
-                                                </button>
-                                                {historyUsers.length > 0 && mode === 'login' && (
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => setUseAnotherAccount(false)}
-                                                        className="text-blue-400 hover:underline hover:text-blue-300"
-                                                    >
-                                                        返回快捷登录
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </form>
-                                    )
-                                )}
-
-                                {/* --- 3. SMS PHONE MODULE --- */}
-                                {mode === 'login' && authMethod === 'sms' && (
-                                    <form onSubmit={(e) => { e.preventDefault(); triggerSubmitWithCaptcha('sms'); }} className="space-y-4">
-                                        <div>
-                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
-                                                11位手机号码 (SIM Hardware Verify)
-                                            </label>
-                                            <div className="relative">
-                                                <Smartphone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                <input 
-                                                    type="tel" required
-                                                    value={formData.phone}
-                                                    onChange={e => setFormData({...formData, phone: e.target.value})}
-                                                    placeholder="13800138000"
-                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 pr-24 text-xs outline-none focus:border-blue-500/50 focus:bg-white/[0.04] transition-all"
-                                                />
-                                                <button 
-                                                    type="button"
-                                                    disabled={smsTimer > 0}
-                                                    onClick={triggerSendSMS}
-                                                    className="absolute right-2 top-1.5 bottom-1.5 px-3 rounded-lg text-[10px] max-w-[120px] font-bold bg-blue-600 text-white disabled:bg-white/10 disabled:text-white/30 transition-all select-none hover:bg-blue-500 cursor-pointer"
-                                                >
-                                                    {smsTimer > 0 ? `${smsTimer}s` : '获取验证码'}
-                                                </button>
-                                            </div>
+                                            <span className="text-xs font-semibold text-white/70">统一身份微信扫一扫</span>
                                         </div>
 
-                                        {/* Verification Code */}
-                                        <div>
-                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
-                                                手机短信验证码
-                                            </label>
-                                            <div className="relative">
-                                                <Lock size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                <input 
-                                                    type="text" required
-                                                    value={formData.smsCode}
-                                                    onChange={e => setFormData({...formData, smsCode: e.target.value})}
-                                                    placeholder="输入6位短信验证码"
-                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 text-xs outline-none focus:border-blue-500/50 focus:bg-white/[0.04] transition-all"
-                                                />
-                                            </div>
+                                        <p className="text-[10px] text-white/35 leading-relaxed max-w-[200px] select-none">
+                                            亦可点击顶端页签一键返回主应用，或通过左侧切换验证码和档案录入机制。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* RESPONSIVE LAYOUT MOBILE GATE (Matches Screenshot 1 style perfectly) */}
+                            <div className="flex md:hidden relative w-full h-full bg-[#fcfdfe] text-slate-800 flex-col justify-between p-6 overflow-y-auto select-none font-sans">
+                                
+                                {/* Absolute floating active WeChat notifications Toast */}
+                                <div className="absolute top-4 inset-x-4 bg-[#f8f9fa] border border-slate-200 shadow-xl rounded-2xl p-3 flex items-center justify-between z-30 animate-bounce">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full bg-[#07c160] flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold font-mono">W</span>
                                         </div>
-
-                                        <button 
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                                        >
-                                            {isLoading ? <Loader2 className="animate-spin" size={14} /> : (
-                                                <>
-                                                    <span>短信快捷登录</span>
-                                                    <ArrowRight size={13} />
-                                                </>
-                                            )}
-                                        </button>
-                                    </form>
-                                )}
-
-                                {/* --- 4. EMAIL MODULE --- */}
-                                {mode === 'login' && authMethod === 'email' && (
-                                    <form onSubmit={(e) => { e.preventDefault(); triggerSubmitWithCaptcha('email'); }} className="space-y-4">
-                                        <div>
-                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
-                                                验证码接收邮箱 (QQ/163/Gmail etc.)
-                                            </label>
-                                            <div className="relative">
-                                                <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                <input 
-                                                    type="email" required
-                                                    value={formData.email}
-                                                    onChange={e => setFormData({...formData, email: e.target.value})}
-                                                    placeholder="yourname@domain.com"
-                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 pr-26 text-xs outline-none focus:border-amber-500/50 focus:bg-white/[0.04] transition-all"
-                                                />
-                                                <button 
-                                                    type="button"
-                                                    disabled={emailTimer > 0 || isLoading}
-                                                    onClick={triggerSendEmail}
-                                                    className="absolute right-2 top-1.5 bottom-1.5 px-3 rounded-lg text-[10px] max-w-[125px] font-bold bg-amber-500 text-black disabled:bg-white/10 disabled:text-white/30 transition-all select-none hover:bg-amber-400 cursor-pointer"
-                                                >
-                                                    {emailTimer > 0 ? `${emailTimer}s` : '获取验证码'}
-                                                </button>
-                                            </div>
+                                        <div className="leading-tight">
+                                            <h4 className="text-[11px] font-bold text-slate-900">毕业晚会话剧 // 微信提示</h4>
+                                            <p className="text-[10px] text-slate-500">软件 25-8 王一冰 : 1</p>
                                         </div>
+                                    </div>
+                                    <span className="text-xs text-slate-300">✕</span>
+                                </div>
 
-                                        {/* Verification Code */}
-                                        <div>
-                                            <label className="block text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-1 pl-1">
-                                                邮箱安全验证码
-                                            </label>
-                                            <div className="relative">
-                                                <Lock size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
-                                                <input 
-                                                    type="text" required
-                                                    value={formData.emailCode}
-                                                    onChange={e => setFormData({...formData, emailCode: e.target.value})}
-                                                    placeholder="输入6位数字动态密码验证码"
-                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-10 text-xs outline-none focus:border-amber-500/50 focus:bg-white/[0.04] transition-all"
-                                                />
-                                            </div>
+                                {/* Main Mobile content */}
+                                <div className="my-auto pt-14 space-y-7">
+                                    {/* Red circular center logo */}
+                                    <div className="text-center space-y-2.5 select-none">
+                                        <div className="w-14 h-14 bg-[#b22222] text-white rounded-full flex items-center justify-center font-black mx-auto shadow-md scale-102">
+                                            LNTU
                                         </div>
+                                        <h2 className="text-lg font-black text-slate-900 tracking-wide">辽宁工程技术大学</h2>
+                                        <p className="text-[10px] text-[#b22222] font-black uppercase tracking-widest mt-0.5 leading-none">CAS Unified Authentication</p>
+                                    </div>
 
-                                        <button 
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                                        >
-                                            {isLoading ? <Loader2 className="animate-spin text-black" size={14} /> : (
-                                                <>
-                                                    <span>邮箱安全验证登录</span>
-                                                    <ArrowRight size={13} />
-                                                </>
-                                            )}
-                                        </button>
-                                    </form>
-                                )}
+                                    {/* Mobile error layout */}
+                                    {error && (
+                                        <div className="p-3.5 bg-red-50 text-red-700 border border-red-100 rounded-xl text-xs space-y-1">
+                                            <p className="font-bold">⚠️ 提示:</p>
+                                            <p className="opacity-90">{error}</p>
+                                        </div>
+                                    )}
 
-                                {/* --- 5. WECHAT MINI PROGRAM (MP) SCAN BRIDGE SECTION --- */}
-                                {mode === 'login' && authMethod === 'mp' && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="space-y-4 flex flex-col items-center justify-center text-center py-2 text-white"
+                                    {/* Mobile input fields */}
+                                    {mode === 'login' ? (
+                                        <div className="space-y-4">
+                                            <input 
+                                                type="text"
+                                                value={formData.username}
+                                                onChange={e=>setFormData({...formData, username: e.target.value})}
+                                                placeholder="请输入学号/工号"
+                                                className="w-full bg-[#f4f7f9] border border-slate-200 rounded-xl py-3.5 px-4 text-xs font-semibold focus:bg-white focus:outline-none focus:border-[#3182f6] transition-all"
+                                            />
+                                            <input 
+                                                type="password"
+                                                value={formData.password}
+                                                onChange={e=>setFormData({...formData, password: e.target.value})}
+                                                placeholder="请输入密码"
+                                                className="w-full bg-[#f4f7f9] border border-slate-200 rounded-xl py-3.5 px-4 text-xs font-semibold focus:bg-white focus:outline-none focus:border-[#3182f6] transition-all"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="bg-[#f4f7f9] p-4 rounded-2xl border border-slate-100 space-y-2 max-h-[160px] overflow-y-auto">
+                                            <input type="text" placeholder="学号" value={formData.username} onChange={e=>setFormData({...formData, username:e.target.value})} className="w-full bg-white p-2 border border-slate-150 rounded text-xs" />
+                                            <input type="password" placeholder="密码" value={formData.password} onChange={e=>setFormData({...formData, password:e.target.value})} className="w-full bg-white p-2 border border-slate-150 rounded text-xs" />
+                                            <input type="text" placeholder="内部邀请码: XINGHE2026" value={formData.memberCode} onChange={e=>setFormData({...formData, memberCode:e.target.value})} className="w-full bg-white border border-blue-400 p-2 rounded text-xs font-bold" />
+                                        </div>
+                                    )}
+
+                                    {/* Action button in sky blue color matching mobile screenshot */}
+                                    <button 
+                                        onClick={() => triggerSubmitWithCaptcha(mode === 'login' ? 'login' : 'register')}
+                                        disabled={isLoading}
+                                        className="w-full bg-[#3182f6] hover:bg-blue-600 active:scale-95 text-white font-extrabold tracking-widest text-xs py-3.5 rounded-xl shadow-md shadow-blue-500/10 cursor-pointer transition-all duration-150 flex items-center justify-center"
                                     >
-                                        <div className="relative p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center w-56 h-56 group overflow-hidden">
-                                            {/* Accent rotating glows */}
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-blue-500/10 opacity-30 animate-spin-slow pointer-events-none" />
-                                            
-                                            {isMpLoading ? (
-                                                <div className="space-y-2">
-                                                    <Loader2 className="animate-spin text-emerald-400 mx-auto" size={32} />
-                                                    <p className="text-[10px] text-white/40">正在建立星河安全网关通道...</p>
-                                                </div>
-                                            ) : mpUuid ? (
-                                                <div className="relative z-10 flex flex-col items-center justify-center">
-                                                     {/* Real, beautiful, scannable QR Code */}
-                                                     <div className="relative w-36 h-36 p-1.5 bg-white rounded-xl shadow-lg border-2 border-emerald-500 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
-                                                         <img 
-                                                             src={
-                                                                 qrMode === 'standard' 
-                                                                     ? wechatService.getQrImageUrl(mpUuid)
-                                                                     : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(mpUuid)}`
-                                                             } 
-                                                             className="w-full h-full object-contain select-none" 
-                                                             alt="WeChat Real Auth QR Code"
-                                                             referrerPolicy="no-referrer"
-                                                         />
-                                                         
-                                                         {/* Laser effect */}
-                                                         <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-400 opacity-60 animate-bounce pointer-events-none" />
-                                                     </div>
-                                                     
-                                                     {/* Multi-mode switches */}
-                                                     <div className="mt-3 flex flex-col items-center gap-1 justify-center">
-                                                         <div className="flex items-center gap-1.5">
-                                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                             <p className="text-[10px] font-mono text-emerald-400 font-bold tracking-wider">SECURE SHIELD LINK ACTIVE</p>
-                                                         </div>
-                                                         
-                                                         <div className="flex bg-black/40 rounded-full p-0.5 border border-white/5 mt-1.5">
-                                                             <button
-                                                                 type="button"
-                                                                 onClick={() => setQrMode('standard')}
-                                                                 className={`px-2.5 py-0.5 text-[8px] rounded-full transition-all cursor-pointer ${qrMode === 'standard' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/50 hover:text-white'}`}
-                                                             >
-                                                                 微信直扫 (普通)
-                                                             </button>
-                                                             <button
-                                                                 type="button"
-                                                                 onClick={() => setQrMode('raw')}
-                                                                 className={`px-2.5 py-0.5 text-[8px] rounded-full transition-all cursor-pointer ${qrMode === 'raw' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/50 hover:text-white'}`}
-                                                             >
-                                                                 小程序专扫 (开发)
-                                                             </button>
-                                                         </div>
-                                                     </div>
-                                                     
-                                                     {/* Raw representation + quick copy */}
-                                                     <div className="mt-2 flex items-center justify-center gap-1.5">
-                                                         <p className="text-[9px] text-white/40 uppercase font-mono tracking-widest">{mpUuid}</p>
-                                                         <button
-                                                             type="button"
-                                                             onClick={() => {
-                                                                 navigator.clipboard.writeText(mpUuid);
-                                                                 alert('会话 UUID 已成功复制到剪贴板，您可以在微信开发者工具中自由粘贴、进行 scene 参数调试！');
-                                                             }}
-                                                             className="text-[9px] bg-white/10 hover:bg-white/20 px-1.5 py-0.5 rounded text-white/60 hover:text-white cursor-pointer active:scale-95 transition-all font-mono"
-                                                             title="复制会话 UUID 用于开发者工具模拟调试"
-                                                         >
-                                                             COPY
-                                                         </button>
-                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    <ShieldAlert size={28} className="text-red-400 mx-auto" />
-                                                    <p className="text-xs text-red-400">会话生成失败</p>
-                                                    <button 
-                                                        onClick={() => setAuthMethod('mp')}
-                                                        className="text-[10px] bg-white/5 border border-white/10 px-3 py-1 rounded text-white text-xs cursor-pointer"
-                                                    >
-                                                        重试连接
-                                                    </button>
-                                                </div>
-                                            )}
+                                        {isLoading ? <Loader2 className="animate-spin text-white" size={13} /> : '登   录'}
+                                    </button>
+
+                                    {/* Toggles */}
+                                    <div className="flex justify-between items-center text-[10.5px] text-blue-500 font-bold px-1 select-none">
+                                        <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); }} className="hover:underline">
+                                            {mode === 'login' ? '首次登录：注册激活' : '返回常规登录'}
+                                        </button>
+                                        <button onClick={() => { setBrowserView('portal'); setBrowserUrlField('jwzx.lntu.edu.cn/'); }} className="hover:underline flex items-center gap-0.5">
+                                            <span>星河教务门户</span>
+                                            <ArrowRight size={10} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Footer copyright mobile */}
+                                <div className="text-[10px] text-slate-400 text-center select-none pt-4">
+                                    中国·辽宁工程技术大学 统一身份安全中心
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Simulated floating wechat applet emulator screen component */}
+                <AnimatePresence>
+                    {mockMpClientOpen && mpUuid && (
+                        <div className="fixed inset-y-12 right-6 w-80 z-45 bg-[#080b18] border-2 border-emerald-500 rounded-[30px] p-3 flex flex-col justify-between shadow-2xl overflow-hidden text-white font-mono scale-95" style={{ outline: '10px solid #1a1d2e' }}>
+                            <div className="flex justify-between items-center select-none border-b border-white/5 pb-2.5 mb-2 text-[10.5px] text-emerald-400 font-bold">
+                                <span>星河手机模拟微信端 v2</span>
+                                <button onClick={() => setMockMpClientOpen(false)} className="text-white/40 hover:text-white">✕</button>
+                            </div>
+                            <div className="space-y-4 flex-1 flex flex-col justify-between pt-1">
+                                <div className="text-center space-y-1 py-1.5 bg-[#0e1227] rounded-xl border border-white/5">
+                                    <Sparkles size={16} className="text-emerald-400 mx-auto animate-pulse" />
+                                    <h5 className="text-[10px] font-black">统一安全二维码桥接鉴权</h5>
+                                    <p className="text-[8px] text-white/30 truncate">ID: {mpUuid}</p>
+                                </div>
+
+                                <div className="space-y-2 text-[9px]">
+                                    <p className="font-bold text-slate-300">快速虚拟登录身份 :</p>
+                                    <div className="grid grid-cols-2 gap-1.5 leading-none">
+                                        <div onClick={() => { setSimulatedOpenid('openid_lupeng'); setSimulatedNickname('陆鹏'); }} className={`p-2 border rounded-xl cursor-pointer ${simulatedOpenid === 'openid_lupeng' ? 'bg-emerald-500/10 border-emerald-500' : 'border-white/5 hover:bg-white/5'}`}>
+                                            <p className="font-bold">陆鹏 (组长)</p>
+                                            <span className="text-[7.5px] text-white/30">安全23-2</span>
                                         </div>
-
-                                        <div className="max-w-sm">
-                                            <p className="text-[11px] font-semibold text-white/80">使用微信扫一扫 · 安全免签登录</p>
-                                            <p className="text-[10px] text-white/40 mt-1 leading-relaxed">
-                                                无需关注公众号，无需ICP备案！网页端动态桥接微信小程序，安全确认极速登录授权。
-                                            </p>
+                                        <div onClick={() => { setSimulatedOpenid('openid_wangax'); setSimulatedNickname('王傲星'); }} className={`p-2 border rounded-xl cursor-pointer ${simulatedOpenid === 'openid_wangax' ? 'bg-emerald-500/10 border-emerald-500' : 'border-white/5 hover:bg-white/5'}`}>
+                                            <p className="font-bold">王傲星 (运维)</p>
+                                            <span className="text-[7.5px] text-white/30">信安24-1</span>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {/* Simulation console button */}
-                                        {mpUuid && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setMockMpClientOpen(!mockMpClientOpen)}
-                                                className="mt-1 text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
-                                            >
-                                                <Smartphone size={12} />
-                                                {mockMpClientOpen ? '隐藏模拟微信小程序网关手机' : '打开模拟微信小程序验证授权（极速测试）'}
-                                            </button>
-                                        )}
+                                <button 
+                                    onClick={async () => {
+                                        try {
+                                            setIsLoading(true);
+                                            await wechatService.authorizeMp(mpUuid, simulatedOpenid, simulatedNickname);
+                                            setMockMpClientOpen(false);
+                                        } catch (_) {
+                                            setError('模拟小程序授权中断。');
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+                                    }}
+                                    disabled={isLoading}
+                                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-2.5 rounded-xl text-[10px] cursor-pointer text-center tracking-wider transition-all"
+                                >
+                                    一键进行微信扫码确认授权
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
 
-                                        {/* Mock Floating Cellphone Simulated Applet Interface */}
-                                        <AnimatePresence>
-                                            {mockMpClientOpen && mpUuid && (
-                                                <motion.div 
-                                                    initial={{ opacity: 0, scale: 0.95 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    exit={{ opacity: 0, scale: 0.95 }}
-                                                    className="w-full max-w-xs bg-[#0b0f19] border border-emerald-500/30 rounded-2xl p-4 text-left space-y-3 relative shadow-[0_20px_50px_rgba(0,0,0,0.8)] mt-3 overflow-hidden text-white"
-                                                >
-                                                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600" />
-                                                    <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                                            <span className="text-[10px] font-mono text-emerald-400 font-bold tracking-tight">星河独立网关 · 微信安全端</span>
-                                                        </div>
-                                                        <span className="text-[9px] font-mono text-white/30">Sandbox 2.1-X</span>
-                                                    </div>
+            {/* ==================================================== */}
+            {/* OVERLAYS: Standalone Drag Sliding Captcha Shield      */}
+            {/* ==================================================== */}
+            <AnimatePresence>
+                {isPuzzleOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1100] bg-[#060813]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+                    >
+                        <div className={`w-80 bg-[#0c0f1d] border border-white/10 rounded-2xl p-4 shadow-2xl relative ${puzzleError ? 'animate-shake' : ''}`}>
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">
+                                    <CheckCircle2 className="text-blue-400" size={13} />
+                                    <span>星河安全盾 · 人机校验</span>
+                                </span>
+                                <button 
+                                    onClick={() => { setIsPuzzleOpen(false); setPuzzleX(0); setPuzzleError(false); }}
+                                    className="text-white/40 hover:text-white p-1 rounded-full hover:bg-white/5"
+                                >
+                                    ✕
+                                </button>
+                            </div>
 
-                                                    <div className="space-y-2 text-[11px] text-white/70">
-                                                        <p className="leading-relaxed">
-                                                            模拟微信客户端在手机微信扫码后拉起关联小程序的“一键确认授权”操作场景。
-                                                        </p>
+                            <div className="h-32 bg-gradient-to-br from-[#121932] via-[#0b0f22] to-[#161c36] rounded-xl relative overflow-hidden flex items-center justify-center border border-white/5">
+                                <div className="absolute inset-[24px] bg-indigo-500/10 filter blur-xl" />
+                                <div className="absolute top-4 left-6 w-1 h-1 rounded-full bg-white/40 animate-ping" />
+                                <div className="absolute bottom-6 right-16 w-1 h-1 rounded-full bg-blue-400/40" />
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:14px_14px]" />
 
-                                                        <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-lg space-y-2.5 text-xs">
-                                                            <div>
-                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
-                                                                    微信唯一标识 ID (OpenID)
-                                                                </label>
-                                                                <input 
-                                                                    type="text"
-                                                                    value={simulatedOpenid}
-                                                                    onChange={e => setSimulatedOpenid(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] font-mono text-emerald-400 outline-none"
-                                                                    placeholder="mp_openid_xyz"
-                                                                />
-                                                            </div>
+                                <div 
+                                    style={{ left: `${targetPuzzleX}px` }}
+                                    className="absolute w-10 h-10 border border-emerald-500/50 bg-emerald-500/25 rounded-xl flex items-center justify-center shadow-[inset_0_0_10px_rgba(16,185,129,0.3)] z-10 transition-all"
+                                >
+                                    <Lock size={12} className="text-emerald-400 animate-pulse" />
+                                </div>
 
-                                                            <div>
-                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
-                                                                    微信授权昵称 (Nickname)
-                                                                </label>
-                                                                <input 
-                                                                    type="text"
-                                                                    value={simulatedNickname}
-                                                                    onChange={e => setSimulatedNickname(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] text-white outline-none"
-                                                                    placeholder="微信小助手"
-                                                                />
-                                                            </div>
+                                <div 
+                                    style={{ left: `${puzzleX}px` }}
+                                    className="absolute w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20 transition-transform z-20"
+                                >
+                                    <Sparkles size={14} className="text-white" />
+                                </div>
 
-                                                            <div>
-                                                                <label className="block text-[9px] text-white/40 uppercase tracking-widest pl-1 mb-1">
-                                                                    绑定/登录主邮箱 (模拟原账户一键桥接)
-                                                                </label>
-                                                                <input 
-                                                                    type="email"
-                                                                    value={simulatedEmail}
-                                                                    onChange={e => setSimulatedEmail(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-md p-1 px-2 text-[10px] text-white outline-none"
-                                                                    placeholder="留空即根据 OpenID 建立新账号"
-                                                                />
-                                                                <p className="text-[8px] text-white/30 mt-0.5 pl-1">若邮箱已存在，此微信扫码登录将直接激活该卡片通道！</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={async () => {
-                                                            try {
-                                                                setIsLoading(true);
-                                                                setError(null);
-                                                                await wechatService.authorizeMp(
-                                                                    mpUuid,
-                                                                    simulatedOpenid,
-                                                                    simulatedNickname,
-                                                                    simulatedEmail || undefined
-                                                                );
-                                                                setMockMpClientOpen(false);
-                                                            } catch (err: any) {
-                                                                setError(err.message || '模拟小程序网关一键授权失效');
-                                                            } finally {
-                                                                setIsLoading(false);
-                                                            }
-                                                        }}
-                                                        disabled={isLoading}
-                                                        className="w-full bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black py-1.5 rounded-xl font-bold text-[11px] flex justify-center items-center gap-1.5 transition-all shadow-md shadow-emerald-500/10 cursor-pointer"
-                                                    >
-                                                        {isLoading ? <Loader2 className="animate-spin text-black" size={13} /> : (
-                                                            <>
-                                                                <CheckCircle2 size={13} />
-                                                                <span>一键确认扫码授权同步登录</span>
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.div>
+                                {puzzleSuccess && (
+                                    <div className="absolute inset-0 bg-emerald-500/95 flex flex-col items-center justify-center z-30">
+                                        <CheckCircle2 size={32} className="text-white animate-bounce" />
+                                        <p className="text-xs font-bold text-white mt-1">校验通过 (Passed)</p>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* ==================== FOOTER AGREEMENTS ==================== */}
-                            {mode === 'login' && (
-                                <div className="mt-6 pt-4 border-t border-white/5">
-                                    {/* Checklist compliance block */}
-                                    <motion.div 
-                                        animate={shakeAgreement ? { x: [-6, 6, -6, 6, 0] } : {}}
-                                        transition={{ duration: 0.4 }}
-                                        className="flex gap-2.5 items-start text-[10px]"
-                                    >
-                                        <input 
-                                            type="checkbox"
-                                            id="agree_box"
-                                            checked={isAgreementChecked}
-                                            onChange={(e) => setIsAgreementChecked(e.target.checked)}
-                                            className={`mt-0.5 rounded border-white/25 bg-white/[0.04] text-blue-500 focus:ring-0 cursor-pointer w-3.5 h-3.5 transition-all ${!isAgreementChecked && shakeAgreement ? 'outline outline-1 outline-red-500' : ''}`}
-                                        />
-                                        <label htmlFor="agree_box" className="text-white/40 leading-relaxed hover:text-white/60 transition-colors cursor-pointer select-none">
-                                            我已认真阅读并同意 
-                                            <button type="button" onClick={() => setShowTermsOverlay('service')} className="text-blue-400 hover:underline mx-0.5 font-bold">《星河网关系统使用守则》</button> 
-                                            与 
-                                            <button type="button" onClick={() => setShowTermsOverlay('privacy')} className="text-blue-400 hover:underline mx-0.5 font-bold">《自主安全防泄密承诺书》</button>
-                                        </label>
-                                    </motion.div>
+                            <div className="mt-4 relative h-8 bg-white/[0.03] border border-white/5 rounded-full flex items-center select-none overflow-hidden">
+                                <div 
+                                    style={{ width: `${puzzleX + 20}px` }}
+                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-600/20 to-indigo-500/30 border-r border-indigo-500/40"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-[9px] text-white/30 tracking-wider">👉 向右滑动滑块完成对齐拼图</span>
                                 </div>
-                            )}
 
+                                <div 
+                                    onMouseDown={handlePuzzleStart}
+                                    onTouchStart={handlePuzzleStart}
+                                    style={{ left: `${puzzleX}px` }}
+                                    className="absolute top-0 bottom-0 w-12 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full border border-white/25 flex items-center justify-center cursor-ew-resize shadow-md hover:from-blue-400 hover:to-indigo-500 active:scale-95 transition-transform z-30"
+                                >
+                                    <ArrowRight size={14} className="text-white" />
+                                </div>
+                            </div>
+
+                            <div className="mt-3 flex justify-between items-center text-[10px] pl-1 font-mono">
+                                <span className={puzzleError ? 'text-red-400 font-bold' : 'text-white/30'}>
+                                    {puzzleError ? '坐标偏差过大，请对准拼图' : '星河防网络嗅探安全守护盾'}
+                                </span>
+                                <button 
+                                    onClick={() => { setPuzzleX(0); setPuzzleError(false); }}
+                                    className="hover:text-white flex items-center gap-1 hover:bg-white/5 px-2 py-0.5 rounded transition-all text-white/40"
+                                >
+                                    <RefreshCw size={9} />
+                                    <span>Reset</span>
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
+                )}
+            </AnimatePresence>
 
-                    {/* ==================================================== */}
-                    {/* OVERLAYS: Gorgeous SMS Simulated Notifications Banner */}
-                    {/* ==================================================== */}
-                    <AnimatePresence>
-                        {mockSmsBanner && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -60, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -40 }}
-                                className="fixed top-6 left-1/2 -translate-x-1/2 z-[1100] w-full max-w-md bg-slate-900/95 border border-blue-500/30 text-white rounded-2xl p-4 shadow-2xl backdrop-blur-md"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                                            <Smartphone size={16} className="text-blue-400" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                                                <span>智能模拟手机短信网关</span>
-                                                <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.2 rounded uppercase">VIRTUAL SMS</span>
-                                            </h4>
-                                            <p className="text-[11px] text-white/70 leading-relaxed mt-1">{mockSmsBanner.message}</p>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => setMockSmsBanner(null)}
-                                        className="text-white/40 hover:text-white pb-1"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                                <div className="mt-3 flex gap-2 justify-end">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => {
-                                            setFormData(prev => ({ ...prev, smsCode: mockSmsBanner.code }));
-                                            setMockSmsBanner(null);
-                                        }}
-                                        className="bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-bold py-1 px-3 rounded"
-                                    >
-                                        一键自动复制并填充 (Fill Input)
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                        {mockEmailBanner && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -60, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -40 }}
-                                className="fixed top-6 left-1/2 -translate-x-1/2 z-[1100] w-full max-w-md bg-slate-900/95 border border-amber-500/30 text-white rounded-2xl p-4 shadow-2xl backdrop-blur-md"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                                            <Mail size={16} className="text-amber-400" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                                                <span>智能模拟安全邮箱网关</span>
-                                                <span className="text-[8px] bg-amber-500/20 text-amber-500 px-1.5 py-0.2 rounded uppercase">VIRTUAL MAIL</span>
-                                            </h4>
-                                            <p className="text-[11px] text-white/70 leading-relaxed mt-1">{mockEmailBanner.message}</p>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => setMockEmailBanner(null)}
-                                        className="text-white/40 hover:text-white pb-1"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                                <div className="mt-3 flex gap-2 justify-end">
-                                    <button 
-                                        type="button"
-                                        onClick={() => {
-                                            setFormData(prev => ({ ...prev, emailCode: mockEmailBanner.code }));
-                                            setMockEmailBanner(null);
-                                        }}
-                                        className="bg-amber-500 hover:bg-amber-600 text-black text-[9px] font-black py-1 px-3 rounded transition-all"
-                                    >
-                                        一键自动复制并填充 (Fill Input)
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+            {/* Virtual Simulated Email alerts notification toast */}
+            <AnimatePresence>
+                {mockEmailBanner && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -65 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-[1100] w-full max-w-sm bg-slate-900 border border-indigo-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between text-white text-xs gap-3"
+                    >
+                        <div className="flex gap-2.5 items-start">
+                            <Mail size={16} className="text-blue-400 mt-0.5 shrink-0" />
+                            <div>
+                                <h4 className="font-bold flex items-center gap-1.5">
+                                    <span>智慧校园邮箱收件箱</span>
+                                    <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.2 rounded font-mono uppercase">VIRTUAL INBOX</span>
+                                </h4>
+                                <p className="text-white/70 leading-relaxed mt-1 text-[11px] select-text">{mockEmailBanner.message}</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                setFormData(prev => ({ ...prev, emailCode: mockEmailBanner.code }));
+                                setMockEmailBanner(null);
+                            }}
+                            className="w-full bg-blue-600 hover:bg-blue-500 font-bold py-1.5 rounded transition-all text-[10.5px] cursor-pointer active:scale-98"
+                        >
+                            一键复制并自动填入邮箱验证码
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    {/* ==================================================== */}
-                    {/* OVERLAYS: Standalone Drag Sliding Captcha Shield      */}
-                    {/* ==================================================== */}
-                    <AnimatePresence>
-                        {isPuzzleOpen && (
-                            <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 z-50 bg-[#060813]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
-                            >
-                                <div className={`w-80 bg-[#0c0f1d] border border-white/10 rounded-2xl p-4 shadow-2xl relative ${puzzleError ? 'animate-shake' : ''}`}>
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">
-                                            <CheckCircle2 className="text-blue-400" size={13} />
-                                            <span>星河安全盾 · 滑块人机校验</span>
-                                        </span>
-                                        <button 
-                                            onClick={() => { setIsPuzzleOpen(false); setPuzzleX(0); setPuzzleError(false); }}
-                                            className="text-white/40 hover:text-white p-1 rounded-full hover:bg-white/5"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-
-                                    {/* Starry Galaxy gradient canvas simulation */}
-                                    <div className="h-32 bg-gradient-to-br from-[#121932] via-[#0b0f22] to-[#161c36] rounded-xl relative overflow-hidden flex items-center justify-center border border-white/5">
-                                        {/* Radiant graphics */}
-                                        <div className="absolute inset-[24px] bg-indigo-500/10 filter blur-xl" />
-                                        <div className="absolute top-4 left-6 w-1 h-1 rounded-full bg-white/40 animate-ping" />
-                                        <div className="absolute bottom-6 right-16 w-1 h-1 rounded-full bg-blue-400/40" />
-                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:14px_14px]" />
-
-                                        {/* Target Outlined socket shape hole */}
-                                        <div 
-                                            style={{ left: `${targetPuzzleX}px` }}
-                                            className="absolute w-10 h-10 border border-emerald-500/50 bg-emerald-500/25 rounded-xl flex items-center justify-center shadow-[inset_0_0_10px_rgba(16,185,129,0.3)] z-10 transition-all"
-                                        >
-                                            <Lock size={12} className="text-emerald-400 animate-pulse" />
-                                        </div>
-
-                                        {/* Movable draggable slider piece block */}
-                                        <div 
-                                            style={{ left: `${puzzleX}px` }}
-                                            className="absolute w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20 transition-transform z-20"
-                                        >
-                                            <Sparkles size={14} className="text-white" />
-                                        </div>
-
-                                        {/* Dynamic Success overlay */}
-                                        {puzzleSuccess && (
-                                            <div className="absolute inset-0 bg-emerald-500/90 flex flex-col items-center justify-center z-30">
-                                                <CheckCircle2 size={32} className="text-white animate-bounce" />
-                                                <p className="text-xs font-bold text-white mt-1">校验成功 (Passed)</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Handle sliding drag track */}
-                                    <div className="mt-4 relative h-8 bg-white/[0.03] border border-white/5 rounded-full flex items-center select-none overflow-hidden">
-                                        <div 
-                                            style={{ width: `${puzzleX + 20}px` }}
-                                            className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-600/20 to-indigo-500/30 border-r border-indigo-500/40"
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-[9px] text-white/30 tracking-wider">👉 向右滑动滑块完成对齐拼图</span>
-                                        </div>
-
-                                        <div 
-                                            onMouseDown={handlePuzzleStart}
-                                            onTouchStart={handlePuzzleStart}
-                                            style={{ left: `${puzzleX}px` }}
-                                            className="absolute top-0 bottom-0 w-12 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full border border-white/25 flex items-center justify-center cursor-ew-resize shadow-md hover:from-blue-400 hover:to-indigo-500 active:scale-95 transition-transform z-30"
-                                        >
-                                            <ArrowRight size={14} className="text-white" />
-                                        </div>
-                                    </div>
-
-                                    {/* Bottom status alert row */}
-                                    <div className="mt-3 flex justify-between items-center text-[10px] pl-1 select-none font-mono">
-                                        <span className={puzzleError ? 'text-red-400 font-bold' : 'text-white/30'}>
-                                            {puzzleError ? '拼图坐标不对，请重试 ×' : '智能云鉴权防刷护盾'}
-                                        </span>
-                                        <button 
-                                            onClick={() => { setPuzzleX(0); setPuzzleError(false); }}
-                                            className="hover:text-white flex items-center gap-1 hover:bg-white/5 px-2 py-0.5 rounded transition-all text-white/40"
-                                        >
-                                            <RefreshCw size={9} /> Reset
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ==================================================== */}
-                    {/* OVERLAYS: Document Interactive Regulations Scroll */}
-                    {/* ==================================================== */}
-                    <AnimatePresence>
-                        {showTermsOverlay !== 'none' && (
-                            <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-black/95 z-55 flex flex-col p-6 overflow-y-auto"
-                            >
-                                <div className="flex justify-between items-center border-b border-white/10 pb-3 mb-4 select-none">
-                                    <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                                        <FileText size={16} className="text-blue-400" />
-                                        <span>
-                                            {showTermsOverlay === 'service' ? '星河科创：终端服务使用公约' : '星河科创：信息自主安全保密守则'}
-                                        </span>
-                                    </h3>
-                                    <button 
-                                        onClick={() => setShowTermsOverlay('none')}
-                                        className="text-white/40 hover:text-white p-1 rounded-full hover:bg-white/5"
-                                    >
-                                        ✕ 关闭阅读 (Close)
-                                    </button>
-                                </div>
-                                <div className="space-y-4 text-xs font-light leading-relaxed text-white/75 overflow-y-auto pr-1">
-                                    {showTermsOverlay === 'service' ? (
-                                        <>
-                                            <p className="font-bold text-white text-sm">【一、星河网络安全与行为条款】</p>
-                                            <p>所有常驻成员及临时终端访问人，必须遵守协会校内科技探索指南。禁止利用该客户端泄露系统开发代码；禁止滥用WebSocket网关连接，亦禁止针对协会内部数据库进行自动化嗅探与漏洞测试。</p>
-                                            <p className="font-bold text-white text-sm">【二、数据保护与共享政策】</p>
-                                            <p>星河科创网关收集的所有用户简介、头像照片及常驻分类，仅存储于隔离容器内部。用户退出登录或删除历史账号时，本地所有相关JWT会话令牌及历史记录将被一键清空。</p>
-                                            <p>点击“同意本守则”代表您自愿服从星河科创指导委员会的一切学联统筹。</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p className="font-bold text-white text-sm">【一、红蓝攻防及涉密协议声明】</p>
-                                            <p>本协议属于星河科创卓越人才孵化保密条件之一。任何获评卓越核心席位的技术研发人员，在研究智能硬件巡检、红外图形识别、网络隔离穿透等技术模块时，禁止未经网络中心授权私自对外分发接口或软件程序。</p>
-                                            <p className="font-bold text-white text-sm">【二、个人信息与认证声明书】</p>
-                                            <p>本系统采用高强度哈希加盐密码算法保护您的登陆安全，用户密码传输经高保真隔离封装，以确保护盾在公共部署环境下不发生敏感数据外泄。任何测试数据将于测试周期结束后自动销毁归档。</p>
-                                        </>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                </div>
-            )}
-        </AnimatePresence>
+            {/* Virtual Simulated SMS alerts notification toast */}
+            <AnimatePresence>
+                {mockSmsBanner && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -65 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-[1100] w-full max-w-sm bg-slate-900 border border-blue-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between text-white text-xs gap-3"
+                    >
+                        <div className="flex gap-2.5 items-start">
+                            <Phone size={16} className="text-blue-400 mt-0.5 shrink-0" />
+                            <div>
+                                <h4 className="font-bold flex items-center gap-1.5">
+                                    <span>智能模拟手机短信网关</span>
+                                    <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.2 rounded font-mono uppercase font-bold">VIRTUAL SMS</span>
+                                </h4>
+                                <p className="text-white/70 leading-relaxed mt-1 text-[11px] select-text">{mockSmsBanner.message}</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                setFormData(prev => ({ ...prev, smsCode: mockSmsBanner.code }));
+                                setMockSmsBanner(null);
+                            }}
+                            className="w-full bg-blue-600 hover:bg-blue-500 font-bold py-1.5 rounded transition-all text-[10.5px] cursor-pointer active:scale-98"
+                        >
+                            一键复制并自动填入短信验证码
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 };
 
