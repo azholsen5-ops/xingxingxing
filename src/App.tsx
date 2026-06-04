@@ -4,7 +4,7 @@
  */
 
 // Version: 1.0.7 - Assets in public/images with absolute paths
-import React, { Component, useEffect, useRef, useState } from 'react';
+import React, { Component, useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { animate, svg, stagger } from 'animejs';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -26,6 +26,7 @@ import UserProfileEditModal from './components/UserProfileEditModal';
 import { WechatAuthLanding } from './components/WechatAuthLanding';
 import { authService, User as AuthUser } from './services/authService';
 import { socketService } from './services/socketService';
+import { SplashUniverse } from './components/SplashUniverse';
 
 const logoXh = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/logo-main.png'; // Using logo-main as fallback for logoXh
 const wechatQr = '/images/qr.png';
@@ -122,7 +123,7 @@ const memberData: Record<string, Member> = {
     },
     niedongyang: { 
         id: 'niedongyang',
-        name: "聂冬祥", 
+        name: "聂冬洋", 
         className: "安全24-1", 
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=niedongyang&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "主攻机器人视觉算法，负责视觉方案设计与落地。", 
@@ -271,6 +272,24 @@ function App() {
     const [lang, setLang] = useState<'zh' | 'en'>('zh');
     const [isLoading, setIsLoading] = useState(true);
     const [loadingProgress, setLoadingProgress] = useState(0);
+    const [splashProgress, setSplashProgress] = useState(0);
+    const [splashTilt, setSplashTilt] = useState({ x: 0, y: 0 });
+    const [splashMousePos, setSplashMousePos] = useState({ x: -1000, y: -1000 });
+    const [isSplashExploding, setIsSplashExploding] = useState(false);
+
+    const triggerExplosion = () => {
+        if (splashProgress >= 100 && !isSplashExploding) {
+            setIsSplashExploding(true);
+        }
+    };
+
+    const handleSplashMouseMove = (e: React.MouseEvent) => {
+        const { clientX, clientY } = e;
+        const x = (clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+        const y = (clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+        setSplashTilt({ x: x * 10, y: y * 10 }); // Tilt up to 10 degrees dynamically
+        setSplashMousePos({ x: clientX, y: clientY });
+    };
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('intro');
     const [scrolled, setScrolled] = useState(false);
@@ -355,24 +374,74 @@ function App() {
     const styleTransitionScribbleRef = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
+        let currentProg = 0;
         const interval = setInterval(() => {
-            setLoadingProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    return 100;
-                }
-                return prev + (100 / (2500 / 50)); // Sync with 2.5s timer
-            });
-        }, 50);
+            // High-precision non-linear progress simulation for realistic game loading feel
+            let increment = 1.0;
+            if (currentProg < 30) {
+                increment = Math.random() * 2.8 + 1.5; // fast start
+            } else if (currentProg < 48) {
+                increment = Math.random() * 1.1 + 0.4; // slow down for "assets extraction"
+            } else if (currentProg < 80) {
+                increment = Math.random() * 3.5 + 2.0; // speed up for heavy shaders
+            } else if (currentProg < 93) {
+                increment = Math.random() * 0.7 + 0.2; // slow down for database handshake and integrity
+            } else if (currentProg < 100) {
+                increment = Math.random() * 1.8 + 0.6; // final push
+            }
 
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 2500);
+            currentProg = Math.min(100, currentProg + increment);
+            setSplashProgress(currentProg);
+
+            if (currentProg >= 100) {
+                clearInterval(interval);
+            }
+        }, 40);
+
         return () => {
-            clearTimeout(timer);
             clearInterval(interval);
         };
     }, []);
+
+    // Memoize the sci-fi terminal logs based on progress to look active and real
+    const splashLogs = useMemo(() => {
+        const p = Math.round(splashProgress);
+        const allLogs = [
+            { threshold: 1, text: "XINGHE OS GATEWAY: CONNECTED TO SECURED SECTOR" },
+            { threshold: 4, text: "UPLOADING SHADER RESOURCE: galaxy_3d_render.glsl... OK" },
+            { threshold: 8, text: "[NET] ESTABLISHING HANDSHAKE WITH CLOUD ENVIRONMENT... OK" },
+            { threshold: 12, text: "RETRIEVING FILE: src/main.tsx (Mapped into virtual machine)" },
+            { threshold: 16, text: "MAPPING DYNAMIC DATA: xinghe-archive-vol-01" },
+            { threshold: 22, text: "GET /api/static/textures/space_bg.jpg 200 OK (3.2 MB)" },
+            { threshold: 28, text: "EXTRACTING THREE.JS GEOMETRY PIPELINE BUFFERS..." },
+            { threshold: 34, text: "[AUTH] SESSION VALIDATED. SECURED USER HANDSHAKE GRANTED." },
+            { threshold: 40, text: "COMPILING WEBGL SHADERS: lando_parallax_refraction... DONE" },
+            { threshold: 46, text: "GET /api/database/members - RESOLVED (Niedongyang: ACTIVE)" },
+            { threshold: 52, text: "LAUNCHING WEBGL 3D GALAXY VIEWPORT CONTEXT V2" },
+            { threshold: 60, text: "CONSTRUCTING DYNAMIC GRID: ACHIEVEMENTS_COLLECTION" },
+            { threshold: 68, text: "INJECTING MULTI-LANGUAGE DICTIONARY BUNDLES [zh,en]" },
+            { threshold: 75, text: "GSAP TIMELINE ENGINE BINDINGS SYNCED... SUCCESS" },
+            { threshold: 82, text: "COMPILING REAL-TIME SYNTH SOUND SYSTEMS... ONLINE" },
+            { threshold: 88, text: "VERIFYING MEMBER ALIASES... CORRECTION DETECTED: [Nie Dongyang]" },
+            { threshold: 94, text: "INTEGRITY CHECKSUM CORES: D30C87ABF92... VERIFIED" },
+            { threshold: 98, text: "WARP DRIVE THRUSTER CONFIGURATIONS COMPLETED." },
+            { threshold: 100, text: "GATEWAY OS SECURE STANDBY. AWAITING DEPLOY PROTOCOL." }
+        ];
+        return allLogs.filter(item => p >= item.threshold).map(item => `> ${item.text}`);
+    }, [splashProgress]);
+
+    // Translate the current action status message based on progress
+    const splashStatusMessage = useMemo(() => {
+        const p = Math.round(splashProgress);
+        if (p < 15) return "VALIDATING SYSTEM PLATFORM HARDWARE...";
+        if (p < 30) return "DOWNLOADING HIGH-RESOLUTION SPACE TEXTURES (4.8MB/s)...";
+        if (p < 48) return "COMPILING SHADER MATRICES AND VECTOR FIELDS...";
+        if (p < 65) return "ALLOCATING MEMORY BUFFER FOR 3D CANVAS ENGINES...";
+        if (p < 80) return "PARSING TEAM BIOGRAPHIES & ASSOCIATED DATABASE...";
+        if (p < 93) return "CALCULATING DATA INTEGRITY MD5 SUMS...";
+        if (p < 100) return "COMPOSITING VIEWS AND ATTACHING COMPONENT LINTINGS...";
+        return "ALL ENGINES ENGAGED. SYSTEMS READY FOR DEPLOY.";
+    }, [splashProgress]);
 
     // --- Translations ---
     const t = {
@@ -1638,78 +1707,144 @@ function App() {
                         initial={{ opacity: 1 }}
                         exit={{ 
                             opacity: 0,
-                            scale: 1.1,
-                            filter: "brightness(2) blur(20px)",
-                            transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] }
+                            scale: 1.15,
+                            filter: "brightness(1.5) blur(25px)",
+                            transition: { duration: 1.6, ease: [0.16, 1, 0.3, 1] }
                         }}
-                        className="splash-screen"
+                        className="splash-screen flex flex-col items-center justify-center p-4 cursor-default select-none relative overflow-hidden"
+                        onMouseMove={handleSplashMouseMove}
+                        onClick={triggerExplosion}
                     >
-                        <div className="splash-grid"></div>
-                        <div className="splash-scan-line"></div>
-                        <div className="splash-ambient-glow"></div>
+                        {/* Chaotic Cosmos Particle Canvas */}
+                        <SplashUniverse 
+                            progress={splashProgress}
+                            isExploding={isSplashExploding}
+                            onExplosionComplete={() => setIsLoading(false)}
+                            mouseX={splashMousePos.x}
+                            mouseY={splashMousePos.y}
+                        />
+
+                        {/* High-Tech Grid & Background Overlay behind particles */}
+                        <div className="splash-grid pointer-events-none"></div>
+                        <div className="splash-scan-line pointer-events-none"></div>
+                        <div className="splash-ambient-glow pointer-events-none"></div>
                         
-                        {/* Corner Accents */}
+                        {/* Interactive floating digital particle elements representing stellar data */}
+                        <div className="absolute inset-0 overflow-hidden opacity-30 select-none pointer-events-none z-10">
+                            <div className="absolute top-[18%] left-[8%] text-[9px] font-mono text-cyan-400/30">POS_MARK: [X34_Y82_Z99]</div>
+                            <div className="absolute top-[28%] right-[12%] text-[9px] font-mono text-cyan-400/30">VECTOR_FIELD: ESTABLISHED</div>
+                            <div className="absolute bottom-[20%] left-[15%] text-[9px] font-mono text-cyan-500/30">ENERGY_INDEX: 4.821_THX</div>
+                            <div className="absolute bottom-[35%] right-[18%] text-[9px] font-mono text-cyan-500/30 font-bold animate-pulse">THRUST_RATIO: 100%</div>
+                        </div>
+
+                        {/* Interactive HUD Elements - Dissolves when Big Bang starts */}
+                        <motion.div 
+                            animate={{ 
+                                opacity: isSplashExploding ? 0 : 1,
+                                scale: isSplashExploding ? 0.8 : 1,
+                                filter: isSplashExploding ? "brightness(2) blur(15px)" : "brightness(1) blur(0px)"
+                            }} 
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="flex flex-col items-center justify-center z-10 w-full px-6 mt-8 md:mt-16"
+                        >
+                            {/* Interactive Start screen / Loading details */}
+                            <div className="w-[85vw] max-w-[480px] flex flex-col items-center">
+                                {/* HUD Top-bar labelling */}
+                                <div className="w-full flex justify-between items-center text-[10px] font-mono text-cyan-400/50 mb-2 uppercase tracking-[0.2em] select-none px-1">
+                                    <span className="flex items-center gap-1.5 font-bold">
+                                        <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></span>
+                                        SYSTEM: XINGHE_OS_v2.6
+                                    </span>
+                                    <span>PATCH REVERSION VALIDATION</span>
+                                </div>
+
+                                {/* Main capsule progress container */}
+                                <div className="w-full h-[12px] bg-black/60 border border-cyan-500/25 rounded-full p-0.5 relative overflow-hidden backdrop-blur-sm shadow-[inset_0_1px_5px_rgba(0,0,0,0.8)]">
+                                    {/* The filling laser-bar */}
+                                    <div 
+                                        className="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 to-indigo-500 shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-all duration-150 ease-out relative"
+                                        style={{ width: `${splashProgress}%` }}
+                                    >
+                                        {/* Glass reflection style diagonal texture */}
+                                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0.1)_75%,transparent_75%,transparent)] bg-[size:10px_10px] opacity-40"></div>
+                                        {/* Scan spark at trailing edge */}
+                                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white blur-[2px] animate-pulse"></div>
+                                    </div>
+                                </div>
+
+                                {/* Subtext and percentage reporting */}
+                                <div className="w-full flex justify-between items-center text-[11px] font-mono mt-3 text-cyan-400/90 tracking-widest select-none">
+                                    <span className="truncate max-w-[75%] text-[10px] opacity-75 uppercase">{splashStatusMessage}</span>
+                                    <span className="font-bold bg-cyan-950/40 border border-cyan-800/30 px-2 py-0.5 rounded text-cyan-300">
+                                        {splashProgress < 100 ? `${Math.round(splashProgress)}%` : "READY"}
+                                    </span>
+                                </div>
+
+                                {/* Active network speed simulation */}
+                                {splashProgress < 100 ? (
+                                    <div className="w-full flex justify-between items-center text-[9px] font-mono text-cyan-500/30 mt-1 select-none uppercase tracking-wider px-1">
+                                        <span>RESOURCE_BUFF: {(splashProgress * 0.42).toFixed(1)}MB / 42.0MB</span>
+                                        <span>SPEED: {(4.1 + Math.random() * 0.9).toFixed(1)} MB/S</span>
+                                    </div>
+                                ) : (
+                                    <div className="w-full text-center text-[9px] font-mono text-emerald-400/55 mt-1.5 select-none uppercase tracking-widest animate-pulse">
+                                        MEMBRANE SYSTEM SYNC_OK // SECURITIES BOUND SUCCESSFULLY
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+
+                        {/* Interactive Click-to-Enter screen overlay overlaying once complete */}
+                        {splashProgress >= 100 && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ 
+                                    opacity: isSplashExploding ? 0 : 1, 
+                                    scale: isSplashExploding ? 0.8 : 1,
+                                    filter: isSplashExploding ? "blur(15px)" : "blur(0px)"
+                                }}
+                                transition={{ duration: 0.4, type: "spring" }}
+                                className="absolute inset-0 bg-black/25 flex flex-col items-center justify-end pb-28 z-40 cursor-pointer pointer-events-none"
+                            >
+                                <motion.div
+                                    animate={{ 
+                                        scale: [1, 1.05, 1],
+                                        boxShadow: ["0 0 15px rgba(34,211,238,0.4)", "0 0 35px rgba(34,211,238,0.8)", "0 0 15px rgba(34,211,238,0.4)"]
+                                    }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="px-8 py-4 bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 border border-cyan-300/30 text-white font-mono text-xs font-black tracking-[0.25em] rounded-full uppercase shadow-[0_0_25px_rgba(6,182,212,0.45)] text-center w-[85vw] max-w-[340px] whitespace-nowrap active:scale-95 transition-all pointer-events-auto"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Avoid double triggers
+                                        triggerExplosion();
+                                    }}
+                                >
+                                    TOUCH TO START // 点击进入
+                                </motion.div>
+                                <span className="text-[9px] font-mono tracking-[0.4em] text-cyan-400/40 uppercase mt-4 animate-pulse">
+                                    XINGHE CORE PORTALS STABILIZED
+                                </span>
+                            </motion.div>
+                        )}
+
+                        {/* Outer Military Corners / Grid Mark Decorator Accents */}
                         <div className="splash-corner splash-corner-tl"></div>
                         <div className="splash-corner splash-corner-tr"></div>
                         <div className="splash-corner splash-corner-bl"></div>
                         <div className="splash-corner splash-corner-br"></div>
 
-                        {/* HUD Elements */}
-                        <div className="splash-hud-data hidden md:flex">
+                        {/* HUD Meta Details */}
+                        <div className="splash-hud-data hidden md:flex font-mono select-none">
                             <span>COORD_LAT: 41.8781</span>
                             <span>COORD_LNG: -87.6298</span>
-                            <span>VER: ALPHA_2.0.4</span>
-                            <span>REF: XH_CORE_ENG</span>
+                            <span>VER: ALPHA_2.6.0 (Update_Patch)</span>
+                            <span>REF: XH_CORE_ENGINE</span>
                         </div>
 
-                        <div className="splash-loading-percent hidden md:block">
-                            <motion.span
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.5 }}
-                            >
-                                SCANNING: {Math.round(loadingProgress || 0)}%
-                            </motion.span>
-                        </div>
-
-                        <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 1.2, ease: "easeOut" }}
-                            className="splash-logo mb-12 relative"
-                        >
-                            <img 
-                                src={logoXh} 
-                                alt="星河科技创新协会" 
-                                className="h-32 md:h-48 w-auto object-contain splash-logo-img relative z-10" 
-                            />
-                            <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full scale-150 animate-pulse"></div>
-                        </motion.div>
-                        
-                        <div className="splash-loader-container">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: "100%" }}
-                                transition={{ duration: 2.5, ease: "easeInOut" }}
-                                className="splash-loader-bar"
-                            />
-                        </div>
-                        
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5, duration: 1 }}
-                            className="splash-loader-text"
-                        >
-                            System Initializing...
-                        </motion.div>
-
-                        {/* Status Logs (Refined elements) */}
-                        <div className="splash-status hidden md:flex">
-                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>{">"} UPLOADING ASSETS...</motion.span>
-                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>{">"} INITIALIZING 3D CORE...</motion.span>
-                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}>{">"} ESTABLISHING SYNC...</motion.span>
-                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>{">"} DONE.</motion.span>
+                        {/* SCANNING percent monitor (Top Right Clock/Telemetry overlay) */}
+                        <div className="absolute top-10 right-10 hidden md:flex flex-col gap-1 items-end text-[8px] font-mono text-cyan-400/30 select-none uppercase tracking-wider">
+                            <span>UTC: {new Date().toISOString().substring(11, 19)}</span>
+                            <span>NODE: SYS_GRID</span>
+                            <span className="text-cyan-400/60 font-bold">SCANNING: {Math.round(splashProgress)}%</span>
                         </div>
                     </motion.div>
                 )}
@@ -2576,18 +2711,18 @@ function App() {
             </div>
 
                 {/* UI Elements - Progress Bar */}
-                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4">
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
+                    <div className="lando-counter text-black select-none"><span>1</span></div>
                     <div className="flex items-center gap-4 text-black font-mono text-xs font-bold tracking-widest">
                         <span className="opacity-30">01</span>
                         <div className="w-40 h-[2px] bg-black/5 relative overflow-hidden">
                             <div 
-                                className="lando-progress-fill absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300"
+                                className="lando-progress-fill absolute top-0 left-0 h-full bg-blue-600"
                                 style={{ width: '0%' }}
                             ></div>
                         </div>
                         <span className="opacity-30">08</span>
                     </div>
-                    <div className="lando-counter hidden"><span>1</span></div>
                 </div>
             </section>
 
