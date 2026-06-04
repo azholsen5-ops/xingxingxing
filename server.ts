@@ -398,9 +398,9 @@ async function startServer() {
     res.json({ success: true, status: session.status, user: session.user });
   });
 
-  // Mimics what WeChat Mini Program webhook or API triggers when the user authorizes on WeChat Mini Program
+  // Mimics or handles real WeChat Mini Program scan authorizations
   app.post('/api/auth/mp-authorize', async (req, res) => {
-    const { uuid, openid, nickname, avatar, email } = req.body;
+    const { uuid, openid, nickname, avatar, email, code } = req.body;
     if (!uuid) {
       return res.status(400).json({ success: false, error: 'Session UUID is required' });
     }
@@ -410,7 +410,42 @@ async function startServer() {
     }
 
     try {
-      const targetOpenid = openid || 'mp_openid_' + Math.random().toString(36).substring(2, 8);
+      let targetOpenid = openid;
+
+      // Real WeChat jscode2session integration!
+      if (code) {
+        const appId = process.env.WECHAT_APP_ID;
+        const appSecret = process.env.WECHAT_APP_SECRET;
+
+        if (appId && appSecret) {
+          try {
+            const wxUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+            const wxRes = await fetch(wxUrl);
+            const wxData = await wxRes.json() as any;
+            
+            if (wxData && wxData.openid) {
+              targetOpenid = wxData.openid;
+              console.log(`[WeChat Real Auth] Successfully authenticated openid: ${targetOpenid}`);
+            } else {
+              console.error('[WeChat Real Auth Error] response from WeChat API:', wxData);
+              return res.status(400).json({ 
+                success: false, 
+                error: `微信授权失败: ${wxData.errmsg || 'AppID或AppSecret配置错误或已过期'}` 
+              });
+            }
+          } catch (wxErr) {
+            console.error('[WeChat Real Auth Server Network Error]:', wxErr);
+            return res.status(500).json({ success: false, error: '无法与微信官方服务器建立安全握手，请稍后再试' });
+          }
+        } else {
+          console.warn('[WeChat Auth Warning] Real login code received, but WECHAT_APP_ID / WECHAT_APP_SECRET are not configured. Falling back to development simulation.');
+        }
+      }
+
+      // If no openid has been resolved, fallback to mock openid
+      if (!targetOpenid) {
+        targetOpenid = 'mp_openid_' + Math.random().toString(36).substring(2, 8);
+      }
       const targetNickname = nickname || '星河小程序成员_' + Math.random().toString(36).substring(2, 6);
       const targetAvatar = avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(targetOpenid)}`;
 
@@ -602,19 +637,50 @@ async function startServer() {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      const { openid, nickname } = req.body;
-      if (!openid) {
-        return res.status(400).json({ success: false, error: 'WeChat openid is required' });
+      const { openid, nickname, code } = req.body;
+      
+      let targetOpenid = openid;
+
+      // Real WeChat binding integration via code
+      if (code) {
+        const appId = process.env.WECHAT_APP_ID;
+        const appSecret = process.env.WECHAT_APP_SECRET;
+
+        if (appId && appSecret) {
+          try {
+            const wxUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+            const wxRes = await fetch(wxUrl);
+            const wxData = await wxRes.json() as any;
+            
+            if (wxData && wxData.openid) {
+              targetOpenid = wxData.openid;
+              console.log(`[WeChat Real Bind] Successfully verified openid: ${targetOpenid}`);
+            } else {
+              console.error('[WeChat Real Bind Error] response from WeChat:', wxData);
+              return res.status(400).json({ 
+                success: false, 
+                error: `微信绑定自验证失败: ${wxData.errmsg || '配置错误'}` 
+              });
+            }
+          } catch (wxErr) {
+            console.error('[WeChat Real Bind Server Network Error]:', wxErr);
+            return res.status(500).json({ success: false, error: '无法与微信服务器建立安全链接验证' });
+          }
+        }
+      }
+
+      if (!targetOpenid) {
+        return res.status(400).json({ success: false, error: 'WeChat openid or authorization code is required' });
       }
 
       // Check if openid already bound to someone else
-      const existing = db.prepare('SELECT id FROM users WHERE wechat_openid = ? AND id != ?').get(openid, decoded.id);
+      const existing = db.prepare('SELECT id FROM users WHERE wechat_openid = ? AND id != ?').get(targetOpenid, decoded.id);
       if (existing) {
         return res.status(400).json({ success: false, error: '该微信小程序账号已绑定到其他账户，请先将其解绑' });
       }
 
       db.prepare('UPDATE users SET wechat_openid = ?, wechat_nickname = ? WHERE id = ?')
-        .run(openid, nickname || '星河小程序成员', decoded.id);
+        .run(targetOpenid, nickname || '星河小程序成员', decoded.id);
 
       const user = db.prepare('SELECT id, username, name, className, avatar, category, intro, email, wechat_openid, wechat_nickname FROM users WHERE id = ?').get(decoded.id) as any;
       res.json({ success: true, user });

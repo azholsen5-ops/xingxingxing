@@ -34,6 +34,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [simulatedNickname, setSimulatedNickname] = useState('星河探针_A5');
     const [simulatedOpenid, setSimulatedOpenid] = useState('mp_user_99a8');
     const [simulatedEmail, setSimulatedEmail] = useState('');
+    const [qrMode, setQrMode] = useState<'standard' | 'raw'>('standard');
 
     // Form inputs state
     const [formData, setFormData] = useState({
@@ -1036,29 +1037,63 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                                 </div>
                                             ) : mpUuid ? (
                                                 <div className="relative z-10 flex flex-col items-center justify-center">
-                                                     {/* Stylized CSS QR Code / WeChat Applet Code */}
-                                                     <div className="w-36 h-36 border border-dashed border-emerald-500/30 rounded-full p-2 flex items-center justify-center bg-black/60 relative group-hover:scale-105 transition-transform duration-300">
-                                                         {/* Stylized QR patterns */}
-                                                         <div className="absolute inset-2 border-2 border-emerald-500/20 rounded-full animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+                                                     {/* Real, beautiful, scannable QR Code */}
+                                                     <div className="relative w-36 h-36 p-1.5 bg-white rounded-xl shadow-lg border-2 border-emerald-500 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
+                                                         <img 
+                                                             src={
+                                                                 qrMode === 'standard' 
+                                                                     ? wechatService.getQrImageUrl(mpUuid)
+                                                                     : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(mpUuid)}`
+                                                             } 
+                                                             className="w-full h-full object-contain select-none" 
+                                                             alt="WeChat Real Auth QR Code"
+                                                             referrerPolicy="no-referrer"
+                                                         />
                                                          
-                                                         <div className="w-28 h-28 border border-emerald-500/50 rounded-full p-1.5 flex items-center justify-center relative">
-                                                             {/* Concentric circles or radial patterns like WeChat Mini Program Code! */}
-                                                             <div className="w-full h-full rounded-full border-4 border-emerald-500/15 border-t-emerald-500 animate-spin flex items-center justify-center" style={{ animationDuration: '12s' }}>
-                                                                 <div className="w-14 h-14 rounded-full border border-dashed border-emerald-400/40" />
-                                                             </div>
-                                                             {/* Tiny WeChat WeChat code core logo */}
-                                                             <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-                                                                 <QrCode size={18} className="text-black font-bold" />
-                                                             </div>
+                                                         {/* Laser effect */}
+                                                         <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-400 opacity-60 animate-bounce pointer-events-none" />
+                                                     </div>
+                                                     
+                                                     {/* Multi-mode switches */}
+                                                     <div className="mt-3 flex flex-col items-center gap-1 justify-center">
+                                                         <div className="flex items-center gap-1.5">
+                                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                             <p className="text-[10px] font-mono text-emerald-400 font-bold tracking-wider">SECURE SHIELD LINK ACTIVE</p>
+                                                         </div>
+                                                         
+                                                         <div className="flex bg-black/40 rounded-full p-0.5 border border-white/5 mt-1.5">
+                                                             <button
+                                                                 type="button"
+                                                                 onClick={() => setQrMode('standard')}
+                                                                 className={`px-2.5 py-0.5 text-[8px] rounded-full transition-all cursor-pointer ${qrMode === 'standard' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/50 hover:text-white'}`}
+                                                             >
+                                                                 微信直扫 (普通)
+                                                             </button>
+                                                             <button
+                                                                 type="button"
+                                                                 onClick={() => setQrMode('raw')}
+                                                                 className={`px-2.5 py-0.5 text-[8px] rounded-full transition-all cursor-pointer ${qrMode === 'raw' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/50 hover:text-white'}`}
+                                                             >
+                                                                 小程序专扫 (开发)
+                                                             </button>
                                                          </div>
                                                      </div>
                                                      
-                                                     {/* Session countdown timer */}
-                                                     <div className="mt-3 flex items-center gap-1.5 justify-center">
-                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                         <p className="text-[10px] font-mono text-emerald-400 font-bold tracking-wider">SECURE SHIELD LINK ACTIVE</p>
+                                                     {/* Raw representation + quick copy */}
+                                                     <div className="mt-2 flex items-center justify-center gap-1.5">
+                                                         <p className="text-[9px] text-white/40 uppercase font-mono tracking-widest">{mpUuid}</p>
+                                                         <button
+                                                             type="button"
+                                                             onClick={() => {
+                                                                 navigator.clipboard.writeText(mpUuid);
+                                                                 alert('会话 UUID 已成功复制到剪贴板，您可以在微信开发者工具中自由粘贴、进行 scene 参数调试！');
+                                                             }}
+                                                             className="text-[9px] bg-white/10 hover:bg-white/20 px-1.5 py-0.5 rounded text-white/60 hover:text-white cursor-pointer active:scale-95 transition-all font-mono"
+                                                             title="复制会话 UUID 用于开发者工具模拟调试"
+                                                         >
+                                                             COPY
+                                                         </button>
                                                      </div>
-                                                     <p className="text-[9px] text-white/40 mt-1 uppercase font-mono tracking-widest">{mpUuid}</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-2">

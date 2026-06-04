@@ -34,6 +34,7 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({ isOpen, onC
     const [mpBindOpen, setMpBindOpen] = useState(false);
     const [simulatedBindOpenid, setSimulatedBindOpenid] = useState('mp_user_openid_' + Math.random().toString(36).substring(2, 6));
     const [simulatedBindNickname, setSimulatedBindNickname] = useState('星河自愈小黑_' + Math.random().toString(36).substring(2, 5));
+    const [qrBindMode, setQrBindMode] = useState<'standard' | 'raw'>('standard');
 
     const [formData, setFormData] = useState({
         name: currentUser?.name || '',
@@ -552,14 +553,54 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({ isOpen, onC
                                                                 <p className="text-[9px] text-white/50">正在建立星河安全绑定通道...</p>
                                                             </div>
                                                         ) : mpBindUuid ? (
-                                                            <div className="flex flex-col items-center space-y-2 text-center w-full">
-                                                                <div className="w-24 h-24 border border-dashed border-emerald-500/30 rounded-full p-2 flex items-center justify-center bg-slate-950 relative">
-                                                                    <div className="w-16 h-16 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin flex items-center justify-center">
-                                                                        <QrCode size={14} className="text-emerald-400" />
-                                                                    </div>
+                                                            <div className="flex flex-col items-center space-y-2.5 text-center w-full">
+                                                                {/* Real Scannable Bind QR Code */}
+                                                                <div className="relative w-28 h-28 p-1 bg-white rounded-lg border-2 border-emerald-500 flex items-center justify-center shadow-lg overflow-hidden shrink-0">
+                                                                    <img 
+                                                                        src={
+                                                                            qrBindMode === 'standard'
+                                                                                ? wechatService.getQrImageUrl(mpBindUuid)
+                                                                                : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(mpBindUuid)}`
+                                                                        }
+                                                                        className="w-full h-full object-contain select-none"
+                                                                        alt="WeChat Bind QR Code"
+                                                                        referrerPolicy="no-referrer"
+                                                                    />
+                                                                    <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-400 opacity-60 animate-bounce pointer-events-none" />
                                                                 </div>
-                                                                <p className="text-[10px] text-emerald-400 font-mono tracking-wider animate-pulse">安全微信绑定通道已挂起</p>
-                                                                <p className="text-[9px] text-white/30 truncate font-mono max-w-[150px]">{mpBindUuid}</p>
+                                                                
+                                                                {/* Mode Selector */}
+                                                                <div className="flex bg-slate-900 rounded-full p-0.5 border border-white/5 mt-0.5">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setQrBindMode('standard')}
+                                                                        className={`px-2 py-0.5 text-[8.5px] rounded-full transition-all cursor-pointer ${qrBindMode === 'standard' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/40 hover:text-white'}`}
+                                                                    >
+                                                                        微信直扫
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setQrBindMode('raw')}
+                                                                        className={`px-2 py-0.5 text-[8.5px] rounded-full transition-all cursor-pointer ${qrBindMode === 'raw' ? 'bg-emerald-500 text-black font-semibold' : 'text-white/40 hover:text-white'}`}
+                                                                    >
+                                                                        小程序
+                                                                    </button>
+                                                                </div>
+
+                                                                <p className="text-[10px] text-emerald-400 font-mono tracking-wider animate-pulse">微信绑定统一授权安全端</p>
+                                                                <div className="flex items-center gap-1.5 justify-center">
+                                                                    <p className="text-[9px] text-white/30 truncate font-mono max-w-[120px]">{mpBindUuid}</p>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            navigator.clipboard.writeText(mpBindUuid);
+                                                                            alert('绑定会话 UUID 已成功复制！您可以在小程序的 app.js / config.js，或者开发者工具场景场景调试中，作为 scene 参数填入。');
+                                                                        }}
+                                                                        className="text-[8px] bg-white/5 border border-white/10 px-1.5 py-0.5 rounded text-white/50 hover:text-white uppercase font-mono cursor-pointer active:scale-95 transition-all"
+                                                                    >
+                                                                        COPY
+                                                                    </button>
+                                                                </div>
                                                                 
                                                                 {/* Sim confirm buttons */}
                                                                 <div className="bg-white/[0.01] border border-white/5 p-2 rounded-lg w-full space-y-1.5 text-left text-[10px]">
