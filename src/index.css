@@ -242,6 +242,17 @@ body.light-theme .nav-item.active::after {
   transform: scale(1.05);
 }
 
+.achievements-horizontal-track {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
 .horizontal-scroll-wrapper {
   display: flex;
   flex-wrap: nowrap;
@@ -250,20 +261,56 @@ body.light-theme .nav-item.active::after {
   align-items: center;
   padding: 0 20vw;
   position: relative;
-  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 @media (max-width: 768px) {
+  .achievements-horizontal-track {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
   .horizontal-scroll-wrapper {
-    display: flex; /* Restore horizontal flex */
-    flex-direction: row; /* Horizontal */
-    flex-wrap: nowrap;
-    width: max-content;
-    height: 100vh;
-    padding: 0 10vw;
-    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 60px 20px !important;
+    gap: 48px !important;
+    box-sizing: border-box !important;
+  }
+  .hall-of-fame-lando {
+    height: auto !important;
+    min-height: auto !important;
+  }
+  .lando-item {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    align-self: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .lando-item-up, .lando-item-down, .lando-item-center {
+    align-self: auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .lando-img-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    animation: none !important;
+  }
+  /* Hide achievements horizontal scroll indicators at the bottom on mobile */
+  .hall-of-fame-lando .absolute.bottom-12.left-1/2 {
+    display: none !important;
   }
 }
 
@@ -798,6 +845,39 @@ body:not(.light-theme) .nav-logo-img {
 body.light-theme .nav-logo-img {
     filter: none;
     mix-blend-mode: multiply;
+}
+
+/* Nav Club Name Logo - Adapt to Theme Dark/Light and Mobile Menu states */
+.nav-club-name {
+    filter: brightness(0) invert(1);
+    transition: filter 0.5s ease;
+}
+
+body.light-theme .nav-club-name {
+    filter: brightness(0);
+}
+
+/* Specific styling when mobile drawer is open to match dark menu drawer */
+header.menu-open .nav-club-name {
+    filter: brightness(0) invert(1) !important;
+}
+header.menu-open .menu-btn {
+    color: #ffffff !important;
+}
+header.menu-open .lang-switch {
+    color: #ffffff !important;
+}
+header.menu-open .lang-switch span {
+    color: #ffffff !important;
+}
+header.menu-open .music-toggle {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+header.menu-open .music-toggle.playing {
+    color: #39FF14 !important;
+    border-color: rgba(57, 255, 20, 0.3) !important;
 }
 
 .splash-logo-img {
@@ -1983,8 +2063,8 @@ body.light-theme .award-detail-panel p.text-blue-400 {
 
 .style-transition-image-wrapper {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     z-index: 2;
     overflow: hidden;
     display: flex;

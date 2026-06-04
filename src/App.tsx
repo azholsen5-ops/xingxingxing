@@ -705,73 +705,135 @@ function App() {
 
                     const scrollDistance = Math.max(0, scrollWidth - windowWidth);
                     
-            // Use MatchMedia for responsive animations
-            const mm = gsap.matchMedia();
+                    // Use MatchMedia for responsive animations
+                    const mm = gsap.matchMedia();
 
-    mm.add("all", () => {
-        // Universal animations (Horizontal Scroll for all devices)
-        const scrollWidth = horizontalScrollRef.current!.scrollWidth;
-        const windowWidth = window.innerWidth;
-        const scrollDistance = Math.max(0, scrollWidth - windowWidth);
+                    mm.add("(min-width: 769px)", () => {
+                        // Desktop animations (Horizontal Scroll)
+                        const sWidth = horizontalScrollRef.current!.scrollWidth;
+                        const wWidth = window.innerWidth;
+                        const sDistance = Math.max(0, sWidth - wWidth);
 
-        ScrollTrigger.create({
-            trigger: hallOfFameRef.current,
-            start: "top top",
-            end: () => `+=${scrollDistance}`,
-            pin: true,
-            pinSpacing: true,
-            invalidateOnRefresh: true,
-            id: "achievements-pin"
-        });
+                        ScrollTrigger.create({
+                            trigger: hallOfFameRef.current,
+                            start: "top top",
+                            end: () => `+=${sDistance}`,
+                            pin: true,
+                            pinSpacing: true,
+                            invalidateOnRefresh: true,
+                            id: "achievements-pin"
+                        });
 
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: hallOfFameRef.current,
-                start: "top top",
-                end: () => `+=${scrollDistance}`,
-                scrub: 1,
-                invalidateOnRefresh: true,
-            }
-        });
+                        const tl = gsap.timeline({
+                            scrollTrigger: {
+                                trigger: hallOfFameRef.current,
+                                start: "top top",
+                                end: () => `+=${sDistance}`,
+                                scrub: 1,
+                                invalidateOnRefresh: true,
+                            }
+                        });
 
-        tl.to(horizontalScrollRef.current, {
-            x: -scrollDistance,
-            ease: "none",
-            onUpdate: function() {
-                const progress = this.progress();
-                const counter = document.querySelector('.lando-counter span');
-                const progressBar = document.querySelector('.lando-progress-fill') as HTMLElement;
-                if (counter) counter.textContent = Math.min(8, Math.max(1, Math.ceil(progress * 8))).toString();
-                if (progressBar) progressBar.style.width = `${progress * 100}%`;
-            }
-        });
+                        tl.to(horizontalScrollRef.current, {
+                            x: -sDistance,
+                            ease: "none",
+                            onUpdate: function() {
+                                const progress = this.progress();
+                                const counter = document.querySelector('.lando-counter span');
+                                const progressBar = document.querySelector('.lando-progress-fill') as HTMLElement;
+                                if (counter) counter.textContent = Math.min(8, Math.max(1, Math.ceil(progress * 8))).toString();
+                                if (progressBar) progressBar.style.width = `${progress * 100}%`;
+                            }
+                        });
 
-        // Parallax for individual items
-        const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
-        layers.forEach((layer) => {
-            const speed = parseFloat(layer.dataset.speed || '0');
-            gsap.to(layer, {
-                x: () => -200 * speed,
-                y: () => 120 * speed,
-                ease: "none",
-                scrollTrigger: {
-                    trigger: hallOfFameRef.current,
-                    start: "top top",
-                    end: () => `+=${scrollDistance}`,
-                    scrub: true,
-                }
-            });
-        });
-    });
+                        // Parallax for individual items on Desktop
+                        const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
+                        layers.forEach((layer) => {
+                            const speed = parseFloat(layer.dataset.speed || '0');
+                            gsap.to(layer, {
+                                x: () => -200 * speed,
+                                y: () => 120 * speed,
+                                ease: "none",
+                                scrollTrigger: {
+                                    trigger: hallOfFameRef.current,
+                                    start: "top top",
+                                    end: () => `+=${sDistance}`,
+                                    scrub: true,
+                                }
+                            });
+                        });
 
-                    // Animate all scribbles with scroll
-                    const scribbles = document.querySelectorAll('.scribble-animate');
+                        // Special handling for the main signature in Achievements to draw during horizontal scroll
+                        if (scribbleRef.current) {
+                            const signature = scribbleRef.current.querySelector('#xinghe-signature') as SVGPathElement;
+                            if (signature) {
+                                const length = signature.getTotalLength();
+                                gsap.set(signature, { strokeDasharray: length, strokeDashoffset: length });
+                                gsap.to(signature, {
+                                    strokeDashoffset: 0,
+                                    ease: "none",
+                                    scrollTrigger: {
+                                        trigger: hallOfFameRef.current,
+                                        start: "top top",
+                                        end: () => `+=${sDistance * 0.5}`,
+                                        scrub: 1,
+                                        invalidateOnRefresh: true,
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    mm.add("(max-width: 768px)", () => {
+                        // Reset horizontal translation on mobile
+                        gsap.set(horizontalScrollRef.current, { x: 0 });
+
+                        // Mobile animations: clean vertical fade-in of items
+                        const layers = gsap.utils.toArray<HTMLElement>('.parallax-layer');
+                        layers.forEach((layer) => {
+                            gsap.fromTo(layer, 
+                                { opacity: 0, y: 30 },
+                                {
+                                    opacity: 1,
+                                    y: 0,
+                                    duration: 0.6,
+                                    ease: "power2.out",
+                                    scrollTrigger: {
+                                        trigger: layer,
+                                        start: "top 85%",
+                                        toggleActions: "play none none none",
+                                    }
+                                }
+                            );
+                        });
+
+                        // Draw achievements signature as it enters screen
+                        if (scribbleRef.current) {
+                            const signature = scribbleRef.current.querySelector('#xinghe-signature') as SVGPathElement;
+                            if (signature) {
+                                const length = signature.getTotalLength();
+                                gsap.set(signature, { strokeDasharray: length, strokeDashoffset: length });
+                                gsap.to(signature, {
+                                    strokeDashoffset: 0,
+                                    duration: 1.5,
+                                    ease: "power1.out",
+                                    scrollTrigger: {
+                                        trigger: hallOfFameRef.current,
+                                        start: "top 75%",
+                                        toggleActions: "play none none none"
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    // Animate other general scribbles with scroll
+                    const scribbles = document.querySelectorAll('.scribble-animate:not(#xinghe-signature)');
                     scribbles.forEach((scribble) => {
                         const path = scribble as SVGPathElement;
                         const length = path.getTotalLength();
                         gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
                         
-                        // Find the nearest section to use as trigger
                         const section = path.closest('section') || hallOfFameRef.current;
                         
                         gsap.to(path, {
@@ -786,26 +848,6 @@ function App() {
                             }
                         });
                     });
-
-                    // Special handling for the main signature in Achievements to draw during horizontal scroll
-                    if (scribbleRef.current) {
-                        const signature = scribbleRef.current.querySelector('#xinghe-signature') as SVGPathElement;
-                        if (signature) {
-                            const length = signature.getTotalLength();
-                            gsap.set(signature, { strokeDasharray: length, strokeDashoffset: length });
-                            gsap.to(signature, {
-                                strokeDashoffset: 0,
-                                ease: "none",
-                                scrollTrigger: {
-                                    trigger: hallOfFameRef.current,
-                                    start: "top top",
-                                    end: () => `+=${scrollDistance * 0.5}`,
-                                    scrub: 1,
-                                    invalidateOnRefresh: true,
-                                }
-                            });
-                        }
-                    }
 
                     ScrollTrigger.refresh();
                 };
@@ -1420,12 +1462,12 @@ function App() {
             const targetWidth = isMobile ? "290px" : "400px";
             const targetHeight = isMobile ? "420px" : "550px";
 
-            // 1. Initial state: Image is full screen (100vw, 100vh), text is outside
+            // 1. Initial state: Image is full screen, text is outside
             // 2. Animation: Image shrinks to card, text flies in
             tl.fromTo(".style-transition-image-wrapper", 
                 {
-                    width: "100vw",
-                    height: "100vh",
+                    width: "100%",
+                    height: "100%",
                     borderRadius: "0px",
                     rotation: 0,
                     boxShadow: "0px 0px 0px rgba(0,0,0,0)"
@@ -1674,13 +1716,13 @@ function App() {
             </AnimatePresence>
 
             {/* Header */}
-            <header className={scrolled ? 'scrolled' : ''}>
+            <header className={`${scrolled ? 'scrolled' : ''} ${isMenuOpen ? 'menu-open' : ''}`}>
                 <div className="header-content">
                     <div className="logo h-16 flex items-center">
                         <img 
                             src={clubName} 
                             alt="星河科技创新协会名称" 
-                            className="h-11 md:h-14 w-auto object-contain nav-club-name brightness-0 invert transition-all duration-300 hover:scale-105" 
+                            className="h-11 md:h-14 w-auto object-contain nav-club-name transition-all duration-300 hover:scale-105" 
                         />
                     </div>
                     <div className="menu-btn" onClick={toggleMenu}>
@@ -2374,7 +2416,8 @@ function App() {
                     </div>
                 </div>
 
-                <div ref={horizontalScrollRef} className="horizontal-scroll-wrapper">
+                <div className="achievements-horizontal-track">
+                    <div ref={horizontalScrollRef} className="horizontal-scroll-wrapper">
                     
                     {/* Block 1: Big Text */}
                     <div className="flex-shrink-0 mr-10 parallax-layer" data-speed="0.1">
@@ -2425,7 +2468,7 @@ function App() {
                     </div>
 
                     {/* Block 7: Innovation Typography */}
-                    <div className="flex-shrink-0 ml-40 mr-20 flex flex-col justify-center parallax-layer" data-speed="0.15">
+                    <div className="flex-shrink-0 md:ml-40 md:mr-20 ml-0 mr-0 flex flex-col justify-center parallax-layer" data-speed="0.15">
                         <div className="relative group">
                             <h2 className="text-[15vw] font-black leading-[0.8] tracking-tighter opacity-[0.03] absolute -top-32 -left-20 select-none text-black group-hover:opacity-[0.05] transition-opacity duration-1000">
                                 INNOVATION
@@ -2448,7 +2491,7 @@ function App() {
                     </div>
 
                     {/* Block 8: Honors & Certificates Hall of Fame Grid (2 Rows) */}
-                    <div className="flex-shrink-0 ml-40 mr-40 flex flex-col justify-center">
+                    <div className="flex-shrink-0 md:ml-40 md:mr-40 ml-0 mr-0 flex flex-col justify-center w-full md:w-auto">
                         <div className="mb-16 flex justify-between items-end border-b border-black/5 pb-8">
                             <div>
                                 <h3 className="text-[11px] font-black tracking-[0.4em] uppercase opacity-30 mb-3 text-black">XINGHE ARCHIVE / VOL. 01</h3>
@@ -2515,7 +2558,7 @@ function App() {
                     </div>
 
                     {/* Block 9: Final Big Text */}
-                    <div className="flex-shrink-0 ml-40 mr-60 lando-item-center parallax-layer flex flex-col items-center" data-speed="0.1">
+                    <div className="flex-shrink-0 md:ml-40 md:mr-60 ml-0 mr-0 lando-item-center parallax-layer flex flex-col items-center" data-speed="0.1">
                         <h2 className="lando-big-text text-black text-center" dangerouslySetInnerHTML={{ __html: t[lang].style_final_text }}></h2>
                         <div className="mt-12 flex flex-col items-center gap-6">
                             <div className="flex items-center gap-4">
@@ -2530,6 +2573,7 @@ function App() {
                     </div>
 
                 </div>
+            </div>
 
                 {/* UI Elements - Progress Bar */}
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4">
