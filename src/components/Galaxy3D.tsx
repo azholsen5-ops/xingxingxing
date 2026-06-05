@@ -2,6 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func(...args);
+        }, wait);
+    };
+}
+
 const Galaxy3D: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -190,13 +200,13 @@ const Galaxy3D: React.FC = () => {
 
         animate();
 
-        const handleResize = () => {
+        const handleResize = debounce(() => {
             const newWidth = container.clientWidth;
             const newHeight = container.clientHeight || 600;
             camera.aspect = newWidth / newHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(newWidth, newHeight);
-        };
+        }, 150);
 
         window.addEventListener('resize', handleResize);
 

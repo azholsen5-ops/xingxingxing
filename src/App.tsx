@@ -263,6 +263,39 @@ const memberData: Record<string, Member> = {
     }
 };
 
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func(...args);
+        }, wait);
+    };
+}
+
+function throttle<T extends (...args: any[]) => void>(func: T, limit: number): (...args: Parameters<T>) => void {
+    let lastFunc: ReturnType<typeof setTimeout> | null = null;
+    let lastRan: number | null = null;
+    return (...args: Parameters<T>) => {
+        if (lastRan === null) {
+            func(...args);
+            lastRan = Date.now();
+        } else {
+            if (lastFunc) clearTimeout(lastFunc);
+            const remaining = limit - (Date.now() - lastRan);
+            if (remaining <= 0) {
+                func(...args);
+                lastRan = Date.now();
+            } else {
+                lastFunc = setTimeout(() => {
+                    func(...args);
+                    lastRan = Date.now();
+                }, remaining);
+            }
+        }
+    };
+}
+
 function App() {
     // WeChat OAuth landing route intercept
     if (window.location.pathname === '/wechat-auth' || window.location.search.includes('uuid=')) {
@@ -293,12 +326,13 @@ function App() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('intro');
     const [scrolled, setScrolled] = useState(false);
+    const scrolledRef = useRef(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [selectedAward, setSelectedAward] = useState<any | null>(null);
     const [showBackToTop, setShowBackToTop] = useState(false);
-    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-    const [isHovering, setIsHovering] = useState(false);
+    const showBackToTopRef = useRef(false);
+    const customCursorRef = useRef<HTMLDivElement>(null);
     const [isMusicPlaying, setIsMusicPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const progressBarRef = useRef<HTMLDivElement>(null);
@@ -545,52 +579,95 @@ function App() {
 
     // --- Effects ---
     useEffect(() => {
+        let ticked = false;
+
         const handleScroll = () => {
-            const scrollY = window.scrollY;
-            setScrolled(scrollY > 50);
-            setShowBackToTop(scrollY > 300);
-            
-            // Calculate scroll progress for top bar
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const progress = (winScroll / height) * 100;
-            
-            if (progressBarRef.current) {
-                progressBarRef.current.style.width = `${progress}%`;
-            }
+            if (!ticked) {
+                window.requestAnimationFrame(() => {
+                    const scrollY = window.scrollY;
 
-            // Update scroll progress ring
-            if (progressCircleRef.current) {
-                const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
-                const scrollProgress = scrollY / scrollTotal;
-                const circumference = 2 * Math.PI * 30;
-                const offset = circumference - (scrollProgress * circumference);
-                progressCircleRef.current.style.strokeDashoffset = offset.toString();
-            }
+                    const isScrolledNow = scrollY > 50;
+                    if (isScrolledNow !== scrolledRef.current) {
+                        scrolledRef.current = isScrolledNow;
+                        setScrolled(isScrolledNow);
+                    }
 
-            // Reveal animation
-            document.querySelectorAll('.reveal').forEach(el => {
-                if(el.getBoundingClientRect().top < window.innerHeight - 100) {
-                    el.classList.add('active');
-                }
-            });
+                    const isBackToTopNow = scrollY > 300;
+                    if (isBackToTopNow !== showBackToTopRef.current) {
+                        showBackToTopRef.current = isBackToTopNow;
+                        setShowBackToTop(isBackToTopNow);
+                    }
+
+                    // Calculate scroll progress for top bar
+                    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const progress = height > 0 ? (winScroll / height) * 100 : 0;
+
+                    if (progressBarRef.current) {
+                        progressBarRef.current.style.width = `${progress}%`;
+                    }
+
+                    // Update scroll progress ring
+                    if (progressCircleRef.current) {
+                        const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+                        const scrollProgress = scrollTotal > 0 ? scrollY / scrollTotal : 0;
+                        const circumference = 2 * Math.PI * 30;
+                        const offset = circumference - (scrollProgress * circumference);
+                        progressCircleRef.current.style.strokeDashoffset = offset.toString();
+                    }
+
+                    ticked = false;
+                });
+                ticked = true;
+            }
         };
 
         const handleMouseMove = (e: MouseEvent) => {
             if (window.innerWidth < 1024) return;
-            setCursorPos({ x: e.clientX, y: e.clientY });
             
-            // Check if hovering over interactive elements
-            const target = e.target as HTMLElement;
-            const isClickable = target.closest('button, a, .member-card, .award-item-museum, .news-card, .bento-item, .nav-link-museum');
-            setIsHovering(!!isClickable);
+            // Direct DOM update for custom cursor position
+            if (customCursorRef.current) {
+                customCursorRef.current.style.left = `${e.clientX}px`;
+                customCursorRef.current.style.top = `${e.clientY}px`;
+                
+                // Hover checks
+                const target = e.target as HTMLElement;
+                const isClickable = target && target.closest ? target.closest('button, a, .member-card, .award-item-museum, .news-card, .bento-item, .nav-link-museum, input, select, textarea') : null;
+                if (isClickable) {
+                    customCursorRef.current.classList.add('hover');
+                } else {
+                    customCursorRef.current.classList.remove('hover');
+                }
+            }
         };
 
-        window.addEventListener('scroll', handleScroll);
-        window.addEventListener('mousemove', handleMouseMove);
+        // Highly optimized IntersectionObserver for fade-in reveals (Replaces scroll listener polling)
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target); // Reveal only once
+                }
+            });
+        }, {
+            threshold: 0.05,
+            rootMargin: "0px 0px -100px 0px"
+        });
+
+        // Collect and observe elements with a short delay to ensure initial layout is ready
+        const revealTimeout = setTimeout(() => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                revealObserver.observe(el);
+            });
+        }, 100);
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
         return () => {
+            clearTimeout(revealTimeout);
             window.removeEventListener('scroll', handleScroll);
             window.removeEventListener('mousemove', handleMouseMove);
+            revealObserver.disconnect();
         };
     }, []);
 
@@ -929,16 +1006,17 @@ function App() {
 
                 // Initial attempts
                 initScroll();
+                const debouncedInitScroll = debounce(initScroll, 150);
                 setTimeout(initScroll, 500);
                 setTimeout(initScroll, 2000);
                 
                 window.addEventListener('load', initScroll);
-                window.addEventListener('resize', initScroll);
+                window.addEventListener('resize', debouncedInitScroll);
 
                 return () => {
                     ro.disconnect();
                     window.removeEventListener('load', initScroll);
-                    window.removeEventListener('resize', initScroll);
+                    window.removeEventListener('resize', debouncedInitScroll);
                 };
             }, 100);
         }, hallOfFameRef);
@@ -957,7 +1035,7 @@ function App() {
         const renderer = new THREE.WebGLRenderer({ canvas: mainCanvasRef.current, alpha: true, antialias: window.innerWidth >= 1024 });
         renderer.setSize(window.innerWidth, window.innerHeight);
         const isMobile = window.innerWidth < 1024;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
         // In Three.js r152+, outputEncoding is replaced by outputColorSpace
         (renderer as any).outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1328,17 +1406,16 @@ function App() {
         });
     });
 
-        let animationId: number;
+        let animationId: number | null = null;
         const clock = new THREE.Clock();
-        let isVisible = true;
-        const observer = new IntersectionObserver((entries) => {
-            isVisible = entries[0].isIntersecting;
-        }, { threshold: 0.1 });
-        if (mainCanvasRef.current) observer.observe(mainCanvasRef.current);
+        let isVisible = false;
 
         const threeAnimate = () => {
+            if (!isVisible) {
+                animationId = null;
+                return;
+            }
             animationId = requestAnimationFrame(threeAnimate);
-            if (!isVisible) return;
             
             const elapsedTime = clock.getElapsedTime();
             
@@ -1357,7 +1434,32 @@ function App() {
 
             composer.render();
         };
-        threeAnimate();
+
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            const prevVisible = isVisible;
+            isVisible = entry.isIntersecting;
+            
+            if (isVisible && !prevVisible) {
+                clock.start();
+                if (!animationId) {
+                    threeAnimate();
+                }
+            } else if (!isVisible && prevVisible) {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            }
+        }, { threshold: 0.01 });
+        if (mainCanvasRef.current) observer.observe(mainCanvasRef.current);
+
+        // Initial check triggers
+        setTimeout(() => {
+            if (isVisible && !animationId) {
+                threeAnimate();
+            }
+        }, 100);
 
         // Anime.js SVG Animation
         animate(svg.createDrawable('.huge-svg .line'), {
@@ -1368,12 +1470,12 @@ function App() {
             loop: true
         });
 
-        const handleResize = () => {
+        const handleResize = debounce(() => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
-        };
+        }, 150);
         window.addEventListener('resize', handleResize);
 
         return () => {
@@ -1395,7 +1497,7 @@ function App() {
             renderer.dispose();
             composer.dispose();
             pmremGenerator.dispose();
-            cancelAnimationFrame(animationId);
+            if (animationId) cancelAnimationFrame(animationId);
         };
     }, []);
 
@@ -1691,8 +1793,9 @@ function App() {
 
             {/* Custom Cursor (Idea 8) */}
             <div 
-                className={`custom-cursor hidden lg:flex ${isHovering ? 'hover' : ''}`}
-                style={{ left: `${cursorPos.x}px`, top: `${cursorPos.y}px` }}
+                ref={customCursorRef}
+                className="custom-cursor hidden lg:flex"
+                style={{ left: '-100px', top: '-100px' }}
             >
                 <div className="star-cursor">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -3506,7 +3609,10 @@ const GalaxyParticles = () => {
         const resize = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            init();
         };
+
+        const debouncedResize = debounce(resize, 150);
 
         class Particle {
             x: number; y: number; size: number; speedX: number; speedY: number; opacity: number;
@@ -3553,13 +3659,12 @@ const GalaxyParticles = () => {
             animationFrameId = requestAnimationFrame(animate);
         };
 
-        window.addEventListener('resize', resize);
+        window.addEventListener('resize', debouncedResize);
         resize();
-        init();
         animate();
 
         return () => {
-            window.removeEventListener('resize', resize);
+            window.removeEventListener('resize', debouncedResize);
             cancelAnimationFrame(animationFrameId);
         };
     }, []);

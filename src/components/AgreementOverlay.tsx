@@ -11,6 +11,16 @@ interface AgreementOverlayProps {
     isSubmitting?: boolean;
 }
 
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func(...args);
+        }, wait);
+    };
+}
+
 const AgreementOverlay: React.FC<AgreementOverlayProps> = ({ onAccept, isSubmitting = false }) => {
     const [isSigned, setIsSigned] = useState(false);
     const [hasReadToBottom, setHasReadToBottom] = useState(false);
@@ -37,12 +47,14 @@ const AgreementOverlay: React.FC<AgreementOverlayProps> = ({ onAccept, isSubmitt
             }
         };
 
+        const debouncedResizeCanvas = debounce(resizeCanvas, 200);
+
         // Initial resize with a slight delay to allow layout to settle
         const timer = setTimeout(resizeCanvas, 300);
-        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', debouncedResizeCanvas);
         
         return () => {
-            window.removeEventListener('resize', resizeCanvas);
+            window.removeEventListener('resize', debouncedResizeCanvas);
             clearTimeout(timer);
         };
     }, []);

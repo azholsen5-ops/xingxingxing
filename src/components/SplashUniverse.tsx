@@ -36,6 +36,16 @@ interface Star3D {
     lastScreenY: number | null;
 }
 
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func(...args);
+        }, wait);
+    };
+}
+
 export const SplashUniverse: React.FC<SplashUniverseProps> = ({
     progress,
     isExploding,
@@ -80,7 +90,8 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
                 height = canvas.height = window.innerHeight;
             }
         };
-        window.addEventListener('resize', handleResize);
+        const debouncedResize = debounce(handleResize, 150);
+        window.addEventListener('resize', debouncedResize);
 
         // Grid rotation drag listeners
         const onMouseDown = (e: MouseEvent) => {
@@ -157,7 +168,7 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
         // Intelligently generates a beautiful 3D Globular Spherical Cluster combined with named star projection drops
         const initGalaxy = () => {
             const isMobile = window.innerWidth < 768;
-            const starCount = isMobile ? 3200 : 7500;
+            const starCount = isMobile ? 1100 : 2500;
             const arr: Star3D[] = [];
 
             // 1. Add major named constellations
@@ -651,7 +662,7 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
 
         return () => {
             cancelAnimationFrame(animationFrameId);
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('resize', debouncedResize);
             canvas.removeEventListener('mousedown', onMouseDown);
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);

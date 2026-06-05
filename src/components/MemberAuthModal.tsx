@@ -397,31 +397,24 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const triggerSuccessFlow = (user: any) => {
         setSuccessUser(user);
         setIsRedirecting(true);
-        setRedirectStatusText('CAS 统一身份网关授权成功！已生成服务票据 ST-Ticket...');
+        setRedirectStatusText('CAS 统一身份网关授权成功！已生成安全服务票据 Token...');
         
-        // Step 1 of SSO Redirection
+        // Step 1: Simulated verification
         setTimeout(() => {
-            setRedirectStatusText('正在对页面「jwzx.lntu.edu.cn/」回调票据 ST-92841-KAS...');
+            setRedirectStatusText('正在对主程序「星河安全学术科研舱」进行安全令牌回调...');
             setBrowserLoading(true);
-            setBrowserLoadingProgress(45);
-        }, 700);
+            setBrowserLoadingProgress(60);
+        }, 600);
 
-        // Step 2 of SSO Redirection
-        setTimeout(() => {
-            setRedirectStatusText('教务在线服务器校验身份票据中 (Ticket validation)...');
-            setBrowserLoadingProgress(80);
-        }, 1400);
-
-        // Step 3: Landing back at Portal as Logged-In
+        // Step 2: Final entry to association workspace
         setTimeout(() => {
             setBrowserLoadingProgress(100);
             setBrowserLoading(false);
             setIsRedirecting(false);
-            setBrowserView('portal');
-            setBrowserUrlField('jwzx.lntu.edu.cn/?ticket=ST-92841-KAS&service=https%3A%2F%2Fjwzx.lntu.edu.cn%2F');
-            setIsPortalAuthenticated(true);
-            setPortalUser(user);
-        }, 2200);
+            onSuccess(user);
+            onClose();
+            resetStates();
+        }, 1300);
     };
 
     const sendSmsCode = async () => {
@@ -534,17 +527,6 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                         <Sparkles size={11} className="text-blue-400" />
                         <span>星河科技创新协会 HP</span>
                     </button>
-                    <button 
-                        onClick={() => {
-                            setBrowserView('portal');
-                            setBrowserActiveTab('jwzx');
-                            setBrowserUrlField('jwzx.lntu.edu.cn/');
-                        }}
-                        className={`px-4 py-1.5 rounded-t-lg text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border-t border-x border-white/5 ${browserView === 'portal' ? 'bg-[#161a35] text-blue-300' : 'bg-black/20 text-slate-400 hover:text-white'}`}
-                    >
-                        <RefreshCw size={10} className="text-blue-400 rotate-45" />
-                        <span>辽宁工程技术大学教务在线</span>
-                    </button>
                     {browserView === 'authgate' && (
                         <div className="px-4 py-1.5 rounded-t-lg text-[10.5px] font-extrabold flex items-center gap-1.5 bg-[#161a35] text-red-300 border-t border-x border-white/5 select-none animate-fade-in animate-pulse">
                             <Lock size={10} className="text-red-400" />
@@ -558,9 +540,8 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
             <div className="bg-[#161a35] border-b border-white/5 px-4 py-2 flex items-center gap-3 shrink-0 z-10 select-none">
                 <div className="flex items-center gap-2 text-slate-400 shrink-0">
                     <button 
-                        disabled={browserView === 'portal'} 
-                        onClick={() => { setBrowserView('portal'); setBrowserUrlField('jwzx.lntu.edu.cn/'); }}
-                        className="p-1 px-1.5 rounded bg-black/20 hover:bg-black/40 disabled:opacity-30 cursor-pointer text-xs"
+                        disabled={true} 
+                        className="p-1 px-1.5 rounded bg-black/10 opacity-30 cursor-not-allowed text-xs"
                     >
                         🗙
                     </button>
@@ -619,7 +600,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                     </div>
                                     <div>
                                         <h1 className="text-base font-extrabold tracking-wider leading-none">辽宁工程技术大学</h1>
-                                        <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">教务在线 PORTAL ACCESS GATE</p>
+                                        <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">统一验证 PORTAL ACCESS GATE</p>
                                     </div>
                                 </div>
                                 {isPortalAuthenticated && portalUser ? (
@@ -684,7 +665,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
 
                                         <div className="bg-[#f0f9f4] border-l-4 border-emerald-500 rounded-r-xl p-4.5 text-left text-xs text-slate-700 leading-relaxed font-sans space-y-2.5 shadow-inner">
                                             <p className="font-bold text-emerald-800 flex items-center gap-1 select-none">
-                                                <span>🛡️ 辽宁工程技术大学教务在线门户：</span>
+                                                <span>🛡️ 辽宁工程技术大学统一验证中心：</span>
                                                 <span className="text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold px-1.5 py-0.2 rounded">安全互信状态已激活</span>
                                             </p>
                                             <p>尊敬的 <strong>{portalUser.name}</strong> 成员，您已通过辽宁工程技术大学统一身份中心。当前登录客户端已经成功校验单点登录令牌 (SSO Ticket)，并顺利授权您进入 <strong>星河安全科技创新协会</strong> 的后台系统空间。</p>
