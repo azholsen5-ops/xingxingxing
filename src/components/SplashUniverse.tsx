@@ -583,9 +583,9 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
                     // Multi-layer glowing corona with stellar color thermal shades
                     const corona = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, renderSunRadius * 2.8);
                     corona.addColorStop(0, `rgba(255, 255, 255, ${0.98 + loadingRatio * 0.02})`);
-                    corona.addColorStop(0.15, `rgba(253, 224, 71, ${0.85 + loadingRatio * 0.15})`); // Photo-sphere
-                    corona.addColorStop(0.48, `rgba(244, 63, 94, ${0.45 + loadingRatio * 0.25})`);  // Chrome star orange
-                    corona.addColorStop(0.85, `rgba(139, 92, 246, ${0.15 + loadingRatio * 0.1})`);  // Helium violet flame
+                    corona.addColorStop(0.25, `rgba(255, 251, 210, ${0.85 + loadingRatio * 0.15})`); // Delicate solar ivory
+                    corona.addColorStop(0.6, `rgba(245, 230, 185, ${0.45 + loadingRatio * 0.25})`);  // Soft warm gold
+                    corona.addColorStop(0.85, `rgba(100, 140, 240, ${0.15 + loadingRatio * 0.1})`);  // Subtle cosmic blue
                     corona.addColorStop(1.0, 'rgba(3, 6, 12, 0)');
 
                     ctx.fillStyle = corona;
@@ -603,8 +603,8 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
                         
                         const rayGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, pulsateLength);
                         rayGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-                        rayGrad.addColorStop(0.3, 'rgba(253, 224, 71, 0.25)');
-                        rayGrad.addColorStop(0.6, 'rgba(244, 63, 94, 0.08)');
+                        rayGrad.addColorStop(0.3, 'rgba(255, 250, 210, 0.25)');
+                        rayGrad.addColorStop(0.6, 'rgba(245, 230, 185, 0.08)');
                         rayGrad.addColorStop(1.0, 'rgba(3, 6, 12, 0)');
 
                         ctx.beginPath();
@@ -627,8 +627,8 @@ export const SplashUniverse: React.FC<SplashUniverseProps> = ({
                     
                     const flashOverlay = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.85);
                     flashOverlay.addColorStop(0, `rgba(255, 255, 255, ${fadeStrength})`);
-                    flashOverlay.addColorStop(0.32, `rgba(254, 243, 199, ${fadeStrength * 0.95})`);  // Warming yellow flare
-                    flashOverlay.addColorStop(0.68, `rgba(251, 113, 133, ${fadeStrength * 0.8})`);   // Glowing envelope
+                    flashOverlay.addColorStop(0.35, `rgba(255, 254, 230, ${fadeStrength * 0.95})`); // Smooth warm ivory white
+                    flashOverlay.addColorStop(0.7, `rgba(255, 248, 204, ${fadeStrength * 0.85})`);  // Soft yellow corona glow
                     flashOverlay.addColorStop(0.9, `rgba(3, 6, 12, ${fadeStrength})`);
                     flashOverlay.addColorStop(1.0, `rgba(3, 6, 12, 1.0)`);
 

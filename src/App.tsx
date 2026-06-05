@@ -1743,12 +1743,12 @@ function App() {
                                 opacity: isSplashExploding ? 0 : 1,
                                 scale: isSplashExploding ? 0.8 : 1,
                                 filter: isSplashExploding ? "brightness(2) blur(15px)" : "brightness(1) blur(0px)"
-                            }} 
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                            className="flex flex-col items-center justify-center z-10 w-full px-6 mt-8 md:mt-16"
-                        >
-                            {/* Interactive Start screen / Loading details */}
-                            <div className="w-[85vw] max-w-[480px] flex flex-col items-center">
+                             }} 
+                             transition={{ duration: 0.5, ease: "easeOut" }}
+                             className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-20 w-[90vw] max-w-[460px] flex flex-col items-center"
+                         >
+                             {/* Interactive Start screen / Loading details */}
+                             <div className="w-full flex flex-col items-center">
                                 {/* HUD Top-bar labelling */}
                                 <div className="w-full flex justify-between items-center text-[10px] font-mono text-cyan-400/50 mb-2 uppercase tracking-[0.2em] select-none px-1">
                                     <span className="flex items-center gap-1.5 font-bold">
