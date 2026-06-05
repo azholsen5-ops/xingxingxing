@@ -2576,3 +2576,123 @@ footer {
 }
 
 @keyframes scroll-down { 0% { opacity: 0; transform: translateX(-50%) translateY(0); } 50% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+
+/* Website Access QR Code custom styling */
+.website-qr-card {
+    transition: all 0.3s ease;
+}
+.website-qr-card:hover {
+    transform: translateY(-2px);
+}
+@media (max-width: 768px) {
+    .back-to-top {
+        bottom: 40px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* History mobile vertical timeline styles */
+@media (max-width: 768px) {
+    .history-horizontal-section {
+        height: auto !important;
+        padding: 60px 0 !important;
+        overflow: visible !important;
+    }
+    
+    .history-wheel-bg,
+    .history-red-track,
+    .history-scroll-hint,
+    .history-intro-overlay {
+        display: none !important;
+    }
+
+    .history-horizontal-track {
+        height: auto !important;
+        overflow: visible !important;
+        mask-image: none !important;
+        -webkit-mask-image: none !important;
+        padding: 0 !important;
+    }
+
+    .history-items-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 20px !important;
+        gap: 28px !important;
+        width: 100% !important;
+        align-items: stretch !important;
+        transform: none !important;
+        overflow: visible !important;
+        box-sizing: border-box;
+    }
+
+    .history-item {
+        flex: none !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 24px !important;
+        margin: 0 !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        transform: none !important;
+        opacity: 1 !important;
+        transition: all 0.3s ease !important;
+        box-sizing: border-box;
+        cursor: pointer;
+        /* Optimizing tactile touch interaction area */
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .history-item:active {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(57, 255, 20, 0.4) !important;
+        transform: scale(0.98) !important;
+    }
+
+    .history-item-content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+
+    .item-top, .item-bottom {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        justify-content: flex-start !important;
+    }
+
+    .history-year-huge {
+        font-size: 2.8rem !important;
+        opacity: 1 !important;
+        color: #39FF14 !important;
+        font-weight: 800 !important;
+        text-shadow: 0 0 15px rgba(57, 255, 20, 0.25) !important;
+        text-align: left !important;
+        line-height: 1 !important;
+        margin-bottom: 8px !important;
+        transform: none !important;
+        letter-spacing: -0.02em !important;
+    }
+
+    .history-desc-box {
+        font-size: 14px !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        max-width: 100% !important;
+        margin: 4px 0 0 0 !important;
+        opacity: 1 !important;
+        transform: none !important;
+        line-height: 1.5 !important;
+        text-align: left !important;
+    }
+}
+

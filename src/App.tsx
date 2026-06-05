@@ -12,7 +12,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award, Video } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award, Video, QrCode, Smartphone, Download, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
@@ -23,6 +23,7 @@ import ShinyText from './components/ShinyText';
 import AgreementOverlay from './components/AgreementOverlay';
 import MemberAuthModal from './components/MemberAuthModal';
 import UserProfileEditModal from './components/UserProfileEditModal';
+import ManifestoReveal from './components/ManifestoReveal';
 import { WechatAuthLanding } from './components/WechatAuthLanding';
 import { authService, User as AuthUser } from './services/authService';
 import { socketService } from './services/socketService';
@@ -359,6 +360,16 @@ function App() {
     const [shareToast, setShareToast] = useState<string | null>(null);
     const [is3DLoading, setIs3DLoading] = useState(true);
     const [isPageLoaded, setIsPageLoaded] = useState(false);
+    const [isMobileLayout, setIsMobileLayout] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobileLayout(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const handleLoad = () => setIsPageLoaded(true);
@@ -1511,6 +1522,29 @@ function App() {
         const scrollHint = document.querySelector(".history-scroll-hint");
         
         if (track) {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                // Mobile smooth vertical scrolling & content display
+                items.forEach((item) => {
+                    item.classList.add("active");
+                    gsap.fromTo(item, 
+                        { opacity: 0, y: 30 },
+                        {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.6,
+                            ease: "power1.out",
+                            scrollTrigger: {
+                                trigger: item,
+                                start: "top 90%",
+                                toggleActions: "play none none none"
+                            }
+                        }
+                    );
+                });
+                return;
+            }
+
             const historyTl = gsap.timeline({
                 scrollTrigger: {
                     trigger: "#history",
@@ -2270,11 +2304,14 @@ function App() {
                                     <h2 className="animate-num">18</h2>
                                 </div>
                             </div>
+                            <div className="mt-8 w-full animate-fade-in">
+                                <ManifestoReveal lang={lang} />
+                            </div>
                         </div>
                     </section>
 
                     {/* 4. History (Video Inspired Horizontal Scroll) */}
-                    <section className="history-horizontal-section cursor-auto" id="history" style={{ height: '800vh' }}>
+                    <section className="history-horizontal-section cursor-auto" id="history" style={{ height: isMobileLayout ? 'auto' : '800vh' }}>
                         {/* High-end Damping Wheel Background */}
                         <div className="history-wheel-bg">
                             <svg viewBox="0 0 1000 1000" className="history-wheel-svg">
@@ -3262,6 +3299,25 @@ function App() {
                                     <li><a href="#">{t[lang].footer_apply}</a></li>
                                     <li><a href="#">{t[lang].footer_questions}</a></li>
                                 </ul>
+                            </div>
+                            {/* Website Access QR Code */}
+                            <div className="footer-nav-column">
+                                <h4 className="flex items-center gap-1.5 font-bold text-gray-800">
+                                    <QrCode size={16} className="text-blue-500" />
+                                    {lang === 'zh' ? '官方网站二维码' : 'Website QR Code'}
+                                </h4>
+                                <div className="mt-2.5 bg-white p-2 border border-gray-200 rounded-xl shadow-md inline-block website-qr-card">
+                                    <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('https://www.aqxyxhkjcxxh.cn/')}`}
+                                        alt="Official Site QR Code" 
+                                        className="w-24 h-24 object-contain"
+                                        referrerPolicy="no-referrer"
+                                        loading="lazy"
+                                    />
+                                </div>
+                                <p className="text-[11px] text-[#39FF14] font-bold mt-1.5 leading-tight animate-pulse">
+                                    {lang === 'zh' ? '手机端/材料直接扫码访问' : 'Scan to access directly'}
+                                </p>
                             </div>
                         </div>
 

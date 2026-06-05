@@ -596,10 +596,10 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                             <header className="bg-[#193c72] px-6 py-4 flex flex-col sm:flex-row items-center justify-between select-none shadow-md text-white">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center p-1 font-black text-[#193c72] border-2 border-orange-400">
-                                        LNTU
+                                        CAS
                                     </div>
                                     <div>
-                                        <h1 className="text-base font-extrabold tracking-wider leading-none">辽宁工程技术大学</h1>
+                                        <h1 className="text-base font-extrabold tracking-wider leading-none">高校联盟联合验证中心</h1>
                                         <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">统一验证 PORTAL ACCESS GATE</p>
                                     </div>
                                 </div>
@@ -643,21 +643,20 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                 <span className="hover:text-blue-200 cursor-not-allowed">课程建设</span>
                                 <span className="hover:text-blue-200 cursor-not-allowed">实践教学</span>
                                 <span className="hover:text-blue-200 cursor-not-allowed">考务管理</span>
-                                <span className="hover:text-blue-200 cursor-not-allowed">美育劳育</span>
-                                <span className="hover:text-blue-200 cursor-not-allowed">安全科创入口</span>
+                                <span className="hover:text-blue-200 cursor-not-allowed">学籍档案</span>
                             </nav>
 
-                            {/* Campus Banner and notification body / SSO Logged In view */}
                             {isPortalAuthenticated && portalUser ? (
-                                <div className="flex-1 flex flex-col justify-center items-center py-10 px-6 max-w-4xl mx-auto text-center">
+                                <div className="flex-1 flex flex-col justify-center items-center py-12 px-6 max-w-4xl mx-auto text-center">
                                     <motion.div 
-                                        initial={{ scale: 0.95, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-8 shadow-xl text-slate-800 font-sans space-y-6"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-8 shadow-xl text-slate-800 font-sans space-y-5"
                                     >
-                                        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-sm">
-                                            <CheckCircle2 size={32} className="text-emerald-500" />
+                                        <div className="w-16 h-16 bg-[#10b981]/5 text-[#10b981] rounded-full flex items-center justify-center mx-auto mb-2 border border-[#10b981]/10 shadow-inner">
+                                            <CheckCircle2 size={32} className="text-[#10b981]" />
                                         </div>
+
                                         <div>
                                             <h3 className="text-xl font-black text-emerald-800 leading-tight">学校 CAS 凭证授权建立成功</h3>
                                             <p className="text-xs text-slate-400 uppercase tracking-widest font-mono mt-1">LNTU UNIFIED SSO SECURITY HANDSHAKE COMPLETED</p>
@@ -699,7 +698,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         <div className="w-16 h-16 bg-[#193c72]/5 text-[#193c72] rounded-full flex items-center justify-center mx-auto mb-2 border border-[#193c72]/10 shadow-inner">
                                             🏫
                                         </div>
-                                        <h3 className="text-xl font-black text-[#193c72] leading-tight">辽宁工程技术大学 - 安全科学与工程学院</h3>
+                                        <h3 className="text-xl font-black text-[#193c72] leading-tight">高校联盟中心 - 安全科学与技术研究院</h3>
                                         <p className="text-xs text-slate-500 uppercase tracking-widest font-mono">SCHOOL OF SAFETY SCIENCE AND ENGINEERING</p>
 
                                         <div className="bg-[#f0f4f9] border-l-4 border-orange-500 rounded-r-xl p-4 text-left text-xs text-slate-700 leading-relaxed font-sans mt-4">
@@ -779,9 +778,9 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         <div>
                                             {/* LNTU CAS Standard Header */}
                                             <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-white/10 select-none">
-                                                <div className="w-9 h-9 rounded-full bg-white text-[#b22222] font-black flex items-center justify-center shadow-lg text-sm">L</div>
+                                                <div className="w-9 h-9 rounded-full bg-white text-[#b22222] font-black flex items-center justify-center shadow-lg text-sm">CAS</div>
                                                 <div className="leading-tight">
-                                                    <h3 className="text-[13px] font-extrabold tracking-wider">辽宁工程技术大学 LNTU</h3>
+                                                    <h3 className="text-[13px] font-extrabold tracking-wider">高校联盟验证中心 CAS</h3>
                                                     <p className="text-[9.5px] text-[#ff8080] font-bold tracking-widest uppercase mt-0.5">CAS 统一身份认证系统</p>
                                                 </div>
                                             </div>
