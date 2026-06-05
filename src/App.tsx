@@ -1745,49 +1745,49 @@ function App() {
                                 filter: isSplashExploding ? "brightness(2) blur(15px)" : "brightness(1) blur(0px)"
                              }} 
                              transition={{ duration: 0.5, ease: "easeOut" }}
-                             className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-20 w-[90vw] max-w-[460px] flex flex-col items-center"
+                             className="absolute bottom-[12%] left-1/2 -translate-x-1/2 z-20 w-[90vw] max-w-[380px] flex flex-col items-center"
                          >
                              {/* Interactive Start screen / Loading details */}
                              <div className="w-full flex flex-col items-center">
                                 {/* HUD Top-bar labelling */}
-                                <div className="w-full flex justify-between items-center text-[10px] font-mono text-cyan-400/50 mb-2 uppercase tracking-[0.2em] select-none px-1">
-                                    <span className="flex items-center gap-1.5 font-bold">
-                                        <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></span>
-                                        SYSTEM: XINGHE_OS_v2.6
+                                <div className="w-full flex justify-between items-center text-[9px] font-mono text-white/40 mb-2.5 uppercase tracking-[0.25em] select-none px-1">
+                                    <span className="flex items-center gap-1.5 font-medium">
+                                        <span className="w-1 h-1 bg-white/40 rounded-full"></span>
+                                        SYSTEM // CORE_V2.6
                                     </span>
-                                    <span>PATCH REVERSION VALIDATION</span>
+                                    <span>INITIALIZE CHECK</span>
                                 </div>
 
                                 {/* Main capsule progress container */}
-                                <div className="w-full h-[12px] bg-black/60 border border-cyan-500/25 rounded-full p-0.5 relative overflow-hidden backdrop-blur-sm shadow-[inset_0_1px_5px_rgba(0,0,0,0.8)]">
+                                <div className="w-full h-[1.5px] bg-white/10 relative overflow-hidden">
                                     {/* The filling laser-bar */}
                                     <div 
-                                        className="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 to-indigo-500 shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-all duration-150 ease-out relative"
+                                        className="h-full bg-white transition-all duration-150 ease-out relative"
                                         style={{ width: `${splashProgress}%` }}
                                     >
                                         {/* Glass reflection style diagonal texture */}
-                                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0.1)_75%,transparent_75%,transparent)] bg-[size:10px_10px] opacity-40"></div>
+                                        
                                         {/* Scan spark at trailing edge */}
-                                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white blur-[2px] animate-pulse"></div>
+                                        
                                     </div>
                                 </div>
 
                                 {/* Subtext and percentage reporting */}
-                                <div className="w-full flex justify-between items-center text-[11px] font-mono mt-3 text-cyan-400/90 tracking-widest select-none">
-                                    <span className="truncate max-w-[75%] text-[10px] opacity-75 uppercase">{splashStatusMessage}</span>
-                                    <span className="font-bold bg-cyan-950/40 border border-cyan-800/30 px-2 py-0.5 rounded text-cyan-300">
+                                <div className="w-full flex justify-between items-center text-[9px] font-mono mt-2.5 text-white/50 tracking-[0.2em] select-none">
+                                    <span className="truncate max-w-[75%] text-[8.5px] opacity-65 uppercase">{splashStatusMessage}</span>
+                                    <span className="font-medium text-white/80 px-1">
                                         {splashProgress < 100 ? `${Math.round(splashProgress)}%` : "READY"}
                                     </span>
                                 </div>
 
                                 {/* Active network speed simulation */}
                                 {splashProgress < 100 ? (
-                                    <div className="w-full flex justify-between items-center text-[9px] font-mono text-cyan-500/30 mt-1 select-none uppercase tracking-wider px-1">
+                                    <div className="hidden">
                                         <span>RESOURCE_BUFF: {(splashProgress * 0.42).toFixed(1)}MB / 42.0MB</span>
                                         <span>SPEED: {(4.1 + Math.random() * 0.9).toFixed(1)} MB/S</span>
                                     </div>
                                 ) : (
-                                    <div className="w-full text-center text-[9px] font-mono text-emerald-400/55 mt-1.5 select-none uppercase tracking-widest animate-pulse">
+                                    <div className="hidden">
                                         MEMBRANE SYSTEM SYNC_OK // SECURITIES BOUND SUCCESSFULLY
                                     </div>
                                 )}
@@ -1804,15 +1804,14 @@ function App() {
                                     filter: isSplashExploding ? "blur(15px)" : "blur(0px)"
                                 }}
                                 transition={{ duration: 0.4, type: "spring" }}
-                                className="absolute inset-0 bg-black/25 flex flex-col items-center justify-end pb-28 z-40 cursor-pointer pointer-events-none"
+                                className="absolute inset-0 bg-black/5 flex flex-col items-center justify-end pb-32 z-40 cursor-pointer pointer-events-none"
                             >
                                 <motion.div
                                     animate={{ 
-                                        scale: [1, 1.05, 1],
-                                        boxShadow: ["0 0 15px rgba(34,211,238,0.4)", "0 0 35px rgba(34,211,238,0.8)", "0 0 15px rgba(34,211,238,0.4)"]
+                                        opacity: [0.75, 1, 0.75]
                                     }}
-                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                    className="px-8 py-4 bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 border border-cyan-300/30 text-white font-mono text-xs font-black tracking-[0.25em] rounded-full uppercase shadow-[0_0_25px_rgba(6,182,212,0.45)] text-center w-[85vw] max-w-[340px] whitespace-nowrap active:scale-95 transition-all pointer-events-auto"
+                                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="px-10 py-3.5 bg-white/5 border border-white/15 hover:bg-white/10 hover:border-white/40 text-white font-mono text-[10.5px] font-medium tracking-[0.45em] rounded-none uppercase backdrop-blur-md transition-all duration-350 select-none text-center w-[85vw] max-w-[320px] whitespace-nowrap active:scale-95 pointer-events-auto cursor-pointer"
                                     onClick={(e) => {
                                         e.stopPropagation(); // Avoid double triggers
                                         triggerExplosion();
@@ -1820,8 +1819,8 @@ function App() {
                                 >
                                     TOUCH TO START // 点击进入
                                 </motion.div>
-                                <span className="text-[9px] font-mono tracking-[0.4em] text-cyan-400/40 uppercase mt-4 animate-pulse">
-                                    XINGHE CORE PORTALS STABILIZED
+                                <span className="text-[8px] font-mono tracking-[0.3em] text-white/30 uppercase mt-3.5 select-none">
+                                    CORE PORTALS STABILIZED
                                 </span>
                             </motion.div>
                         )}
