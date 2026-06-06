@@ -12,7 +12,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award, Video, QrCode, Smartphone, Download, Copy, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, Phone, Mail, MapPin, ArrowUp, Trophy, Laptop, User, MessageCircle, Music, AlertCircle, Share2, Search, ArrowRight, Award, Video, QrCode, Smartphone, Download, Copy, Check, Sparkles, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { addDocument } from './firebase';
 import Galaxy3D from './components/Galaxy3D';
@@ -28,6 +28,8 @@ import { WechatAuthLanding } from './components/WechatAuthLanding';
 import { authService, User as AuthUser } from './services/authService';
 import { socketService } from './services/socketService';
 import { SplashUniverse } from './components/SplashUniverse';
+import SideRays from './components/SideRays';
+import { InteractiveStory } from './components/InteractiveStory';
 
 const logoXh = 'https://t28w9pcnwnxeikoj.public.blob.vercel-storage.com/logo-main.png'; // Using logo-main as fallback for logoXh
 const wechatQr = '/images/qr.png';
@@ -116,7 +118,7 @@ interface Member {
 const memberData: Record<string, Member> = {
     liqin: { 
         id: 'liqin',
-        name: "李溱", 
+        name: "李某某", 
         className: "安全23-2", 
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=liqin&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "研究方向为矿山安全监测技术，具备扎实数据处理能力。", 
@@ -124,7 +126,7 @@ const memberData: Record<string, Member> = {
     },
     niedongyang: { 
         id: 'niedongyang',
-        name: "聂冬洋", 
+        name: "聂某某", 
         className: "安全24-1", 
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=niedongyang&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "主攻机器人视觉算法，负责视觉方案设计与落地。", 
@@ -132,7 +134,7 @@ const memberData: Record<string, Member> = {
     },
     heshiyu: { 
         id: 'heshiyu',
-        name: "贺诗雨", 
+        name: "贺某某", 
         className: "安全23-5", 
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=heshiyu&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584", 
         intro: "主攻安全风险管理与应急技术，参与省级科研项目。", 
@@ -140,15 +142,15 @@ const memberData: Record<string, Member> = {
     },
     zhangming: {
         id: 'lupeng',
-        name: "路鹏",
+        name: "路某某",
         className: "安全23-2",
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=lupeng&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "擅长安全系统工程与风险评估。",
-        awards: ["2024年校级优秀学生"]
+        awards: ["2024年优秀科创先锋"]
     },
     lihua: {
         id: 'lihua',
-        name: "李华",
+        name: "李某某",
         className: "机器人24-1",
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=lihua&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "专注于自动化控制与机器人结构设计。",
@@ -157,15 +159,15 @@ const memberData: Record<string, Member> = {
     // Teachers
     qijiayi: {
         id: 'qijiayi',
-        name: "齐嘉义",
+        name: "齐某某",
         className: "首席指导教师",
         avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400",
-        intro: "安全工程学院教授，博士生导师。深耕矿山安全领域30余年，主持国家级科研项目10余项，在国内外核心期刊发表论文50余篇。",
+        intro: "安全工程专家，博士生导师。深耕矿山安全领域30余年，主持国家级科研项目10余项，在国内外核心期刊发表论文50余篇。",
         awards: ["国家科技进步二等奖", "全国优秀教师", "省级教学名师"]
     },
     wanganquan: {
         id: 'wanganquan',
-        name: "王安全",
+        name: "王某某",
         className: "技术指导教师",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
         intro: "副教授，主要研究方向为智能监测系统与传感器网络。拥有多项发明专利，指导学生获得国家级科创竞赛奖项20余项。",
@@ -173,15 +175,15 @@ const memberData: Record<string, Member> = {
     },
     lichuangxin: {
         id: 'lichuangxin',
-        name: "李创新",
+        name: "李某某",
         className: "创新指导教师",
         avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400",
-        intro: "高级工程师，专注于大学生科创项目孵化 with 竞赛指导。具有丰富的行业背景，擅长将理论研究转化为实际应用场景。",
-        awards: ["挑战杯全国优秀指导教师", "互联网+大赛金奖导师", "大学生创业孵化基地负责人"]
+        intro: "高级工程师，专注于青年科创项目孵化 with 竞赛指导。具有丰富的行业背景，擅长将理论研究转化为实际应用场景。",
+        awards: ["挑战杯全国优秀指导教师", "互联网+大赛金奖导师", "青年创业孵化基地负责人"]
     },
     zhaozhinen: {
         id: 'zhaozhinen',
-        name: "赵智能",
+        name: "赵某某",
         className: "AI指导教师",
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400",
         intro: "人工智能实验室主任，专注于深度学习与计算机视觉在安全领域的应用。主导开发了多套智能预警系统。",
@@ -189,7 +191,7 @@ const memberData: Record<string, Member> = {
     },
     sunshijian: {
         id: 'sunshijian',
-        name: "孙实践",
+        name: "孙某某",
         className: "工程指导教师",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
         intro: "资深高级工程师，拥有20年一线工程实践经验。擅长硬件电路设计与机械结构优化，是团队的技术压舱石。",
@@ -197,7 +199,7 @@ const memberData: Record<string, Member> = {
     },
     zhouyanjiu: {
         id: 'zhouyanjiu',
-        name: "周研究",
+        name: "周某某",
         className: "学术指导教师",
         avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
         intro: "博士后研究员，专注于安全科学前沿理论研究。在国际顶级期刊发表多篇高影响力论文。",
@@ -205,15 +207,15 @@ const memberData: Record<string, Member> = {
     },
     wulilun: {
         id: 'wulilun',
-        name: "吴理论",
+        name: "吴某某",
         className: "理论指导教师",
         avatar: "https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&q=80&w=400",
-        intro: "资深讲师，擅长将复杂的物理理论转化为易于理解的工程模型。深受学生喜爱。",
-        awards: ["校级教学成果一等奖", "最受欢迎教师"]
+        intro: "资资深讲师，擅长将复杂的物理理论转化为易于理解的工程模型。深受学生喜爱。",
+        awards: ["省部级教学成果一等奖", "最受欢迎教师"]
     },
     zhengshijian: {
         id: 'zhengshijian',
-        name: "郑实践",
+        name: "郑某某",
         className: "实践指导教师",
         avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=400",
         intro: "拥有丰富的工厂安全管理经验，指导学生进行实地调研与安全评估。",
@@ -221,7 +223,7 @@ const memberData: Record<string, Member> = {
     },
     qianchuangxin: {
         id: 'qianchuangxin',
-        name: "钱创新",
+        name: "钱某某",
         className: "创业指导教师",
         avatar: "https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=400",
         intro: "成功创业者，指导学生进行项目商业化与市场推广。拥有广泛的投融资资源。",
@@ -229,7 +231,7 @@ const memberData: Record<string, Member> = {
     },
     wangzhinen: {
         id: 'wangzhinen',
-        name: "王智能",
+        name: "王某某",
         className: "机器人指导教师",
         avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=400",
         intro: "机器人竞赛金牌教练，指导学生在各类机器人大赛中屡获佳绩。",
@@ -237,7 +239,7 @@ const memberData: Record<string, Member> = {
     },
     zhangxiaoming: {
         id: 'zhangxiaoming',
-        name: "张晓明",
+        name: "张某某",
         className: "宣传部部长",
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=zhangxiaoming&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会品牌宣传与活动推广，擅长视觉设计与新媒体运营。",
@@ -246,16 +248,16 @@ const memberData: Record<string, Member> = {
     },
     wangfang: {
         id: 'wangfang',
-        name: "王芳",
+        name: "王某某",
         className: "秘书处秘书长",
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=wangfang&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会日常行政事务与财务管理，工作细致严谨。",
-        awards: ["社会实践先进个人", "校级奖学金"],
+        awards: ["社会实践先进个人", "科创特等奖学金"],
         category: 'service'
     },
     liwei: {
         id: 'liwei',
-        name: "李伟",
+        name: "李某某",
         className: "组织部部长",
         avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=liwei&backgroundColor=b6e3f4,c0aede,d1d4f9&hairColor=000000,101010&skinColor=ffd1a9,f1c27d,e8b584",
         intro: "负责协会成员考核与团队建设，具有极强的组织协调能力。",
@@ -361,6 +363,7 @@ function App() {
     const [is3DLoading, setIs3DLoading] = useState(true);
     const [isPageLoaded, setIsPageLoaded] = useState(false);
     const [isMobileLayout, setIsMobileLayout] = useState(false);
+    const [isImmersiveStory, setIsImmersiveStory] = useState(false);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -1968,13 +1971,7 @@ function App() {
                         <div className="splash-corner splash-corner-bl"></div>
                         <div className="splash-corner splash-corner-br"></div>
 
-                        {/* HUD Meta Details */}
-                        <div className="splash-hud-data hidden md:flex font-mono select-none">
-                            <span>COORD_LAT: 41.8781</span>
-                            <span>COORD_LNG: -87.6298</span>
-                            <span>VER: ALPHA_2.6.0 (Update_Patch)</span>
-                            <span>REF: XH_CORE_ENGINE</span>
-                        </div>
+
 
                         {/* SCANNING percent monitor (Top Right Clock/Telemetry overlay) */}
                         <div className="absolute top-10 right-10 hidden md:flex flex-col gap-1 items-end text-[8px] font-mono text-cyan-400/30 select-none uppercase tracking-wider">
@@ -2554,89 +2551,118 @@ function App() {
             <section id="experience" ref={experienceRef} className="relative overflow-hidden pb-20">
                 <div className="topo-bg white opacity-20"></div>
                 <div className="container relative z-10 reveal">
-                    <div className="section-header mb-20">
-                        <h2 className="text-3xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
-                        <div className="line w-20 h-1.5 bg-[#39FF14] mt-4"></div>
+                    <div className="section-header mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h2 className="text-3xl font-black tracking-tighter text-white">{t[lang].experience_title}</h2>
+                            <div className="line w-20 h-1.5 bg-[#39FF14] mt-4"></div>
+                        </div>
+
+                        {/* Immersive View Toggle Selector */}
+                        <div className="flex bg-white/5 border border-white/10 p-1 rounded-2xl select-none relative z-20">
+                            <button 
+                                onClick={() => setIsImmersiveStory(false)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold tracking-wider transition-all cursor-pointer ${!isImmersiveStory ? 'bg-[#39ff14]/15 border border-[#39ff14]/30 text-[#39ff14]' : 'text-white/60 hover:text-white'}`}
+                            >
+                                <Layers size={13} />
+                                <span>{lang === 'zh' ? '团队历程 (Timeline)' : 'Timeline'}</span>
+                            </button>
+                            <button 
+                                onClick={() => setIsImmersiveStory(true)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold tracking-wider transition-all cursor-pointer ${isImmersiveStory ? 'bg-[#39ff14]/15 border border-[#39ff14]/30 text-[#39ff14]' : 'text-white/60 hover:text-white'}`}
+                            >
+                                <Sparkles size={13} className={isImmersiveStory ? "animate-pulse" : ""} />
+                                <span className="flex items-center gap-1.5">
+                                    <span>{lang === 'zh' ? '星河沉浸故事' : 'Story'}</span>
+                                    <span className="bg-[#39ff14] text-black text-[8px] font-black tracking-normal px-1 py-0.2 rounded scale-90">NEW</span>
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="experience-timeline relative">
-                        {/* Vertical Line */}
-                        <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-600/50 via-blue-200 to-transparent transform -translate-x-1/2 hidden md:block"></div>
+                    {!isImmersiveStory ? (
+                        <div className="experience-timeline relative">
+                            {/* Vertical Line */}
+                            <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-600/50 via-blue-200 to-transparent transform -translate-x-1/2 hidden md:block"></div>
 
-                        <div className="space-y-24">
-                            {/* Item 1 */}
-                            <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
-                                <div className="experience-date md:w-1/2 md:text-right">
-                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
-                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.01 / SPRING</div>
-                                </div>
-                                <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
-                                    <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
-                                            <Trophy size={32} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold rounded-full">学业规划</span>
-                                                <span className="text-white/40 text-sm">分享人：路鹏</span>
+                            <div className="space-y-24">
+                                {/* Item 1 */}
+                                <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
+                                    <div className="experience-date md:w-1/2 md:text-right">
+                                        <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
+                                        <div className="text-blue-600 font-bold text-lg mt-2">NO.01 / SPRING</div>
+                                    </div>
+                                    <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
+                                    <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
+                                        <div className="flex items-start gap-6">
+                                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
+                                                <Trophy size={32} />
                                             </div>
-                                            <h4 className="text-xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
-                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="px-3 py-1 bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold rounded-full">学业规划</span>
+                                                    <span className="text-white/40 text-sm">分享人：路某某</span>
+                                                </div>
+                                                <h4 className="text-xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
+                                                <p className="text-white/60 text-sm leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Item 2 */}
-                            <div className="experience-item relative flex flex-col md:flex-row-reverse items-center gap-12">
-                                <div className="experience-date md:w-1/2 text-left">
-                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
-                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.02 / SUMMER</div>
-                                </div>
-                                <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
-                                    <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
-                                            <Laptop size={32} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full">技能提升</span>
-                                                <span className="text-white/40 text-sm">分享人：徐榕浩</span>
+                                {/* Item 2 */}
+                                <div className="experience-item relative flex flex-col md:flex-row-reverse items-center gap-12">
+                                    <div className="experience-date md:w-1/2 text-left">
+                                        <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2025</span>
+                                        <div className="text-blue-600 font-bold text-lg mt-2">NO.02 / SUMMER</div>
+                                    </div>
+                                    <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
+                                    <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
+                                        <div className="flex items-start gap-6">
+                                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
+                                                <Laptop size={32} />
                                             </div>
-                                            <h4 className="text-xl font-bold mb-3 text-white">《数学建模与Matlab应用》</h4>
-                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full">技能提升</span>
+                                                    <span className="text-white/40 text-sm">分享人：徐某某</span>
+                                                </div>
+                                                <h4 className="text-xl font-bold mb-3 text-white">《数学建模与Matlab应用》</h4>
+                                                <p className="text-white/60 text-sm leading-relaxed">核心内容：结合案例讲解如何养成竞赛心态以及各种专业软件介绍。手把手教你如何从零开始构建数学模型。</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Item 3 */}
-                            <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
-                                <div className="experience-date md:w-1/2 md:text-right">
-                                    <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2024</span>
-                                    <div className="text-blue-600 font-bold text-lg mt-2">NO.03 / WINTER</div>
-                                </div>
-                                <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
-                                <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
-                                    <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
-                                            <MessageCircle size={32} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full">团队建设</span>
-                                                <span className="text-white/40 text-sm">分享人：贺诗雨</span>
+                                {/* Item 3 */}
+                                <div className="experience-item relative flex flex-col md:flex-row items-center gap-12">
+                                    <div className="experience-date md:w-1/2 md:text-right">
+                                        <span className="text-7xl font-black text-gray-100 absolute -top-10 -left-4 md:static md:block md:opacity-100">2024</span>
+                                        <div className="text-blue-600 font-bold text-lg mt-2">NO.03 / WINTER</div>
+                                    </div>
+                                    <div className="experience-dot absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg z-10 hidden md:block"></div>
+                                    <div className="experience-card md:w-1/2 bg-black/20 backdrop-blur-md p-10 rounded-3xl shadow-xl border border-white/10 hover:border-[#39FF14] transition-all group">
+                                        <div className="flex items-start gap-6">
+                                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-[#39FF14] group-hover:bg-[#39FF14] group-hover:text-black transition-colors duration-500">
+                                                <MessageCircle size={32} />
                                             </div>
-                                            <h4 className="text-xl font-bold mb-3 text-white">《高效团队协作与沟通》</h4>
-                                            <p className="text-white/60 text-sm leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full">团队建设</span>
+                                                    <span className="text-white/40 text-sm">分享人：贺某某</span>
+                                                </div>
+                                                <h4 className="text-xl font-bold mb-3 text-white">《高效团队协作与沟通》</h4>
+                                                <p className="text-white/60 text-sm leading-relaxed">核心内容：如何利用飞书等工具进行跨部门协作，以及在压力环境下保持高效沟通的艺术。</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="animate-fade-in relative z-20">
+                            <InteractiveStory onClose={() => setIsImmersiveStory(false)} lang={lang} />
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -3378,7 +3404,24 @@ function App() {
                 }}>
                     <div className="relative bg-[#0d1117] text-white w-full max-w-6xl rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.25)] border border-white/10 animate-modal-in flex flex-col md:flex-row h-[85vh] min-h-[650px]" onClick={e => e.stopPropagation()}>
                         {/* Left Column: Form */}
-                        <div className="flex-1 p-8 md:p-12 relative z-10 flex flex-col justify-center">
+                        <div className="flex-1 p-8 md:p-12 relative overflow-hidden flex flex-col justify-center">
+                            {/* Background image overlay to fill the empty space with step-related imagery */}
+                            <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-[0.25]">
+                                <img 
+                                    key={joinStep}
+                                    src={
+                                        joinSubmitted ? "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800" :
+                                        joinStep === 1 ? "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800" :
+                                        joinStep === 2 ? "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800" :
+                                        joinStep === 3 ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800" :
+                                        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800"
+                                    } 
+                                    className="absolute inset-0 w-full h-full object-cover animate-fade-in filter blur-[1px]"
+                                    alt="Background decoration"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-[#0d1117] via-[#0d1117]/85 to-[#0d1117]/40"></div>
+                            </div>
+
                             <button className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-20 md:hidden" onClick={() => {
                                 setShowJoinModal(false);
                                 setJoinStep(1);
@@ -3388,7 +3431,7 @@ function App() {
                             </button>
 
                             {!joinSubmitted ? (
-                                <div className="max-w-md mx-auto w-full">
+                                <div className="max-w-md mx-auto w-full relative z-10">
                                     <div className="mb-8">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="px-2.5 py-0.5 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
@@ -3561,7 +3604,7 @@ function App() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-6 animate-fade-in max-w-sm mx-auto">
+                                <div className="text-center py-6 animate-fade-in max-w-sm mx-auto relative z-10">
                                     <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                                         <ChevronRight size={40} className="rotate-[-45deg]" />
                                     </div>
@@ -3584,6 +3627,21 @@ function App() {
 
                         {/* Right Column: Image */}
                         <div className="hidden md:block w-[40%] relative overflow-hidden">
+                            <div className="absolute inset-0 z-10 pointer-events-none">
+                                <SideRays
+                                    speed={2.5}
+                                    rayColor1="#EAB308"
+                                    rayColor2="#96c8ff"
+                                    intensity={2}
+                                    spread={2}
+                                    origin="top-right"
+                                    tilt={0}
+                                    saturation={1.5}
+                                    blend={0.75}
+                                    falloff={1.6}
+                                    opacity={1}
+                                />
+                            </div>
                             <div className="absolute inset-0 transition-all duration-700 ease-in-out">
                                 <img 
                                     key={joinStep}

@@ -508,7 +508,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
 
                     {/* Window Name Label */}
                     <div className="text-[10.5px] text-white/50 font-mono tracking-wider truncate bg-black/20 border border-white/5 px-4.5 py-0.5 rounded-full select-all">
-                        {browserView === 'portal' ? 'LNTU Educational Online System' : 'LNTU CAS Unified Identity Gateway'}
+                        {browserView === 'portal' ? 'Xinghe Educational Online System' : '安全科技创新协会验证'}
                     </div>
 
                     {/* End Indicator */}
@@ -528,9 +528,9 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                         <span>星河科技创新协会 HP</span>
                     </button>
                     {browserView === 'authgate' && (
-                        <div className="px-4 py-1.5 rounded-t-lg text-[10.5px] font-extrabold flex items-center gap-1.5 bg-[#161a35] text-red-300 border-t border-x border-white/5 select-none animate-fade-in animate-pulse">
-                            <Lock size={10} className="text-red-400" />
-                            <span>辽宁工大 - 统一身份验证</span>
+                        <div className="px-4 py-1.5 rounded-t-lg text-[10.5px] font-extrabold flex items-center gap-1.5 bg-[#161a35] text-[#39ff14] border-t border-x border-white/5 select-none animate-fade-in animate-pulse">
+                            <Lock size={10} className="text-[#39ff14]" />
+                            <span>安全科技创新协会验证</span>
                         </div>
                     )}
                 </div>
@@ -558,10 +558,9 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                 </div>
 
                 {/* Fully Editable Address Input Field */}
-                <div className="flex-1 bg-black/45 border border-white/15 rounded-lg py-1 px-3.5 text-xs text-white/90 font-mono flex items-center gap-1.5 shadow-inner overflow-hidden select-all">
-                    <Lock size={11} className="text-[#10b981]" />
-                    <span className="text-[#10b981] font-bold select-none text-[11px]">https://</span>
-                    <span className="flex-1 truncate">{browserUrlField}</span>
+                <div className="flex-1 bg-black/45 border border-white/15 rounded-lg py-1.5 px-3.5 text-xs text-white/90 font-sans flex items-center gap-1.5 shadow-inner overflow-hidden select-all">
+                    <Lock size={11} className="text-[#39ff14]" />
+                    <span className="flex-1 font-bold text-slate-100 text-[11px] tracking-wide">安全科技创新协会验证</span>
                 </div>
             </div>
 
@@ -599,8 +598,8 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         CAS
                                     </div>
                                     <div>
-                                        <h1 className="text-base font-extrabold tracking-wider leading-none">高校联盟联合验证中心</h1>
-                                        <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">统一验证 PORTAL ACCESS GATE</p>
+                                        <h1 className="text-base font-extrabold tracking-wider leading-none">安全科技创新协会验证</h1>
+                                        <p className="text-[11px] font-bold opacity-80 mt-1 uppercase tracking-wider">星河统一验证中心 PORTAL ACCESS GATE</p>
                                     </div>
                                 </div>
                                 {isPortalAuthenticated && portalUser ? (
@@ -658,16 +657,16 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         </div>
 
                                         <div>
-                                            <h3 className="text-xl font-black text-emerald-800 leading-tight">学校 CAS 凭证授权建立成功</h3>
-                                            <p className="text-xs text-slate-400 uppercase tracking-widest font-mono mt-1">LNTU UNIFIED SSO SECURITY HANDSHAKE COMPLETED</p>
+                                            <h3 className="text-xl font-black text-emerald-800 leading-tight">安全科技创新协会授权证书建立成功</h3>
+                                            <p className="text-xs text-slate-400 uppercase tracking-widest font-mono mt-1">XINGHE UNIFIED SSO SECURITY HANDSHAKE COMPLETED</p>
                                         </div>
 
                                         <div className="bg-[#f0f9f4] border-l-4 border-emerald-500 rounded-r-xl p-4.5 text-left text-xs text-slate-700 leading-relaxed font-sans space-y-2.5 shadow-inner">
                                             <p className="font-bold text-emerald-800 flex items-center gap-1 select-none">
-                                                <span>🛡️ 辽宁工程技术大学统一验证中心：</span>
+                                                <span>🛡️ 安全科技创新协会验证中心：</span>
                                                 <span className="text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold px-1.5 py-0.2 rounded">安全互信状态已激活</span>
                                             </p>
-                                            <p>尊敬的 <strong>{portalUser.name}</strong> 成员，您已通过辽宁工程技术大学统一身份中心。当前登录客户端已经成功校验单点登录令牌 (SSO Ticket)，并顺利授权您进入 <strong>星河安全科技创新协会</strong> 的后台系统空间。</p>
+                                            <p>尊敬的 <strong>{portalUser.name}</strong> 成员，您已通过安全科技创新协会统一验证。当前登录客户端已经成功校验单点登录令牌 (SSO Ticket)，并顺利授权您进入 <strong>星河安全科技创新协会</strong> 的后台系统空间。</p>
                                             
                                             <div className="border-t border-emerald-100/60 pt-2.5 mt-2 text-[11px] font-mono grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-slate-600 select-all">
                                                 <div>学籍账号：<span className="font-bold text-slate-800">{portalUser.username}</span></div>
@@ -698,12 +697,12 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         <div className="w-16 h-16 bg-[#193c72]/5 text-[#193c72] rounded-full flex items-center justify-center mx-auto mb-2 border border-[#193c72]/10 shadow-inner">
                                             🏫
                                         </div>
-                                        <h3 className="text-xl font-black text-[#193c72] leading-tight">高校联盟中心 - 安全科学与技术研究院</h3>
-                                        <p className="text-xs text-slate-500 uppercase tracking-widest font-mono">SCHOOL OF SAFETY SCIENCE AND ENGINEERING</p>
+                                        <h3 className="text-xl font-black text-[#193c72] leading-tight">安全科技创新协会验证</h3>
+                                        <p className="text-xs text-slate-500 uppercase tracking-widest font-mono">XINGHE SAFETY SCIENCE STUDY CENTER</p>
 
                                         <div className="bg-[#f0f4f9] border-l-4 border-orange-500 rounded-r-xl p-4 text-left text-xs text-slate-700 leading-relaxed font-sans mt-4">
                                             <p className="font-bold text-[#193c72] mb-1">📢 星河科创防泄漏统一身份验证通告 :</p>
-                                            请安全科学与工程学院（安全工程专业、能源化学专业、应急技术与管理专业）技术研习新晋成员，前往 <strong>统一身份认证网关(CAS / WebVPN)</strong> 登录账号以下发安全证书。首次入库成员可切换申请注册成员选项进行提报建档。
+                                            请星河安全科技创新协会各研究组（安全工程组、能源化学组、应急管理与技术组）技术研习新晋成员，前往 <strong>统一身份验证网关 (安全科技创新协会验证)</strong> 登录账号以下发安全证书。首次入库成员可切换申请注册成员选项进行提报建档。
                                         </div>
 
                                         <button 
@@ -711,7 +710,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                             className="mt-6 bg-[#193c72] hover:bg-[#112950] hover:scale-[1.03] active:scale-[0.98] text-white font-extrabold tracking-wider py-4 px-10 rounded-xl shadow-lg shadow-blue-900/10 transition-all cursor-pointer text-xs flex items-center gap-1.5 mx-auto"
                                         >
                                             <Lock size={12} className="animate-pulse text-orange-400" />
-                                            <span>登入统一身份认证认证网关 (CAS / WebVPN Central)</span>
+                                            <span>登入安全科技创新协会验证中心</span>
                                             <ArrowRight size={12} />
                                         </button>
                                     </div>
@@ -778,10 +777,10 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         <div>
                                             {/* LNTU CAS Standard Header */}
                                             <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-white/10 select-none">
-                                                <div className="w-9 h-9 rounded-full bg-white text-[#b22222] font-black flex items-center justify-center shadow-lg text-sm">CAS</div>
+                                                <div className="w-9 h-9 rounded-full bg-slate-900 border border-[#39ff14]/30 text-[#39ff14] font-black flex items-center justify-center shadow-lg text-xs font-mono">SEC</div>
                                                 <div className="leading-tight">
-                                                    <h3 className="text-[13px] font-extrabold tracking-wider">高校联盟验证中心 CAS</h3>
-                                                    <p className="text-[9.5px] text-[#ff8080] font-bold tracking-widest uppercase mt-0.5">CAS 统一身份认证系统</p>
+                                                    <h3 className="text-[13px] font-extrabold tracking-wider">安全科技创新协会验证</h3>
+                                                    <p className="text-[9.5px] text-[#39ff14] font-bold tracking-widest uppercase mt-0.5 font-mono">Xinghe Security Verification</p>
                                                 </div>
                                             </div>
 
@@ -1011,11 +1010,11 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                 <div className="my-auto pt-14 space-y-7">
                                     {/* Red circular center logo */}
                                     <div className="text-center space-y-2.5 select-none">
-                                        <div className="w-14 h-14 bg-[#b22222] text-white rounded-full flex items-center justify-center font-black mx-auto shadow-md scale-102">
-                                            LNTU
+                                        <div className="w-14 h-14 bg-slate-900 border border-[#39ff14]/30 text-[#39ff14] rounded-full flex items-center justify-center font-black mx-auto shadow-md scale-102 font-mono text-sm">
+                                            SEC
                                         </div>
-                                        <h2 className="text-lg font-black text-slate-900 tracking-wide">辽宁工程技术大学</h2>
-                                        <p className="text-[10px] text-[#b22222] font-black uppercase tracking-widest mt-0.5 leading-none">CAS Unified Authentication</p>
+                                        <h2 className="text-lg font-black text-slate-900 tracking-wide">安全科技创新协会验证</h2>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 leading-none font-mono">XINGHE SECURITY VALIDATION SYSTEM</p>
                                     </div>
 
                                     {/* Mobile error layout */}
@@ -1074,8 +1073,8 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                 </div>
 
                                 {/* Footer copyright mobile */}
-                                <div className="text-[10px] text-slate-400 text-center select-none pt-4">
-                                    中国·辽宁工程技术大学 统一身份安全中心
+                                <div className="text-[10px] text-slate-400 text-center select-none pt-4 font-sans">
+                                    星河安全科技创新协会 统一身份验证
                                 </div>
                             </div>
                         </motion.div>
