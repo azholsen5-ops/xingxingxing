@@ -833,6 +833,33 @@ body.light-theme .nav-club-name {
     filter: brightness(0);
 }
 
+/* Future Designer Awards Logo Adaptive Styling */
+.dark-text-adapt {
+    color: #ffffff;
+    transition: color 0.5s ease;
+}
+
+.dark-text-adapt-muted {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.5s ease;
+}
+
+.nav-divider {
+    transition: background-color 0.5s ease;
+}
+
+body.light-theme .dark-text-adapt {
+    color: #1a1a1a !important;
+}
+
+body.light-theme .dark-text-adapt-muted {
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+body.light-theme .nav-divider {
+    background-color: rgba(0, 0, 0, 0.15) !important;
+}
+
 /* Specific styling when mobile drawer is open to match dark menu drawer */
 header.menu-open .nav-club-name {
     filter: brightness(0) invert(1) !important;

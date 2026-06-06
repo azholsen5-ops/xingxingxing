@@ -494,7 +494,7 @@ function App() {
     // --- Translations ---
     const t = {
         zh: {
-            logo_text: "星河科技创新协会", nav_intro: "团队简介", nav_advisor: "指导教师", nav_history: "发展历程", nav_style: "团队风采", nav_experience: "经验分享", nav_achieve: "成果展示", nav_members: "团队成员", nav_join: "加入我们", nav_contact: "联系我们", title_teachers: "Our Teachers", advisor_1_title: "首席指导教师", advisor_2_title: "技术指导教师", advisor_3_title: "创新指导教师", history_scroll: "滚动探索", history_fg: "星河协会<br>科技发展历程", footer_copyright: "© 2026 安全学院星河科技创新协会 版权所有",
+            logo_text: "星河科技创新协会", nav_intro: "团队简介", nav_advisor: "指导教师", nav_history: "发展历程", nav_style: "团队风采", nav_experience: "经验分享", nav_achieve: "成果展示", nav_members: "团队成员", nav_join: "加入我们", nav_contact: "联系我们", title_teachers: "Our Teachers", advisor_1_title: "首席指导教师", advisor_2_title: "技术指导教师", advisor_3_title: "创新指导教师", history_scroll: "滚动探索", history_fg: "星河协会<br>科技发展历程", footer_copyright: "© 2026 星河科技创新协会 版权所有",
             history_1: "协会成立，开启安全工程新篇章", history_2: "智能监测线上首开先河", history_3: "建立中国首条无害化安全生产线", history_4: "市场排名领先，成果显著", history_5: "动力环技术取得重大突破",
             slider_1: "探索安全科技无限可能<br>用创新解决实际问题",
             slider_2: "星河科技创新协会<br>凝心聚力 共创未来",
@@ -511,11 +511,11 @@ function App() {
             hall_item_2_title: "国家级实用新型专利",
             hall_item_2_desc: "协会成员自主研发的“一种多功能安全监测传感器”获得国家知识产权局授权，标志着技术成果转化的重大突破。",
             hall_item_3_title: "互联网+金奖",
-            hall_item_3_desc: "在大学生创新创业大赛中，我们的智慧安全云平台项目获得了专家评委的一致好评。",
-            hall_item_4_title: "年度优秀学生社团",
-            hall_item_4_desc: "连续三年被评为校级“十佳社团”，在学术氛围、科技创新和社会实践方面均表现卓越。",
+            hall_item_3_desc: "在全国创新创业大赛中，我们的智慧安全云平台项目获得了专家评委的一致好评。",
+            hall_item_4_title: "年度优秀科创社团",
+            hall_item_4_desc: "连续三年被评为“十佳社团”，在学术氛围、科技创新和社会实践方面均表现卓越。",
             hero_mission: "使命", hero_mission_desc: "以科技守护安全，用创新驱动未来",
-            hero_vision: "愿景", hero_vision_desc: "打造国内领先的大学生科创孵化平台",
+            hero_vision: "愿景", hero_vision_desc: "打造国内领先的科创孵化平台",
             hero_values: "价值观", hero_values_desc: "求实、创新、协作、卓越",
             hero_research: "研究方向", hero_research_desc: "智能监测、机器人、安全系统工程",
             experience_title: "光耀星河 · 经验分享记录",
@@ -553,11 +553,11 @@ function App() {
             hall_item_2_title: "National Utility Model Patent",
             hall_item_2_desc: "A 'multi-functional safety monitoring sensor' independently developed by association members was authorized by the State Intellectual Property Office.",
             hall_item_3_title: "Internet+ Gold Award",
-            hall_item_3_desc: "In the College Students' Innovation and Entrepreneurship Competition, our smart safety cloud platform project received unanimous praise.",
-            hall_item_4_title: "Outstanding Student Society",
+            hall_item_3_desc: "In the National Innovation and Entrepreneurship Competition, our smart safety cloud platform project received unanimous praise.",
+            hall_item_4_title: "Outstanding Sci-Tech Society",
             hall_item_4_desc: "Voted as one of the 'Top Ten Societies' for three consecutive years, excelling in academic atmosphere and technological innovation.",
             hero_mission: "Mission", hero_mission_desc: "Protect safety with tech, drive future with innovation",
-            hero_vision: "Vision", hero_vision_desc: "Build a leading tech innovation platform for students",
+            hero_vision: "Vision", hero_vision_desc: "Build a leading tech innovation platform",
             hero_values: "Values", hero_values_desc: "Truth, Innovation, Collaboration, Excellence",
             hero_research: "Research", hero_research_desc: "Smart Monitoring, Robotics, Safety Engineering",
             experience_title: "Xinghe Glory · Experience Sharing",
@@ -581,7 +581,7 @@ function App() {
 
     const slides = [
         { type: 'galaxy', text: lang === 'zh' ? '探索星河<br>科技守护安全' : 'Explore the Galaxy<br>Tech Guarding Safety' },
-        { type: 'video', src: 'https://res.cloudinary.com/dtwkzeixa/video/upload/f_auto,q_auto/微信视频2026-03-14_155822_614_jzhor0.mp4', text: t[lang].slider_1 },
+        { type: 'image', src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80', text: t[lang].slider_1 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbs3V.jpg', text: t[lang].slider_2 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekbfE9.jpg', text: t[lang].slider_3 },
         { type: 'image', src: 'https://s41.ax1x.com/2026/03/12/pekb2B4.jpg', text: t[lang].slider_4 },
@@ -1986,12 +1986,39 @@ function App() {
             {/* Header */}
             <header className={`${scrolled ? 'scrolled' : ''} ${isMenuOpen ? 'menu-open' : ''}`}>
                 <div className="header-content">
-                    <div className="logo h-16 flex items-center">
+                    <div className="logo h-16 flex items-center gap-3">
                         <img 
                             src={clubName} 
                             alt="星河科技创新协会名称" 
                             className="h-11 md:h-14 w-auto object-contain nav-club-name transition-all duration-300 hover:scale-105" 
                         />
+                        <div className="h-6 w-[1.5px] bg-white/20 self-center hidden sm:block nav-divider"></div>
+                        <div className="hidden sm:flex items-center gap-2 select-none group hover:scale-105 transition-all duration-300">
+                            {/* NCDA Logo SVG */}
+                            <svg viewBox="0 0 100 100" className="h-[28px] w-[28px] shrink-0 rounded-[4px] shadow-sm overflow-hidden" aria-label="未来设计师">
+                                <rect width="100" height="100" fill="#E60012" />
+                                <g fill="#FFFFFF">
+                                    {/* Center vertical column of 未 */}
+                                    <rect x="45" y="16" width="10" height="68" rx="1.5" />
+                                    
+                                    {/* Top pair of branches curved upwards */}
+                                    <path d="M 45,28 C 33,26 21,23 15,22 C 18,27 30,34 45,34 Z" />
+                                    <path d="M 55,28 C 67,26 79,23 85,22 C 82,27 70,34 55,34 Z" />
+
+                                    {/* Middle pair of branches curved upwards */}
+                                    <path d="M 45,46 C 31,44 19,41 12,40 C 15,45 28,52 45,52 Z" />
+                                    <path d="M 55,46 C 69,44 81,41 88,40 C 85,45 72,52 55,52 Z" />
+
+                                    {/* Bottom pair of branches curved upwards */}
+                                    <path d="M 45,64 C 30,62 17,59 10,58 C 13,63 26,70 45,70 Z" />
+                                    <path d="M 55,64 C 70,62 83,59 90,58 C 87,63 74,70 55,70 Z" />
+                                </g>
+                            </svg>
+                            <div className="flex flex-col text-left">
+                                <span className={`text-[11px] font-black tracking-widest text-white leading-none dark-text-adapt ${lang === 'en' ? 'hidden' : 'block'}`}>未来设计师大赛</span>
+                                <span className="text-[5.5px] font-black tracking-normal text-white/50 leading-none mt-0.5 dark-text-adapt-muted">FUTURE DESIGNER AWARDS</span>
+                            </div>
+                        </div>
                     </div>
                     <div className="menu-btn" onClick={toggleMenu}>
                         {isMenuOpen ? <X /> : <Menu />}
@@ -2599,11 +2626,11 @@ function App() {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <span className="px-3 py-1 bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold rounded-full">学业规划</span>
+                                                    <span className="px-3 py-1 bg-[#39FF14]/25 text-[#39FF14] text-xs font-bold rounded-full">发展规划</span>
                                                     <span className="text-white/40 text-sm">分享人：路某某</span>
                                                 </div>
-                                                <h4 className="text-xl font-bold mb-3 text-white">《大学规划经验分享会》</h4>
-                                                <p className="text-white/60 text-sm leading-relaxed">核心内容：从专业课学习再到夏令营的参加选择，面试心得以及心态的调整。帮助大一、大二同学明确奋斗目标。</p>
+                                                <h4 className="text-xl font-bold mb-3 text-white">《学术与科创规划经验分享会》</h4>
+                                                <p className="text-white/60 text-sm leading-relaxed">核心内容：从专业课程进阶到研发夏令营，再到实战面试心得与心态调整。帮助新晋成员明确奋斗目标。</p>
                                             </div>
                                         </div>
                                     </div>
@@ -2811,10 +2838,10 @@ function App() {
                             </div>
                             
                             {[
-                                { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2024", category: "National", project: "矿山智能巡检机器人", desc: "该项目在挑战杯全国大学生课外学术科技作品竞赛中荣获国家级奖项。", tech: ["AI视觉", "自主导航", "5G通信"] },
+                                { id: 1, name: "国家级奖项", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2024", category: "National", project: "矿山智能巡检机器人", desc: "该项目在挑战杯全国学术科技作品竞赛中荣获国家级奖项。", tech: ["AI视觉", "自主导航", "5G通信"] },
                                 { id: 2, name: "省级一等奖", img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Provincial", project: "智慧安全云平台", desc: "基于大数据与云计算的安全监测平台，获得辽宁省科创竞赛一等奖。", tech: ["大数据", "云计算", "实时监测"] },
                                 { id: 3, name: "创新杯金奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Excellence", project: "多功能安全传感器", desc: "自主研发的新型传感器，解决了极端环境下的数据采集难题。", tech: ["硬件开发", "传感器技术", "低功耗设计"] },
-                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2025/03/12/peApMMn.jpg", year: "2025", category: "Team", project: "星河科创团队", desc: "协会团队因在年度科技创新活动中的卓越表现，被评为校级优秀团队。", tech: ["团队协作", "项目管理", "创新思维"] },
+                                { id: 4, name: "优秀团队奖", img: "https://s41.ax1x.com/2025/03/12/peApMMn.jpg", year: "2025", category: "Team", project: "星河科创团队", desc: "协会团队因在年度科技创新活动中的卓越表现，被评为协会年度卓越科创团队。", tech: ["团队协作", "项目管理", "创新思维"] },
                                 { id: 5, name: "技术突破奖", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600", year: "2024", category: "Tech", project: "动力环技术优化", desc: "在动力环核心算法上取得重大突破，大幅提升了系统响应速度。", tech: ["算法优化", "控制理论", "仿真模拟"] },
                                 { id: 6, name: "专利授权证书", img: "https://s41.ax1x.com/2026/03/12/peAptG4.jpg", year: "2025", category: "Patent", project: "一种智能预警装置", desc: "该发明专利已获得国家知识产权局正式授权，具有极高的实用价值。", tech: ["专利申请", "机械设计", "电子电路"] },
                                 { id: 7, name: "社会实践奖", img: "https://s41.ax1x.com/2026/03/12/peApuxs.jpg", year: "2024", category: "Social", project: "安全科普进社区", desc: "团队深入社区开展安全知识普及活动，获得社会各界一致好评。", tech: ["社会实践", "公益科普", "沟通表达"] },
@@ -2984,7 +3011,7 @@ function App() {
                             </div>
                             <div className="md:w-1/2">
                                 <h4 className="text-4xl font-black tracking-tighter mb-4">星河科技创新协会2026春季招新正式启动</h4>
-                                <p className="text-white/60 leading-relaxed mb-6">新学期，新起点！星河科创协会面向全校招募热爱科技、勇于创新的你。加入我们，共同探索安全科技的星辰大海。</p>
+                                <p className="text-white/60 leading-relaxed mb-6">新学期，新起点！星河科创协会面向全体热爱科技、勇于创新的研发爱好者招募你。加入我们，共同探索安全科技的星辰大海。</p>
                                 <a href="https://mp.weixin.qq.com/s/hyQJXvFv8imqWwcZDaGPHw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#39FF14] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>
                         </div>
@@ -2997,7 +3024,7 @@ function App() {
                                 </div>
                             </div>
                             <div className="md:w-1/2 text-right">
-                                <h4 className="text-4xl font-black tracking-tighter mb-4">我院学生在“挑战杯”省级选拔赛中斩获佳绩</h4>
+                                <h4 className="text-4xl font-black tracking-tighter mb-4">星河科创团队在“挑战杯”省级选拔赛中斩获佳绩</h4>
                                 <p className="text-white/60 leading-relaxed mb-6">由星河协会成员组成的参赛团队凭借“智能矿山预警系统”在省级选拔赛中脱颖而出，成功晋级国赛。</p>
                                 <a href="https://mp.weixin.qq.com/s/YOUR_ARTICLE_ID_2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 justify-end text-[#39FF14] font-bold uppercase tracking-widest text-xs">阅读更多 <ChevronRight size={16} /></a>
                             </div>

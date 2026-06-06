@@ -44,7 +44,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
     const [browserActiveTab, setBrowserActiveTab] = useState<'jwzx' | 'xinghe' | 'webvpn'>('webvpn');
     const [browserLoading, setBrowserLoading] = useState(false);
     const [browserLoadingProgress, setBrowserLoadingProgress] = useState(0);
-    const [browserUrlField, setBrowserUrlField] = useState('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+    const [browserUrlField, setBrowserUrlField] = useState('webvpn.xinghe-safety.com/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.xinghe-safety.com%2Flogin%3Fcas_login%3Dtrue');
 
     // Simulated SSO CAS Redirect States
     const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
@@ -122,7 +122,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                 clearInterval(interval);
                 setBrowserActiveTab('webvpn');
                 setBrowserView('authgate');
-                setBrowserUrlField('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+                setBrowserUrlField('webvpn.xinghe-safety.com/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.xinghe-safety.com%2Flogin%3Fcas_login%3Dtrue');
                 setBrowserLoading(false);
             }
             setBrowserLoadingProgress(progress);
@@ -136,7 +136,7 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
             setBrowserActiveTab('webvpn');
             setBrowserLoading(false);
             setBrowserLoadingProgress(0);
-            setBrowserUrlField('webvpn.lntu.edu.cn/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.lntu.edu.cn%2Flogin%3Fcas_login%3Dtrue');
+            setBrowserUrlField('webvpn.xinghe-safety.com/https/77726476706e69737468656265737421f1e2559434357a467b1ac7a09641367b918300a4219f/authserver/login?service=https%3A%2F%2Fwebvpn.xinghe-safety.com%2Flogin%3Fcas_login%3Dtrue');
             resetStates();
         }
     }, [isOpen]);
@@ -955,13 +955,13 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                             )}
 
                                             <div className="text-[10px] text-white/30 text-center mt-3 select-none">
-                                                登录即代表您已自动阅读并接受星河协会教务验证保密守则条令
+                                                登录即代表您已自动阅读并接受星河协会验证保密守则条令
                                             </div>
                                         </div>
 
                                         {/* Footer copyright */}
                                         <div className="text-[10px] text-white/20 text-center mt-4">
-                                            中国·阜新·辽宁工程技术大学 © 统一身份认证
+                                            星河科技创新协会 © 统一知识与身份认证系统
                                         </div>
                                     </div>
 
@@ -1065,8 +1065,8 @@ const MemberAuthModal: React.FC<MemberAuthModalProps> = ({ isOpen, onClose, onSu
                                         <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); }} className="hover:underline">
                                             {mode === 'login' ? '首次登录：注册激活' : '返回常规登录'}
                                         </button>
-                                        <button onClick={() => { setBrowserView('portal'); setBrowserUrlField('jwzx.lntu.edu.cn/'); }} className="hover:underline flex items-center gap-0.5">
-                                            <span>星河教务门户</span>
+                                        <button onClick={() => { setBrowserView('portal'); setBrowserUrlField('portal.xinghe-safety.com/'); }} className="hover:underline flex items-center gap-0.5">
+                                            <span>星河智慧研学门户</span>
                                             <ArrowRight size={10} />
                                         </button>
                                     </div>
